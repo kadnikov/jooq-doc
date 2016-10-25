@@ -20,6 +20,7 @@ module.exports = {
             './bower_components/console-polyfill/index.js',
             './bower_components/lodash/dist/lodash.min.js',
             './bower_components/jquery/dist/jquery.min.js',
+            
             './bower_components/momentjs/min/moment.min.js',
             './bower_components/angular/angular.min.js',
             './bower_components/angular-i18n/angular-locale_fi-fi.js',
@@ -37,7 +38,18 @@ module.exports = {
             './bower_components/angular-ui-utils/ui-utils-ieshiv.min.js',
             './bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js',
             './bower_components/angular-growl/build/angular-growl.min.js',
-            './bower_components/angular-utils-pagination/dirPagination.js'
+            './bower_components/angular-utils-pagination/dirPagination.js',
+            
+            './bower_components/jquery/dist/jquery.ui.widget.js',
+            './bower_components/jquery/dist/tmpl.min.js',
+            './bower_components/jquery/dist/load-image.all.min.js',
+            './bower_components/jquery/dist/jquery.iframe-transport.js',
+            './bower_components/jquery/dist/jquery.fileupload.js',
+            './bower_components/jquery/dist/jquery.fileupload-process.js',
+            './bower_components/jquery/dist/jquery.fileupload-image.js',
+            './bower_components/jquery/dist/jquery.fileupload-audio.js',
+            './bower_components/jquery/dist/jquery.fileupload-video.js',
+            './bower_components/jquery/dist/jquery.fileupload-validate.js'
         ]
     },
 

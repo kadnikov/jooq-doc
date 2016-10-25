@@ -4,6 +4,7 @@ angular.module('app.todo.controllers', [])
     .constant('paginationConfig', {
         pageSize: 5
     })
+    
     .config(['$stateProvider',
         function ($stateProvider) {
             $stateProvider
@@ -72,7 +73,6 @@ angular.module('app.todo.controllers', [])
                 });
         }
     ])
-
     .controller('TodoListController', ['$scope', '$state', 'todos',
         function ($scope, $state, todos) {
             console.log('Rendering todo entry list page.');

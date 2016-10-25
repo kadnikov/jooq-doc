@@ -30,7 +30,7 @@
     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
         <property name="dataSource" ref="lazyConnectionDataSource"/>
     </bean>
-
+    
     <tx:annotation-driven/>
 
     <bean class="org.jooq.impl.DataSourceConnectionProvider" name="connectionProvider">
