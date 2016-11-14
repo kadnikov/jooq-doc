@@ -48,6 +48,8 @@
         },
         "title": "Title",
         "title.placeholder": "Enter title",
+        "type": "Type",
+        "type.placeholder": "Enter type",
         "data": "JSON data",
         "data.placeholder": "Enter data in JSON format"
     }

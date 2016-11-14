@@ -1,12 +1,101 @@
-<form ng-show="todo" name="todoForm" role="form"><div class="form-group"><label for="title" translate="todo.title"></label>: <input id="title" class="form-control" name="title" type="text" placeholder="{{'todo.title.placeholder' | translate}}" ng-model="todo.title" required="" ng-maxlength="100"><div class="ng-error" ng-show="todoForm.title.$dirty && todoForm.title.$invalid"><small class="ng-error" translate="todo.messages.title.required" ng-show="todoForm.title.$error.required"></small> <small class="ng-error" translate="todo.messages.title.maxLength" ng-show="todoForm.title.$error.maxlength"></small></div></div><div class="form-group"><label for="description" translate="todo.description"></label>: <textarea id="description" class="form-control" name="description" placeholder="{{'todo.description.placeholder' | translate}}" ng-model="todo.description" ng-maxlength="500">
+<form ng-show="todo" name="todoForm" role="form" >
+    <div class="form-group">
+        <label for="title" translate="todo.title"></label>:
+        <input id="title"
+               class="form-control"
+               name="title"
+               type="text"
+               placeholder="{{'todo.title.placeholder' | translate}}"
+               ng-model="todo.title"
+               required
+               ng-maxlength="100"/>
+        <div class="ng-error" ng-show="todoForm.title.$dirty && todoForm.title.$invalid">
+            <small class="ng-error"
+                   translate="todo.messages.title.required"
+                   ng-show="todoForm.title.$error.required"></small>
+            <small class="ng-error"
+                   translate="todo.messages.title.maxLength"
+                   ng-show="todoForm.title.$error.maxlength"></small>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="type" translate="todo.type"></label>:
+        <input id="type"
+               class="form-control"
+               name="type"
+               type="text"
+               placeholder="{{'todo.type.placeholder' | translate}}"
+               ng-model="todo.type"
+               required
+               ng-maxlength="100"/>
+        <div class="ng-error" ng-show="todoForm.type.$dirty && todoForm.type.$invalid">
+            <small class="ng-error"
+                   translate="todo.messages.type.required"
+                   ng-show="todoForm.type.$error.required"></small>
+            <small class="ng-error"
+                   translate="todo.messages.type.maxLength"
+                   ng-show="todoForm.type.$error.maxlength"></small>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="description" translate="todo.description"></label>:
+        <textarea id="description"
+                  class="form-control"
+                  name="description"
+                  placeholder="{{'todo.description.placeholder' | translate}}"
+                  ng-model="todo.description"
+                  ng-maxlength="500"/>
         <div class="ng-error" ng-show="todoForm.description.$dirty && todoForm.description.$invalid">
-            <small class="ng-error" translate="todo.messages.description.maxLength" ng-show="todoForm.description.$error.maxlength"></small>
+            <small class="ng-error"
+                   translate="todo.messages.description.maxLength"
+                   ng-show="todoForm.description.$error.maxlength"></small>
         </div>
-    </textarea></div><div class="form-group"><label for="data" translate="todo.data"></label>: <textarea id="data" class="form-control" name="data" placeholder="{{'todo.data.placeholder' | translate}}" ng-model="todo.data" ng-maxlength="500">
+    </div>
+    <div class="form-group">
+        <label for="data" translate="todo.data"></label>:
+        <textarea id="data"
+                  class="form-control"
+                  name="data"
+                  placeholder="{{'todo.data.placeholder' | translate}}"
+                  ng-model="todo.data"
+                  ng-maxlength="500"/>
         <div class="ng-error" ng-show="todoForm.data.$dirty && todoForm.data.$invalid">
-            <small class="ng-error" translate="todo.messages.data.maxLength" ng-show="todoForm.data.$error.maxlength"></small>
+            <small class="ng-error"
+                   translate="todo.messages.data.maxLength"
+                   ng-show="todoForm.data.$error.maxlength"></small>
         </div>
-    </textarea></div><link rel="stylesheet" href="/frontend/css/jquery.fileupload.css"><link rel="stylesheet" href="/frontend/css/jquery.fileupload-ui.css"><span class="btn btn-success fileinput-button"><i class="glyphicon glyphicon-plus"></i> <span>Select files...</span><input id="fileupload" type="file" name="files[]" multiple=""></span><br><br><div id="progress" class="progress"><div class="progress-bar progress-bar-success"></div></div><div id="files" class="files"></div><br><div class="form-group"><button type="button" class="btn btn-primary" translate="pages.add.save.todo.button" ng-disabled="todoForm.$invalid || !todoForm.$dirty" ng-click="saveTodo()"></button></div></form><script>
+    </div>
+    
+    
+    <link rel="stylesheet" href="/frontend/css/jquery.fileupload.css">
+    <link rel="stylesheet" href="/frontend/css/jquery.fileupload-ui.css">
+        <!-- The fileinput-button span is used to style the file input field as button -->
+    <span class="btn btn-success fileinput-button">
+        <i class="glyphicon glyphicon-plus"></i>
+        <span>Select files...</span>
+        <!-- The file input field used as target for the file upload widget -->
+        <input id="fileupload" type="file" name="files[]" multiple>
+    </span>
+    <br>
+    <br>
+    <!-- The global progress bar -->
+    <div id="progress" class="progress">
+        <div class="progress-bar progress-bar-success"></div>
+    </div>
+    <!-- The container for the uploaded files -->
+    <div id="files" class="files"></div>
+    <br>  
+    
+    <div class="form-group">
+        <button type="button"
+                class="btn btn-primary"
+                translate="pages.add.save.todo.button"
+                ng-disabled="todoForm.$invalid || !todoForm.$dirty"
+                ng-click="saveTodo()"></button>
+    </div>
+</form>
+
+<script>
 /*jslint unparam: true, regexp: true */
 /*global window, $ */
 $(function () {

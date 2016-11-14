@@ -38,6 +38,7 @@ public class DocumentDTO {
     @Length(max = 100)
     private String title;
     
+    private String type;
     
     @JsonDeserialize(using = CustomJsonDataDeserializer.class)
     @JsonSerialize(using = CustomJsonDataSerializer.class)
@@ -66,6 +67,10 @@ public class DocumentDTO {
     public String getTitle() {
         return title;
     }
+    
+	public String getType() {
+		return type;
+	}
 
     public JsonNode getData() {
 		return data;
@@ -91,6 +96,10 @@ public class DocumentDTO {
         this.title = title;
     }
     
+    public void setType(String type) {
+        this.type = type;
+    }
+	
     public void setData(JsonNode data) {
 		this.data = data;
 	}
@@ -107,4 +116,5 @@ public class DocumentDTO {
                 .build();
 
     }
+
 }

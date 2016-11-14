@@ -50,4 +50,8 @@ public interface DocumentRepository {
      * @throws ru.doccloud.document.exception.DocumentNotFoundException If the updated Document entry is not found.
      */
     public Document update(Document todoEntry);
+
+	public List<Document> findAllByType(String type);
+	
+	public List<Document> findAllByParent(Integer parent);
 }

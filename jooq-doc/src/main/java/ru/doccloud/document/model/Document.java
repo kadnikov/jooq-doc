@@ -12,7 +12,11 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 public class Document {
 
-    private final Long id;
+    public String getType() {
+		return type;
+	}
+
+	private final Long id;
 
     private final LocalDateTime creationTime;
 
@@ -21,6 +25,8 @@ public class Document {
     private final LocalDateTime modificationTime;
 
     private final String title;
+    
+    private final String type;
     
     private final JsonNode data;
 
@@ -42,6 +48,8 @@ public class Document {
         this.modificationTime = modificationTime;
 
         this.title = builder.title;
+        
+        this.type = builder.type;
         
         this.data = builder.data;
     }
@@ -98,6 +106,8 @@ public class Document {
 
         private String title;
         
+        private String type;
+        
         private JsonNode data;
 
         public Builder(String title) {
@@ -109,6 +119,11 @@ public class Document {
             return this;
         }
 
+        public Builder type(String type) {
+            this.type = type;
+            return this;
+        }
+        
         public Builder creationTime(Timestamp creationTime) {
             this.creationTime = creationTime;
             return this;

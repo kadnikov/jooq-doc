@@ -98,8 +98,31 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     private Document createModel(DocumentDTO dto) {
         return Document.getBuilder(dto.getTitle())
                 .description(dto.getDescription())
+                .type(dto.getType())
                 .data(dto.getData())
                 .id(dto.getId())
                 .build();
     }
+
+	@Override
+	public List<DocumentDTO> findAllByType(String type) {
+		LOGGER.info("Finding Documents by Type.");
+
+        List<Document> docEntries = repository.findAllByType(type);
+
+        LOGGER.debug("Found {} Document entries.", docEntries.size());
+
+        return transformer.convertList(docEntries, DocumentDTO.class);
+	}
+
+	@Override
+	public List<DocumentDTO> findAllByParent(Integer parentid) {
+		LOGGER.info("Finding Documents by Type.");
+
+        List<Document> docEntries = repository.findAllByParent(parentid);
+
+        LOGGER.debug("Found {} Document entries.", docEntries.size());
+
+        return transformer.convertList(docEntries, DocumentDTO.class);
+	}
 }

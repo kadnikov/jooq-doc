@@ -74,6 +74,28 @@ public class DocumentController {
 
         return documentEntries;
     }
+    
+    @RequestMapping(value = "/type/{type}", method = RequestMethod.GET)
+    public List<DocumentDTO> findByType(@PathVariable("type") String type) {
+        LOGGER.info("Finding all Documents by type");
+
+        List<DocumentDTO> documentEntries = crudService.findAllByType(type);
+
+        LOGGER.info("Found {} Document entries.");
+
+        return documentEntries;
+    }
+    
+    @RequestMapping(value = "/parent/{parentid}", method = RequestMethod.GET)
+    public List<DocumentDTO> findByParent(@PathVariable("parentid") Integer parentid) {
+        LOGGER.info("Finding all Documents by parent");
+
+        List<DocumentDTO> documentEntries = crudService.findAllByParent(parentid);
+
+        LOGGER.info("Found {} Document entries.");
+
+        return documentEntries;
+    }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public DocumentDTO findById(@PathVariable("id") Long id) {

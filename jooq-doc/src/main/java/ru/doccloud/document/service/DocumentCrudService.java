@@ -18,4 +18,8 @@ public interface DocumentCrudService {
     public DocumentDTO findById(Long id);
 
     public DocumentDTO update(DocumentDTO updated);
+
+	public List<DocumentDTO> findAllByType(String type);
+	
+	public List<DocumentDTO> findAllByParent(Integer parentid);
 }

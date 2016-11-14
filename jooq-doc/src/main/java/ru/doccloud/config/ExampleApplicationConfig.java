@@ -38,7 +38,8 @@ public class ExampleApplicationConfig implements WebApplicationInitializer {
 
         FilterRegistration.Dynamic characterEncoding = servletContext.addFilter("characterEncoding", characterEncodingFilter);
         characterEncoding.addMappingForUrlPatterns(dispatcherTypes, true, "/*");
-
+        
+        rootContext.setConfigLocation("classpath:exampleApplicationContextCMIS.xml");
         servletContext.addListener(new ContextLoaderListener(rootContext));
     }
 }
