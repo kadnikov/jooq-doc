@@ -136,6 +136,7 @@ import org.slf4j.LoggerFactory;
 import ru.doccloud.common.service.CurrentTimeDateTimeService;
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.model.Document;
+import ru.doccloud.document.model.Link;
 import ru.doccloud.document.repository.DocumentRepository;
 import ru.doccloud.document.repository.JOOQDocumentRepository;
 
@@ -450,35 +451,30 @@ public class FileBridgeRepository {
             throw new CmisConstraintException("Versioning not supported!");
         }
 
-        // get parent File
-        File parent = getFile(folderId);
-        if (!parent.isDirectory()) {
+        // get parent
+        DocumentDTO parent = getDocument(folderId);
+        if (!isFolder(parent)) {
             throw new CmisObjectNotFoundException("Parent is not a folder!");
         }
 
         // check properties
         checkNewProperties(properties, BaseTypeId.CMIS_DOCUMENT);
 
-        // check the file
         String name = FileBridgeUtils.getStringProperty(properties, PropertyIds.NAME);
-        File newFile = new File(parent, name);
-        if (newFile.exists()) {
-            throw new CmisNameConstraintViolationException("Document already exists!");
-        }
+        
+    	Document documentEntry = Document.getBuilder(name)
+                .type("document").build();
+    	Document docRes = repository.add(documentEntry);
+    	DocumentDTO doc = transformer.convert(docRes, new DocumentDTO());
+    	Link link = repository.addLink(parent.getId(), doc.getId());
 
-        // create the file
-        try {
-            newFile.createNewFile();
-        } catch (IOException e) {
-            throw new CmisStorageException("Could not create file: " + e.getMessage(), e);
-        }
 
         // write content, if available
         if (contentStream != null && contentStream.getStream() != null) {
-            writeContent(newFile, contentStream.getStream());
+            writeContent(doc, contentStream.getStream());
         }
 
-        return getId(newFile);
+        return getId(doc);
     }
 
     /**
@@ -493,17 +489,14 @@ public class FileBridgeRepository {
             throw new CmisConstraintException("Versioning not supported!");
         }
 
-        // get parent File
-        File parent = getFile(folderId);
-        if (!parent.isDirectory()) {
+     // get parent
+        DocumentDTO parent = getDocument(folderId);
+        if (!isFolder(parent)) {
             throw new CmisObjectNotFoundException("Parent is not a folder!");
         }
 
-        // get source File
-        File source = getFile(sourceId);
-        if (!source.isFile()) {
-            throw new CmisObjectNotFoundException("Source is not a document!");
-        }
+        // get source
+        DocumentDTO source = getDocument(sourceId);
 
         // check properties
         checkCopyProperties(properties, BaseTypeId.CMIS_DOCUMENT.value());
@@ -514,38 +507,33 @@ public class FileBridgeRepository {
             name = FileBridgeUtils.getStringProperty(properties, PropertyIds.NAME);
         }
         if (name == null) {
-            name = source.getName();
+            name = source.getTitle();
         }
-
-        File newFile = new File(parent, name);
-        if (newFile.exists()) {
-            throw new CmisNameConstraintViolationException("Document already exists.");
-        }
-
-        // create the file
-        try {
-            newFile.createNewFile();
-        } catch (IOException e) {
-            throw new CmisStorageException("Could not create file: " + e.getMessage(), e);
-        }
+        Document documentEntry = Document.getBuilder(name)
+                .type("document").build();
+    	Document docRes = repository.add(documentEntry);
+    	DocumentDTO doc = transformer.convert(docRes, new DocumentDTO());
+    	Link link = repository.addLink(parent.getId(), doc.getId());
 
         // copy content
         try {
-            writeContent(newFile, new FileInputStream(source));
+            writeContent(doc, new FileInputStream(source.getFilePath()));
         } catch (IOException e) {
             throw new CmisStorageException("Could not roead or write content: " + e.getMessage(), e);
         }
 
-        return getId(newFile);
+        return getId(doc);
     }
 
     /**
      * Writes the content to disc.
      */
-    private void writeContent(File newFile, InputStream stream) {
+    private void writeContent(DocumentDTO doc, InputStream stream) {
         OutputStream out = null;
         InputStream in = null;
         try {
+        	File newFile = new File(root, doc.getTitle());
+        	newFile.createNewFile();
             out = new BufferedOutputStream(new FileOutputStream(newFile), BUFFER_SIZE);
             in = new BufferedInputStream(stream, BUFFER_SIZE);
 
@@ -573,20 +561,22 @@ public class FileBridgeRepository {
         // check properties
         checkNewProperties(properties, BaseTypeId.CMIS_FOLDER);
 
-        // get parent File
-        File parent = getFile(folderId);
-        if (!parent.isDirectory()) {
+        // get parent
+        DocumentDTO parent = getDocument(folderId);
+        if (!isFolder(parent)) {
             throw new CmisObjectNotFoundException("Parent is not a folder!");
         }
 
         // create the folder
         String name = FileBridgeUtils.getStringProperty(properties, PropertyIds.NAME);
-        File newFolder = new File(parent, name);
-        if (!newFolder.mkdir()) {
-            throw new CmisStorageException("Could not create folder!");
-        }
+        Document documentEntry = Document.getBuilder(name)
+                .type("folder").build();
+    	Document docRes = repository.add(documentEntry);
+    	DocumentDTO doc = transformer.convert(docRes, new DocumentDTO());
+    	Link link = repository.addLink(parent.getId(), doc.getId());
 
-        return getId(newFolder);
+
+        return getId(doc);
     }
 
     /**
@@ -947,7 +937,7 @@ public class FileBridgeRepository {
         boolean ips = FileBridgeUtils.getBooleanParameter(includePathSegment, false);
 
         LOGGER.info("Folder ID: {}", objectId);
-        Integer parent = Integer.parseInt(objectId);
+        Long parent = Long.parseLong(objectId);
         List<Document> docEntries = repository.findAllByParent(parent);
         
         LOGGER.debug("Found {} Document entries.", docEntries.size());
@@ -1121,26 +1111,26 @@ public class FileBridgeRepository {
         boolean irps = FileBridgeUtils.getBooleanParameter(includeRelativePathSegment, false);
 
         // get the file or folder
-        File file = getFile(objectId);
+        DocumentDTO doc = getDocument(objectId);
 
         // don't climb above the root folder
-        if (root.equals(file)) {
+        if (doc.getId()==0) {
             return Collections.emptyList();
         }
 
         // set object info of the the object
         if (context.isObjectInfoRequired()) {
-            compileObjectData(context, file, null, false, false, userReadOnly, objectInfos);
+            compileObjectData(context, doc, null, false, false, userReadOnly, objectInfos);
         }
 
         // get parent folder
-        File parent = file.getParentFile();
+        DocumentDTO parent = getFirstParent(doc.getId());
         ObjectData object = compileObjectData(context, parent, filterCollection, iaa, false, userReadOnly, objectInfos);
 
         ObjectParentDataImpl result = new ObjectParentDataImpl();
         result.setObject(object);
         if (irps) {
-            result.setRelativePathSegment(file.getName());
+            result.setRelativePathSegment(doc.getTitle());
         }
 
         return Collections.<ObjectParentData> singletonList(result);
@@ -1348,7 +1338,7 @@ public class FileBridgeRepository {
         String typeId = null;
 
         // identify if the file is a doc or a folder/directory
-        if ("folder".equals(doc.getType())) {
+        if (isFolder(doc)) {
             typeId = BaseTypeId.CMIS_FOLDER.value();
             objectInfo.setBaseType(BaseTypeId.CMIS_FOLDER);
             objectInfo.setTypeId(typeId);
@@ -1402,16 +1392,26 @@ public class FileBridgeRepository {
             objectInfo.setName(name);
 
             // created and modified by
-            addPropertyString(result, typeId, filter, PropertyIds.CREATED_BY, USER_UNKNOWN);
-            addPropertyString(result, typeId, filter, PropertyIds.LAST_MODIFIED_BY, USER_UNKNOWN);
-            objectInfo.setCreatedBy(USER_UNKNOWN);
-
+            String createdBy = doc.getCreatedBy();
+            if (createdBy==null){
+            	createdBy = USER_UNKNOWN;
+            }
+            addPropertyString(result, typeId, filter, PropertyIds.CREATED_BY, createdBy);
+            
+            String modifiedBy = doc.getModifiedBy();
+            if (modifiedBy==null){
+            	modifiedBy = USER_UNKNOWN;
+            }
+            addPropertyString(result, typeId, filter, PropertyIds.LAST_MODIFIED_BY, modifiedBy);
+            objectInfo.setCreatedBy(createdBy);
+            
             // creation and modification date
             LOGGER.debug("doc.getCreationTime() - "+doc.getCreationTime());
-            GregorianCalendar lastModified = FileBridgeUtils.millisToCalendar(doc.getCreationTime().toDateTime().getMillis());
-            addPropertyDateTime(result, typeId, filter, PropertyIds.CREATION_DATE, lastModified);
+            GregorianCalendar created = FileBridgeUtils.millisToCalendar(doc.getCreationTime().toDateTime().getMillis());
+            addPropertyDateTime(result, typeId, filter, PropertyIds.CREATION_DATE, created);
+            GregorianCalendar lastModified = FileBridgeUtils.millisToCalendar(doc.getModificationTime().toDateTime().getMillis());
             addPropertyDateTime(result, typeId, filter, PropertyIds.LAST_MODIFICATION_DATE, lastModified);
-            objectInfo.setCreationDate(lastModified);
+            objectInfo.setCreationDate(created);
             objectInfo.setLastModificationDate(lastModified);
 
             // change token - always null
@@ -1419,12 +1419,12 @@ public class FileBridgeRepository {
 
             // CMIS 1.1 properties
             if (context.getCmisVersion() != CmisVersion.CMIS_1_0) {
-                addPropertyString(result, typeId, filter, PropertyIds.DESCRIPTION, null);
+                addPropertyString(result, typeId, filter, PropertyIds.DESCRIPTION, doc.getDescription());
                 addPropertyIdList(result, typeId, filter, PropertyIds.SECONDARY_OBJECT_TYPE_IDS, null);
             }
 
             // directory or file
-            if ("folder".equals(doc.getType())) {
+            if (isFolder(doc)) {
                 // base type and type name
                 addPropertyId(result, typeId, filter, PropertyIds.BASE_TYPE_ID, BaseTypeId.CMIS_FOLDER.value());
                 addPropertyId(result, typeId, filter, PropertyIds.OBJECT_TYPE_ID, BaseTypeId.CMIS_FOLDER.value());
@@ -1432,14 +1432,14 @@ public class FileBridgeRepository {
                 addPropertyString(result, typeId, filter, PropertyIds.PATH, path);
 
                 // folder properties
-                //if (!root.equals(file)) {
-                //    addPropertyId(result, typeId, filter, PropertyIds.PARENT_ID,
-                //            (root.equals(file.getParentFile()) ? ROOT_ID : fileToId(file.getParentFile())));
-                //    objectInfo.setHasParent(true);
-                //} else {
+                if (doc.getId()!=0) {
+                	DocumentDTO firstParentDoc = getFirstParent(doc.getId());
+                    addPropertyId(result, typeId, filter, PropertyIds.PARENT_ID,getId(firstParentDoc));
+                    objectInfo.setHasParent(true);
+                } else {
                     addPropertyId(result, typeId, filter, PropertyIds.PARENT_ID, null);
                     objectInfo.setHasParent(false);
-                //}
+                }
 
                 addPropertyIdList(result, typeId, filter, PropertyIds.ALLOWED_CHILD_OBJECT_TYPE_IDS, null);
             } else {
@@ -1462,7 +1462,7 @@ public class FileBridgeRepository {
                     addPropertyBoolean(result, typeId, filter, PropertyIds.IS_PRIVATE_WORKING_COPY, false);
                 }
 
-                if (doc.getDescription()==null) {
+                if (doc.getFilePath()==null) {
                     addPropertyBigInteger(result, typeId, filter, PropertyIds.CONTENT_STREAM_LENGTH, null);
                     addPropertyString(result, typeId, filter, PropertyIds.CONTENT_STREAM_MIME_TYPE, null);
                     addPropertyString(result, typeId, filter, PropertyIds.CONTENT_STREAM_FILE_NAME, null);
@@ -1492,6 +1492,12 @@ public class FileBridgeRepository {
         }
     }
     
+    private DocumentDTO getFirstParent(Long objectId) {
+	    List<Document> docEntries = repository.findParents(objectId);
+		List<DocumentDTO> docList = transformer.convertList(docEntries, DocumentDTO.class);
+		return docList.get(0);
+    }
+    
     private String getId(DocumentDTO doc) {
 		
 		return ID_PREFIX+doc.getId().toString();
@@ -1508,6 +1514,10 @@ public class FileBridgeRepository {
 
         return transformer.convert(found, new DocumentDTO());
 	}
+    
+    private boolean isFolder(DocumentDTO doc) {
+    	return "folder".equals(doc.getType());
+    }
 
 	/**
      * Gathers all base properties of a file or folder.

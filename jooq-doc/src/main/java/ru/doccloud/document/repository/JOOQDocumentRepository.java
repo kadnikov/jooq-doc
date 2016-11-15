@@ -29,9 +29,11 @@ import org.springframework.transaction.annotation.Transactional;
 import net.petrikainulainen.spring.jooq.todo.db.tables.Documents;
 import net.petrikainulainen.spring.jooq.todo.db.tables.Links;
 import net.petrikainulainen.spring.jooq.todo.db.tables.records.DocumentsRecord;
+import net.petrikainulainen.spring.jooq.todo.db.tables.records.LinksRecord;
 import ru.doccloud.common.service.DateTimeService;
 import ru.doccloud.document.exception.DocumentNotFoundException;
 import ru.doccloud.document.model.Document;
+import ru.doccloud.document.model.Link;
 /**
  * @author Andrey Kadnikov
  */
@@ -63,6 +65,23 @@ public class JOOQDocumentRepository implements DocumentRepository {
         Document returned = convertQueryResultToModelObject(persisted);
 
         LOGGER.info("Added {} todo entry", returned);
+
+        return returned;
+    }
+    
+    @Transactional
+    @Override
+    public Link addLink(Long headId, Long tailId) {
+        LOGGER.info("Adding new Link: ");
+
+        LinksRecord persisted = jooq.insertInto(LINKS,LINKS.HEAD_ID,LINKS.TAIL_ID)
+                .values(headId.intValue(),tailId.intValue())
+                .returning()
+                .fetchOne();
+
+        Link returned = new Link(persisted.getHeadId().longValue(),persisted.getTailId().longValue());
+
+        LOGGER.info("Added {} link entry", returned);
 
         return returned;
     }
@@ -237,11 +256,14 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
         for (DocumentsRecord queryResult : queryResults) {
         	Document documentEntry = Document.getBuilder(queryResult.getSysTitle())
-                    .creationTime(queryResult.getSysDateCr())
                     .description(queryResult.getSysDesc())
                     .type(queryResult.getSysType())
                     .id(queryResult.getId().longValue())
+                    .creationTime(queryResult.getSysDateCr())
                     .modificationTime(queryResult.getSysDateMod())
+                    .createdBy(queryResult.getSysAuthor())
+                    .modifiedBy(queryResult.getSysModifier())
+                    .filePath(queryResult.getSysFilePath())
                     .build();
         	documentEntries.add(documentEntry);
         }
@@ -257,6 +279,9 @@ public class JOOQDocumentRepository implements DocumentRepository {
                 .data(queryResult.getData())
                 .id(queryResult.getId().longValue())
                 .modificationTime(queryResult.getSysDateMod())
+                .createdBy(queryResult.getSysAuthor())
+                .modifiedBy(queryResult.getSysModifier())
+                .filePath(queryResult.getSysFilePath())
                 .build();
     }
 
@@ -301,19 +326,44 @@ public class JOOQDocumentRepository implements DocumentRepository {
 	}
 
 	@Override
-	public List<Document> findAllByParent(Integer parent) {
+	public List<Document> findAllByParent(Long parent) {
 		LOGGER.info("Finding all Documents by parent.");
 
 		Documents d = DOCUMENTS.as("d");
 		Links l = LINKS.as("l");
 		Documents t = DOCUMENTS.as("t");
 		
-        List<DocumentsRecord> queryResults = jooq.selectFrom(d
+        List<DocumentsRecord> queryResults = jooq.select(d.ID, d.SYS_TITLE, d.SYS_AUTHOR, d.SYS_DATE_CR, d.SYS_DATE_MOD, d.SYS_DESC, d.SYS_MODIFIER, d.SYS_FILE_PATH, d.SYS_TYPE)
+        		.from(d
         		.join(l
         				.join(t)
         				.on(t.ID.equal(l.HEAD_ID)))
         		.on(d.ID.equal(l.TAIL_ID)))
-        		.where(t.ID.equal(parent))
+        		.where(t.ID.equal(parent.intValue()))
+        		.fetchInto(DocumentsRecord.class);
+
+        List<Document> documentEntries = convertQueryResultsToModelObjects(queryResults);
+
+        LOGGER.info("Found {} Document entries", documentEntries.size());
+
+        return documentEntries;
+	}
+	
+	@Override
+	public List<Document> findParents(Long docId) {
+		LOGGER.info("Finding parent for doc.");
+
+		Documents d = DOCUMENTS.as("d");
+		Links l = LINKS.as("l");
+		Documents t = DOCUMENTS.as("t");
+		
+        List<DocumentsRecord> queryResults = jooq.select(d.ID, d.SYS_TITLE, d.SYS_AUTHOR, d.SYS_DATE_CR, d.SYS_DATE_MOD, d.SYS_DESC, d.SYS_MODIFIER, d.SYS_FILE_PATH, d.SYS_TYPE)
+        		.from(d
+        		.join(l
+        				.join(t)
+        				.on(t.ID.equal(l.TAIL_ID)))
+        		.on(d.ID.equal(l.HEAD_ID)))
+        		.where(t.ID.equal(docId.intValue()))
         		.fetchInto(DocumentsRecord.class);
 
         List<Document> documentEntries = convertQueryResultsToModelObjects(queryResults);

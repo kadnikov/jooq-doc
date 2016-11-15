@@ -10,6 +10,8 @@ import ru.doccloud.document.dto.DocumentDTO;
 public interface DocumentCrudService {
 
     public DocumentDTO add(DocumentDTO todo);
+    
+    public DocumentDTO addToFolder(DocumentDTO todo, Long id);
 
     public DocumentDTO delete(Long id);
 
@@ -21,5 +23,5 @@ public interface DocumentCrudService {
 
 	public List<DocumentDTO> findAllByType(String type);
 	
-	public List<DocumentDTO> findAllByParent(Integer parentid);
+	public List<DocumentDTO> findAllByParent(Long parentid);
 }

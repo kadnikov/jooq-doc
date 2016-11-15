@@ -26,6 +26,8 @@ public class DocumentDTO {
     @JsonDeserialize(using = CustomLocalDateTimeDeserializer.class)
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     private LocalDateTime creationTime;
+    
+    private String createdBy;
 
     @Length(max = 500)
     private String description;
@@ -34,11 +36,15 @@ public class DocumentDTO {
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     private LocalDateTime modificationTime;
 
+    private String modifiedBy;
+    
     @NotEmpty
     @Length(max = 100)
     private String title;
     
     private String type;
+    
+    private String filePath;
     
     @JsonDeserialize(using = CustomJsonDataDeserializer.class)
     @JsonSerialize(using = CustomJsonDataSerializer.class)
@@ -71,8 +77,17 @@ public class DocumentDTO {
 	public String getType() {
 		return type;
 	}
+	
 
-    public JsonNode getData() {
+    public String getCreatedBy() {
+		return createdBy;
+	}
+
+	public String getModifiedBy() {
+		return modifiedBy;
+	}
+
+	public JsonNode getData() {
 		return data;
 	}
 
@@ -99,6 +114,14 @@ public class DocumentDTO {
     public void setType(String type) {
         this.type = type;
     }
+
+	public void setModifiedBy(String modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+	
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
+	}
 	
     public void setData(JsonNode data) {
 		this.data = data;
@@ -116,5 +139,13 @@ public class DocumentDTO {
                 .build();
 
     }
+
+	public String getFilePath() {
+		return filePath;
+	}
+
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
+	}
 
 }

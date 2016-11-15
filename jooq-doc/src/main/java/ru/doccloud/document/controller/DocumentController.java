@@ -87,7 +87,7 @@ public class DocumentController {
     }
     
     @RequestMapping(value = "/parent/{parentid}", method = RequestMethod.GET)
-    public List<DocumentDTO> findByParent(@PathVariable("parentid") Integer parentid) {
+    public List<DocumentDTO> findByParent(@PathVariable("parentid") Long parentid) {
         LOGGER.info("Finding all Documents by parent");
 
         List<DocumentDTO> documentEntries = crudService.findAllByParent(parentid);

@@ -1,16 +1,3 @@
-Introduction
-==============
-
-This is an example application of my blog posts:
-
-* [Using jOOQ with Spring: CRUD](http://www.petrikainulainen.net/programming/jooq/using-jooq-with-spring-crud/)
-* [Using jOOQ with Spring: Sorting and Pagination](http://www.petrikainulainen.net/programming/jooq/using-jooq-with-spring-sorting-and-pagination/)
-
-This application has two parts:
-
-* The first part is the REST API provided by the Spring powered web application.
-* The second part is the single page application which uses AngularJS.
-
 Prerequisites
 ===============
 
@@ -50,19 +37,3 @@ After you have installed the tools that are required the build the application, 
 the following command on command prompt:
 
         mvn jetty:run -P dev
-
-Running the Tests
-===================
-
-1.  You can run unit tests by using the following command:
-
-        mvn clean test -P dev
-
-2.  You can run integration tests by using the following command:
-
-        mvn clean verify -P integration-test
-
-Credits
-=========
-
-* Kyösti Herrala. The Gulp build script and its Maven integration are based on Kyösti's ideas.

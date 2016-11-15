@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import ru.doccloud.document.model.Document;
+import ru.doccloud.document.model.Link;
 
 /**
  * @author Andrey Kadnikov
@@ -53,5 +54,9 @@ public interface DocumentRepository {
 
 	public List<Document> findAllByType(String type);
 	
-	public List<Document> findAllByParent(Integer parent);
+	public List<Document> findAllByParent(Long parent);
+
+	public List<Document> findParents(Long docId);
+
+	public Link addLink(Long headId, Long tailId);
 }

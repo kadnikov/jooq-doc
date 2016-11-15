@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.model.Document;
+import ru.doccloud.document.model.Link;
 import ru.doccloud.document.repository.DocumentRepository;
 
 /**
@@ -40,6 +41,23 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         }
         Document added = createModel(dto);
         Document persisted = repository.add(added);
+
+        LOGGER.info("Added Document entry with information: {}", persisted);
+
+        return transformer.convert(persisted, new DocumentDTO());
+    }
+    
+    @Transactional
+    @Override
+    public DocumentDTO addToFolder(DocumentDTO dto, Long folderId) {
+        LOGGER.info("Adding Document entry with information: {}", dto);
+        if (dto.getId()==null){
+        	//dto.setId(DEFAULT);
+        }
+        Document added = createModel(dto);
+        Document persisted = repository.add(added);
+        
+        Link parentLink = repository.addLink(folderId, persisted.getId());
 
         LOGGER.info("Added Document entry with information: {}", persisted);
 
@@ -116,7 +134,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 	}
 
 	@Override
-	public List<DocumentDTO> findAllByParent(Integer parentid) {
+	public List<DocumentDTO> findAllByParent(Long parentid) {
 		LOGGER.info("Finding Documents by Type.");
 
         List<Document> docEntries = repository.findAllByParent(parentid);

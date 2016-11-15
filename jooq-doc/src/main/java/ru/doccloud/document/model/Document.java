@@ -12,19 +12,21 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 public class Document {
 
-    public String getType() {
-		return type;
-	}
-
 	private final Long id;
 
     private final LocalDateTime creationTime;
+    
+    private final String createdBy;
 
     private final String description;
 
     private final LocalDateTime modificationTime;
+    
+    private final String modifiedBy;
 
     private final String title;
+    
+    private final String filePath;
     
     private final String type;
     
@@ -48,6 +50,12 @@ public class Document {
         this.modificationTime = modificationTime;
 
         this.title = builder.title;
+        
+        this.createdBy = builder.createdBy;
+        
+        this.modifiedBy = builder.modifiedBy;
+        
+        this.filePath = builder.filePath;
         
         this.type = builder.type;
         
@@ -78,6 +86,14 @@ public class Document {
         return title;
     }
     
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public String getType() {
+		return type;
+	}
+    
     public JsonNode getData() {
         return data;
     }
@@ -104,7 +120,13 @@ public class Document {
 
         private Timestamp modificationTime;
 
-        private String title;
+        private String createdBy;
+        
+        private String modifiedBy;
+
+		private String title;
+		
+		private String filePath;
         
         private String type;
         
@@ -119,8 +141,23 @@ public class Document {
             return this;
         }
 
+        public Builder createdBy(String createdBy) {
+            this.createdBy = createdBy;
+            return this;
+        }
+        
         public Builder type(String type) {
             this.type = type;
+            return this;
+        }
+        
+        public Builder modifiedBy(String modifiedBy) {
+            this.modifiedBy = modifiedBy;
+            return this;
+        }
+        
+        public Builder filePath(String filePath) {
+            this.filePath = filePath;
             return this;
         }
         
@@ -143,6 +180,8 @@ public class Document {
             this.modificationTime = modificationTime;
             return this;
         }
+        
+        
 
         public Document build() {
             Document created = new Document(this);
@@ -155,5 +194,6 @@ public class Document {
 
             return created;
         }
+
     }
 }
