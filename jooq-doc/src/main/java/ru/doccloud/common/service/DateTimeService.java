@@ -1,15 +1,17 @@
 package ru.doccloud.common.service;
 
-import org.joda.time.LocalDateTime;
-
 import java.sql.Timestamp;
 
+import org.joda.time.LocalDateTime;
+
 /**
- * @author Petri Kainulainen
+ * @author Andrey Kadnikov
  */
+
+
 public interface DateTimeService {
-
+	
     public LocalDateTime getCurrentDateTime();
-
+	
     public Timestamp getCurrentTimestamp();
 }

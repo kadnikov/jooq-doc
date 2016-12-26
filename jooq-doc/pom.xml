@@ -46,6 +46,12 @@
             </properties>
         </profile>
         <profile>
+            <id>doccloud</id>
+            <properties>
+                <build.profile.id>doccloud</build.profile.id>
+            </properties>
+        </profile>
+        <profile>
             <id>integration-test</id>
             <properties>
                 <build.profile.id>integration-test</build.profile.id>

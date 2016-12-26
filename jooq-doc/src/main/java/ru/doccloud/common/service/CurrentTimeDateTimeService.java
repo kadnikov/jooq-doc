@@ -1,23 +1,24 @@
 package ru.doccloud.common.service;
 
+import java.sql.Timestamp;
+
 import org.joda.time.LocalDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import java.sql.Timestamp;
-
 /**
- * @author Petri Kainulainen
+ * @author Andrey Kadnikov
  */
-@Profile("application")
-@Component
+@Component("currentTimeDateTimeService")
 public class CurrentTimeDateTimeService implements DateTimeService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CurrentTimeDateTimeService.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(CurrentTimeDateTimeService.class);
 
-    @Override
+
+	@Override
     public LocalDateTime getCurrentDateTime() {
         LocalDateTime currentTime = LocalDateTime.now();
         LOGGER.debug("Returning current datetime: {}", currentTime);

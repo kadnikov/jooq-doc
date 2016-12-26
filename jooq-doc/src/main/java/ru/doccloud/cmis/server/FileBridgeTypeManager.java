@@ -20,7 +20,7 @@
  * It is part of a training exercise and not intended for production use!
  *
  */
-package org.example.cmis.server;
+package ru.doccloud.cmis.server;
 
 import java.math.BigInteger;
 import java.util.Collection;
@@ -77,6 +77,7 @@ public class FileBridgeTypeManager {
         // add base document type
         MutableDocumentTypeDefinition documentType = typeDefinitionFactory
                 .createBaseDocumentTypeDefinition(CmisVersion.CMIS_1_1);
+        documentType.setIsVersionable(true);
         removeQueryableAndOrderableFlags(documentType);
         typeDefinitions.put(documentType.getId(), documentType);
     }

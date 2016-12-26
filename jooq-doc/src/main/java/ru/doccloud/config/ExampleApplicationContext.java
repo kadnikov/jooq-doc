@@ -10,8 +10,9 @@ import org.springframework.context.annotation.ImportResource;
  */
 @Configuration
 @ComponentScan({
+		"ru.doccloud.common.service",
         "ru.doccloud.document.service",
-        "org.example.cmis.server"
+        "ru.doccloud.cmis.server"
 })
 @Import({
         PersistenceContext.class,

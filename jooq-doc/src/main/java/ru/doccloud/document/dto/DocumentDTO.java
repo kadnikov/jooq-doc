@@ -27,7 +27,7 @@ public class DocumentDTO {
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     private LocalDateTime creationTime;
     
-    private String createdBy;
+    private String author;
 
     @Length(max = 500)
     private String description;
@@ -36,7 +36,7 @@ public class DocumentDTO {
     @JsonSerialize(using = CustomLocalDateTimeSerializer.class)
     private LocalDateTime modificationTime;
 
-    private String modifiedBy;
+    private String modifier;
     
     @NotEmpty
     @Length(max = 100)
@@ -45,6 +45,10 @@ public class DocumentDTO {
     private String type;
     
     private String filePath;
+    
+    private String fileMimeType;
+    
+    private Long fileLength;
     
     @JsonDeserialize(using = CustomJsonDataDeserializer.class)
     @JsonSerialize(using = CustomJsonDataSerializer.class)
@@ -79,13 +83,7 @@ public class DocumentDTO {
 	}
 	
 
-    public String getCreatedBy() {
-		return createdBy;
-	}
 
-	public String getModifiedBy() {
-		return modifiedBy;
-	}
 
 	public JsonNode getData() {
 		return data;
@@ -115,13 +113,6 @@ public class DocumentDTO {
         this.type = type;
     }
 
-	public void setModifiedBy(String modifiedBy) {
-		this.modifiedBy = modifiedBy;
-	}
-	
-	public void setCreatedBy(String createdBy) {
-		this.createdBy = createdBy;
-	}
 	
     public void setData(JsonNode data) {
 		this.data = data;
@@ -146,6 +137,38 @@ public class DocumentDTO {
 
 	public void setFilePath(String filePath) {
 		this.filePath = filePath;
+	}
+
+	public String getFileMimeType() {
+		return fileMimeType;
+	}
+
+	public void setFileMimeType(String fileMimeType) {
+		this.fileMimeType = fileMimeType;
+	}
+
+	public Long getFileLength() {
+		return fileLength;
+	}
+
+	public void setFileLength(Long fileLength) {
+		this.fileLength = fileLength;
+	}
+
+	public String getModifier() {
+		return modifier;
+	}
+
+	public void setModifier(String modifier) {
+		this.modifier = modifier;
+	}
+
+	public String getAuthor() {
+		return author;
+	}
+
+	public void setAuthor(String author) {
+		this.author = author;
 	}
 
 }

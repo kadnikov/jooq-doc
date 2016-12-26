@@ -20,7 +20,7 @@
  * It is part of a training exercise and not intended for production use!
  *
  */
-package org.example.cmis.server;
+package ru.doccloud.cmis.server;
 
 import java.math.BigInteger;
 import java.util.ArrayList;

@@ -16,7 +16,7 @@ public class FrontendLoaderController {
 
     private static final String FRONTEND_APPLICATION_VIEW = "frontend/client";
 
-    @RequestMapping(value = "/", method = RequestMethod.GET)
+    @RequestMapping(value = "/docs", method = RequestMethod.GET)
     public String startClient() {
         LOGGER.debug("Starting frontend single page application.");
         return FRONTEND_APPLICATION_VIEW;

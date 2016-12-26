@@ -11,6 +11,7 @@ import net.petrikainulainen.spring.jooq.todo.dto.TodoDTOBuilder;
 import net.petrikainulainen.spring.jooq.todo.exception.TodoNotFoundException;
 import net.petrikainulainen.spring.jooq.todo.service.TodoCrudService;
 import net.petrikainulainen.spring.jooq.todo.service.TodoSearchService;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

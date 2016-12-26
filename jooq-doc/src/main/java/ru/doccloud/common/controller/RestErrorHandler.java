@@ -1,6 +1,5 @@
 package ru.doccloud.common.controller;
 
-import net.petrikainulainen.spring.jooq.todo.exception.TodoNotFoundException;
 import ru.doccloud.common.dto.RestError;
 
 import org.slf4j.Logger;
@@ -12,6 +11,8 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+
+import net.petrikainulainen.spring.jooq.todo.exception.TodoNotFoundException;
 
 import java.util.List;
 

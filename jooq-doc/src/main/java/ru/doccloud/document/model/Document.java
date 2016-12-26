@@ -15,18 +15,22 @@ public class Document {
 	private final Long id;
 
     private final LocalDateTime creationTime;
-    
-    private final String createdBy;
 
-    private final String description;
+    private final String author;
 
     private final LocalDateTime modificationTime;
     
-    private final String modifiedBy;
+    private final String modifier;
 
     private final String title;
     
+    private final String description;
+    
     private final String filePath;
+    
+    private final String fileMimeType;
+    
+    private final Long fileLength;
     
     private final String type;
     
@@ -51,11 +55,15 @@ public class Document {
 
         this.title = builder.title;
         
-        this.createdBy = builder.createdBy;
-        
-        this.modifiedBy = builder.modifiedBy;
-        
         this.filePath = builder.filePath;
+        
+        this.fileMimeType = builder.fileMimeType;
+        
+        this.fileLength = builder.fileLength;
+        
+        this.author = builder.author;
+        
+        this.modifier = builder.modifier;
         
         this.type = builder.type;
         
@@ -110,9 +118,25 @@ public class Document {
                 .build();
     }
 
-    public static class Builder {
+    public String getFileMimeType() {
+		return fileMimeType;
+	}
 
-        private Long id;
+	public Long getFileLength() {
+		return fileLength;
+	}
+
+	public String getAuthor() {
+		return author;
+	}
+
+	public String getModifier() {
+		return modifier;
+	}
+
+	public static class Builder {
+
+		private Long id;
 
         private Timestamp creationTime;
 
@@ -120,15 +144,19 @@ public class Document {
 
         private Timestamp modificationTime;
 
-        private String createdBy;
-        
-        private String modifiedBy;
-
 		private String title;
 		
 		private String filePath;
+		
+		private Long fileLength;
+
+		private String fileMimeType;
         
         private String type;
+        
+        private String author;
+        
+        private String modifier;
         
         private JsonNode data;
 
@@ -141,23 +169,34 @@ public class Document {
             return this;
         }
 
-        public Builder createdBy(String createdBy) {
-            this.createdBy = createdBy;
-            return this;
-        }
         
         public Builder type(String type) {
             this.type = type;
             return this;
         }
         
-        public Builder modifiedBy(String modifiedBy) {
-            this.modifiedBy = modifiedBy;
+        public Builder modifier(String modifiedBy) {
+            this.modifier = modifiedBy;
             return this;
         }
         
         public Builder filePath(String filePath) {
             this.filePath = filePath;
+            return this;
+        }
+        
+        public Builder author(String author) {
+            this.author = author;
+            return this;
+        }
+        
+        public Builder fileMimeType(String fileMimeType) {
+            this.fileMimeType = fileMimeType;
+            return this;
+        }
+        
+        public Builder fileLength(Long fileLength) {
+            this.fileLength = fileLength;
             return this;
         }
         

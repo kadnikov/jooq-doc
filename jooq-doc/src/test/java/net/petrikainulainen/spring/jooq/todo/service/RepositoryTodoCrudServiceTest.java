@@ -7,6 +7,7 @@ import net.petrikainulainen.spring.jooq.todo.dto.TodoDTOBuilder;
 import net.petrikainulainen.spring.jooq.todo.exception.TodoNotFoundException;
 import net.petrikainulainen.spring.jooq.todo.model.Todo;
 import net.petrikainulainen.spring.jooq.todo.repository.TodoRepository;
+
 import org.jtransfo.JTransfo;
 import org.junit.Before;
 import org.junit.Test;

@@ -59,4 +59,12 @@ public interface DocumentRepository {
 	public List<Document> findParents(Long docId);
 
 	public Link addLink(Long headId, Long tailId);
+
+	public Link deleteLink(Long headId, Long tailId);
+
+	public Document updateFileInfo(Document documentEntry);
+
+	public void setUser();
+
+	public void setUser(String userName);
 }

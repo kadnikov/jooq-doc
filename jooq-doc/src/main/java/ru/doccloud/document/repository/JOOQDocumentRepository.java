@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.SortField;
@@ -25,6 +27,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import net.petrikainulainen.spring.jooq.todo.db.tables.Documents;
 import net.petrikainulainen.spring.jooq.todo.db.tables.Links;
@@ -56,9 +60,9 @@ public class JOOQDocumentRepository implements DocumentRepository {
     @Override
     public Document add(Document documentEntry) {
         LOGGER.info("Adding new Document entry with information: {}", documentEntry);
-
-        DocumentsRecord persisted = jooq.insertInto(DOCUMENTS,DOCUMENTS.SYS_DESC,DOCUMENTS.SYS_TITLE,DOCUMENTS.SYS_TYPE,DOCUMENTS.DATA)
-                .values(documentEntry.getDescription(),documentEntry.getTitle(),documentEntry.getType(),documentEntry.getData())
+        String[] readers = {documentEntry.getAuthor(), "admins"};
+        DocumentsRecord persisted = jooq.insertInto(DOCUMENTS,DOCUMENTS.SYS_DESC,DOCUMENTS.SYS_TITLE,DOCUMENTS.SYS_TYPE,DOCUMENTS.SYS_AUTHOR,DOCUMENTS.SYS_READERS,DOCUMENTS.DATA)
+                .values(documentEntry.getDescription(),documentEntry.getTitle(),documentEntry.getType(),documentEntry.getAuthor(),readers,documentEntry.getData())
                 .returning()
                 .fetchOne();
 
@@ -82,6 +86,22 @@ public class JOOQDocumentRepository implements DocumentRepository {
         Link returned = new Link(persisted.getHeadId().longValue(),persisted.getTailId().longValue());
 
         LOGGER.info("Added {} link entry", returned);
+
+        return returned;
+    }
+    
+    @Transactional
+    @Override
+    public Link deleteLink(Long headId, Long tailId) {
+        LOGGER.info("Delete Link: ");
+
+        int deleted = jooq.delete(LINKS)
+                .where(LINKS.HEAD_ID.equal(headId.intValue()).and(LINKS.TAIL_ID.equal(tailId.intValue())))  
+                .execute();
+
+        Link returned = new Link(headId,tailId);
+
+        LOGGER.info("{} link entry deleted", deleted);
 
         return returned;
     }
@@ -124,7 +144,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
         LOGGER.info("Finding all Document entries.");
 
         List<DocumentsRecord> queryResults = jooq.selectFrom(DOCUMENTS).fetchInto(DocumentsRecord.class);
-
+        
         List<Document> documentEntries = convertQueryResultsToModelObjects(queryResults);
 
         LOGGER.info("Found {} Document entries", documentEntries.size());
@@ -261,9 +281,11 @@ public class JOOQDocumentRepository implements DocumentRepository {
                     .id(queryResult.getId().longValue())
                     .creationTime(queryResult.getSysDateCr())
                     .modificationTime(queryResult.getSysDateMod())
-                    .createdBy(queryResult.getSysAuthor())
-                    .modifiedBy(queryResult.getSysModifier())
+                    .author(queryResult.getSysAuthor())
+                    .modifier(queryResult.getSysModifier())
                     .filePath(queryResult.getSysFilePath())
+                    .fileMimeType(queryResult.getSysFileMimeType())
+                    .fileLength(queryResult.getSysFileLength())
                     .build();
         	documentEntries.add(documentEntry);
         }
@@ -279,9 +301,11 @@ public class JOOQDocumentRepository implements DocumentRepository {
                 .data(queryResult.getData())
                 .id(queryResult.getId().longValue())
                 .modificationTime(queryResult.getSysDateMod())
-                .createdBy(queryResult.getSysAuthor())
-                .modifiedBy(queryResult.getSysModifier())
+                .author(queryResult.getSysAuthor())
+                .modifier(queryResult.getSysModifier())
                 .filePath(queryResult.getSysFilePath())
+                .fileMimeType(queryResult.getSysFileMimeType())
+                .fileLength(queryResult.getSysFileLength())
                 .build();
     }
 
@@ -297,6 +321,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
                 .set(DOCUMENTS.SYS_DESC, documentEntry.getDescription())
                 .set(DOCUMENTS.SYS_DATE_MOD, currentTime)
                 .set(DOCUMENTS.SYS_TITLE, documentEntry.getTitle())
+                .set(DOCUMENTS.SYS_MODIFIER, documentEntry.getModifier())
                 .set(DOCUMENTS.DATA, documentEntry.getData())
                 .where(DOCUMENTS.ID.equal(documentEntry.getId().intValue()))
                 .execute();
@@ -310,6 +335,31 @@ public class JOOQDocumentRepository implements DocumentRepository {
         return findById(documentEntry.getId());
     }
 
+    @Transactional
+    @Override
+    public Document updateFileInfo(Document documentEntry) {
+        LOGGER.info("Updating file info for document: {}", documentEntry);
+
+        Timestamp currentTime = dateTimeService.getCurrentTimestamp();
+
+        int updatedRecordCount = jooq.update(DOCUMENTS)
+                .set(DOCUMENTS.SYS_FILE_PATH, documentEntry.getFilePath())
+                .set(DOCUMENTS.SYS_DATE_MOD, currentTime)
+                .set(DOCUMENTS.SYS_MODIFIER, documentEntry.getModifier())
+                .set(DOCUMENTS.SYS_FILE_LENGTH, documentEntry.getFileLength())
+                .set(DOCUMENTS.SYS_FILE_MIME_TYPE, documentEntry.getFileMimeType())
+                .where(DOCUMENTS.ID.equal(documentEntry.getId().intValue()))
+                .execute();
+
+        LOGGER.debug("Updated {} document entry.", updatedRecordCount);
+
+        //If you are using Firebird or PostgreSQL databases, you can use the RETURNING
+        //clause in the update statement (and avoid the extra select clause):
+        //http://www.jooq.org/doc/3.2/manual/sql-building/sql-statements/update-statement/#N11102
+
+        return findById(documentEntry.getId());
+    }
+    
 	@Override
 	public List<Document> findAllByType(String type) {
         LOGGER.info("Finding all Documents by type.");
@@ -371,5 +421,23 @@ public class JOOQDocumentRepository implements DocumentRepository {
         LOGGER.info("Found {} Document entries", documentEntries.size());
 
         return documentEntries;
+	}
+
+	@Override
+	public void setUser() {
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        LOGGER.info("Current Remote User - "+request.getRemoteUser());
+        jooq.execute("SET my.username = '"+request.getRemoteUser()+"'");
+		
+	}
+	
+	@Override
+	public void setUser(String userName) {
+		LOGGER.info("Current User - "+userName);
+        jooq.execute("SET my.username = '"+userName+"'");
+        
+        jooq.execute("SELECT current_setting('my.username') FROM documents LIMIT 1;");
+		
+		
 	}
 }

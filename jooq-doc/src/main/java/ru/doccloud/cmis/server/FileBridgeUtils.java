@@ -20,8 +20,9 @@
  * It is part of a training exercise and not intended for production use!
  *
  */
-package org.example.cmis.server;
+package ru.doccloud.cmis.server;
 
+import java.math.BigInteger;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Set;
@@ -32,6 +33,7 @@ import org.apache.chemistry.opencmis.commons.data.Properties;
 import org.apache.chemistry.opencmis.commons.data.PropertyData;
 import org.apache.chemistry.opencmis.commons.data.PropertyDateTime;
 import org.apache.chemistry.opencmis.commons.data.PropertyId;
+import org.apache.chemistry.opencmis.commons.data.PropertyInteger;
 import org.apache.chemistry.opencmis.commons.data.PropertyString;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
 
@@ -136,6 +138,18 @@ public final class FileBridgeUtils {
         }
 
         return ((PropertyString) property).getFirstValue();
+    }
+    
+    /**
+     * Returns the first value of a int property.
+     */
+    public static BigInteger getIntegerProperty(Properties properties, String name) {
+        PropertyData<?> property = properties.getProperties().get(name);
+        if (!(property instanceof PropertyInteger)) {
+            return null;
+        }
+
+        return ((PropertyInteger) property).getFirstValue();
     }
 
     /**

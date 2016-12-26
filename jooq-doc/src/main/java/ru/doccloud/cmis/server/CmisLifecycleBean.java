@@ -1,4 +1,4 @@
-package org.example.cmis.server;
+package ru.doccloud.cmis.server;
 
 import java.io.IOException;
 import java.io.InputStream;

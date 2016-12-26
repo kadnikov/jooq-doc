@@ -2,12 +2,16 @@ package ru.doccloud.document.service;
 
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.jtransfo.JTransfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.model.Document;
@@ -39,6 +43,10 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         if (dto.getId()==null){
         	//dto.setId(DEFAULT);
         }
+        repository.setUser();
+        
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        dto.setAuthor(request.getRemoteUser());
         Document added = createModel(dto);
         Document persisted = repository.add(added);
 
@@ -80,7 +88,8 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     @Override
     public List<DocumentDTO> findAll() {
         LOGGER.info("Finding all Document entries.");
-
+        repository.setUser();
+        
         List<Document> docEntries = repository.findAll();
 
         LOGGER.debug("Found {} Document entries.", docEntries.size());
@@ -92,7 +101,8 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     @Override
     public DocumentDTO findById(Long id) {
         LOGGER.info("Finding Document entry with id: {}", id);
-
+        repository.setUser();
+        
         Document found = repository.findById(id);
 
         LOGGER.info("Found Document entry: {}", found);
@@ -104,7 +114,10 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     @Override
     public DocumentDTO update(DocumentDTO dto) {
         LOGGER.info("Updating the information of a Document entry: {}", dto);
-
+        repository.setUser();
+        
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        dto.setModifier(request.getRemoteUser());
         Document newInformation = createModel(dto);
         Document updated = repository.update(newInformation);
 
@@ -119,6 +132,8 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
                 .type(dto.getType())
                 .data(dto.getData())
                 .id(dto.getId())
+                .author(dto.getAuthor())
+                .modifier(dto.getModifier())
                 .build();
     }
 
