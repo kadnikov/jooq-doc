@@ -2,6 +2,9 @@ package ru.doccloud.document.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import ru.doccloud.document.dto.DocumentDTO;
 
 /**
@@ -24,4 +27,6 @@ public interface DocumentCrudService {
 	public List<DocumentDTO> findAllByType(String type);
 	
 	public List<DocumentDTO> findAllByParent(Long parentid);
+
+	Page<DocumentDTO> findAll(Pageable pageable);
 }

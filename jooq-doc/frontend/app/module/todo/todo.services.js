@@ -3,7 +3,7 @@
 angular.module('app.todo.services', ['ngResource'])
     .factory('Todos', ['$resource', 'NotificationService', function($resource, NotificationService) {
         var api = $resource('/api/todo/:id', {"id": "@id"}, {
-            query:  {method: 'GET', params: {}, isArray: true},
+            query:  {method: 'GET', params: {}, isArray: false},
             get:    {method: 'GET'},
             save: {method: 'POST'},
             update: {method: 'PUT'}
@@ -16,8 +16,8 @@ angular.module('app.todo.services', ['ngResource'])
                     successCallback();
                 });
             },
-            query: function() {
-                return api.query();
+            query: function(pageNumber, pageSize) {
+                return api.query({page: pageNumber, size: pageSize, sort: 'ID,DESC'}).$promise;
             },
             get: function(todoId) {
                 return api.get({id: todoId}).$promise;

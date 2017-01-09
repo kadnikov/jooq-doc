@@ -64,7 +64,7 @@ public class DocumentController {
         return deleted;
     }
 
-    @RequestMapping(method = RequestMethod.GET)
+    /**@RequestMapping(method = RequestMethod.GET)
     public List<DocumentDTO> findAll() {
         LOGGER.info("Finding all Document entries");
 
@@ -73,6 +73,23 @@ public class DocumentController {
         LOGGER.info("Found {} Document entries.");
 
         return documentEntries;
+    }*/
+    
+    @RequestMapping(method = RequestMethod.GET)
+    public Page<DocumentDTO> findAll(Pageable pageable) {
+        LOGGER.info("Finding {} Document entries for page {} by using search term: {}",
+                pageable.getPageSize(),
+                pageable.getPageNumber()
+        );
+
+        Page<DocumentDTO> docEntries = crudService.findAll(pageable);
+
+        LOGGER.info("Found {} Document entries for page: {}",
+        		docEntries.getNumberOfElements(),
+        		docEntries.getNumber()
+        );
+
+        return docEntries;
     }
     
     @RequestMapping(value = "/type/{type}", method = RequestMethod.GET)

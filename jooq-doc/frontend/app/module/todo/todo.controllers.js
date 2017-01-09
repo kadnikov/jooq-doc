@@ -2,7 +2,7 @@
 
 angular.module('app.todo.controllers', [])
     .constant('paginationConfig', {
-        pageSize: 5
+        pageSize: 200
     })
     
     .config(['$stateProvider',
@@ -18,8 +18,18 @@ angular.module('app.todo.controllers', [])
                     controller: 'TodoListController',
                     templateUrl: 'frontend/partials/todo/todo-list.html',
                     resolve: {
-                        todos: ['Todos', function(Todos) {
-                            return Todos.query();
+                    	searchResults: ['Todos', 'paginationConfig', function(Todos, paginationConfig) {
+                            return Todos.query(0, paginationConfig.pageSize);
+                        }]
+                    }
+                })
+                 .state('todo.page', {
+                    url: 'todo/page/:pageNumber/size/:pageSize',
+                    controller: 'TodoListController',
+                    templateUrl: 'frontend/partials/todo/todo-list.html',
+                    resolve: {
+                    	searchResults: ['Todos', '$stateParams', function(Todos, $stateParams) {
+                            return Todos.query($stateParams.pageNumber - 1, $stateParams.pageSize);
                         }]
                     }
                 })
@@ -73,15 +83,31 @@ angular.module('app.todo.controllers', [])
                 });
         }
     ])
-    .controller('TodoListController', ['$scope', '$state', 'todos',
-        function ($scope, $state, todos) {
-            console.log('Rendering todo entry list page.');
-            $scope.todos = todos;
+    .controller('TodoListController', ['$scope', '$state', 'searchResults','paginationConfig',
+        function($scope, $state, searchResults, paginationConfig) {
+        console.log('Rendering documents.');
+        $scope.todos = searchResults.content;
+        console.log(searchResults);
+        console.log(searchResults.totalElements);
+        console.log(paginationConfig.pageSize);
+        $scope.pagination = {
+            currentPage: searchResults.number + 1,
+            itemsPerPage: paginationConfig.pageSize,
+            totalItems: searchResults.totalElements
+        };
+        
+        $scope.addTodo = function() {
+            $state.go('todo.add');
+        };
+        
+        $scope.pageChanged = function(newPageNumber) {
+            $state.go('todo.page',
+                {pageNumber: newPageNumber, pageSize: paginationConfig.pageSize},
+                {reload: true, inherit: true, notify: true}
+            );
+        };
+    }])
 
-            $scope.addTodo = function() {
-                $state.go('todo.add');
-            };
-        }])
     .controller('AddTodoController', ['$scope', '$state', 'Todos',
         function($scope, $state, Todos) {
             console.log('Rendering add todo entry page.');

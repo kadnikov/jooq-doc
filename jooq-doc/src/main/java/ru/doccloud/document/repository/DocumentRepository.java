@@ -67,4 +67,6 @@ public interface DocumentRepository {
 	public void setUser();
 
 	public void setUser(String userName);
+
+	public Page<Document> findAll(Pageable pageable);
 }

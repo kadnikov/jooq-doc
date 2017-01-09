@@ -151,6 +151,35 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
         return documentEntries;
     }
+    
+    @Transactional(readOnly = true)
+    @Override
+    public Page<Document> findAll(Pageable pageable) {
+        LOGGER.info("Finding {} Document entries for page {} by using search term: {}",
+                pageable.getPageSize(),
+                pageable.getPageNumber()
+        );
+
+        List<DocumentsRecord> queryResults = jooq.selectFrom(DOCUMENTS)
+                .orderBy(getSortFields(pageable.getSort()))
+                .limit(pageable.getPageSize()).offset(pageable.getOffset())
+                .fetchInto(DocumentsRecord.class);
+
+        List<Document> documentEntries = convertQueryResultsToModelObjects(queryResults);
+
+        LOGGER.info("Found {} document entries for page: {}",
+        		documentEntries.size(),
+                pageable.getPageNumber()
+        );
+
+        long totalCount = findTotalCount();
+
+        LOGGER.info("{} document entries matches with the like expression: {}",
+                totalCount
+        );
+
+        return new PageImpl<>(documentEntries, pageable, totalCount);
+    }
 
     @Transactional(readOnly = true)
     @Override
@@ -211,6 +240,18 @@ public class JOOQDocumentRepository implements DocumentRepository {
                 jooq.select()
                         .from(DOCUMENTS)
                         .where(createWhereConditions(likeExpression))
+        );
+
+        LOGGER.debug("Found search result count: {}", resultCount);
+
+        return resultCount;
+    }
+    
+    private long findTotalCount() {
+        LOGGER.debug("Finding search result count by using like expression: {}");
+
+        long resultCount = jooq.fetchCount(
+                jooq.selectFrom(DOCUMENTS)
         );
 
         LOGGER.debug("Found search result count: {}", resultCount);

@@ -8,6 +8,10 @@ import org.jtransfo.JTransfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -95,6 +99,26 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         LOGGER.debug("Found {} Document entries.", docEntries.size());
 
         return transformer.convertList(docEntries, DocumentDTO.class);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Page<DocumentDTO> findAll(Pageable pageable) {
+        LOGGER.info("Finding all Document entries.", 
+                pageable.getPageSize(),
+                pageable.getPageNumber());
+        repository.setUser();
+        
+        Page<Document> searchResults = repository.findAll(pageable);
+
+        LOGGER.debug("Found {} Document entries.", searchResults.getNumber());
+
+        List<DocumentDTO> dtos = transformer.convertList(searchResults.getContent(), DocumentDTO.class);
+
+        return new PageImpl<>(dtos,
+                new PageRequest(searchResults.getNumber(), searchResults.getSize(), searchResults.getSort()),
+                searchResults.getTotalElements()
+        );
     }
 
     @Transactional(readOnly = true)
