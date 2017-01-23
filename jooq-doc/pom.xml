@@ -39,15 +39,18 @@
     <profiles>
         <profile>
             <id>dev</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
+            <!--<activation>-->
+                <!--<activeByDefault>true</activeByDefault>-->
+            <!--</activation>-->
             <properties>
                 <build.profile.id>dev</build.profile.id>
             </properties>
         </profile>
         <profile>
             <id>doccloud</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <properties>
                 <build.profile.id>doccloud</build.profile.id>
             </properties>
