@@ -30,7 +30,7 @@
         <slf4j.version>1.7.5</slf4j.version>
         <spring.version>4.1.2.RELEASE</spring.version>
         <spring.data.commons.version>1.7.1.RELEASE</spring.data.commons.version>
-        <build.profile.id>dev</build.profile.id>
+        <build.profile.id>doccloud</build.profile.id>
         <skip.db.creation>false</skip.db.creation>
         <skip.integration.tests>true</skip.integration.tests>
         <skip.unit.tests>false</skip.unit.tests>
