@@ -162,20 +162,27 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     }
 
 	@Override
-	public List<DocumentDTO> findAllByType(String type) {
+	public Page<DocumentDTO> findAllByType(String type, String[] fields, Pageable pageable, String query) {
 		LOGGER.info("Finding Documents by Type.");
+		repository.setUser();
+		
+        Page<Document> searchResults = repository.findAllByType(type, fields, pageable, query);
 
-        List<Document> docEntries = repository.findAllByType(type);
+        LOGGER.debug("Found {} Document entries.", searchResults.getNumber());
 
-        LOGGER.debug("Found {} Document entries.", docEntries.size());
-
-        return transformer.convertList(docEntries, DocumentDTO.class);
+        List<DocumentDTO> dtos = transformer.convertList(searchResults.getContent(), DocumentDTO.class);
+        
+        return new PageImpl<>(dtos,
+                new PageRequest(searchResults.getNumber(), searchResults.getSize(), searchResults.getSort()),
+                searchResults.getTotalElements()
+        );
 	}
 
 	@Override
 	public List<DocumentDTO> findAllByParent(Long parentid) {
 		LOGGER.info("Finding Documents by Type.");
-
+		repository.setUser();
+		
         List<Document> docEntries = repository.findAllByParent(parentid);
 
         LOGGER.debug("Found {} Document entries.", docEntries.size());

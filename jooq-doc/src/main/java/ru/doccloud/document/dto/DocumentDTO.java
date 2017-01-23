@@ -49,9 +49,7 @@ public class DocumentDTO {
     private String fileMimeType;
     
     private Long fileLength;
-    
-    @JsonDeserialize(using = CustomJsonDataDeserializer.class)
-    @JsonSerialize(using = CustomJsonDataSerializer.class)
+
     private JsonNode data;
 
     public DocumentDTO() {

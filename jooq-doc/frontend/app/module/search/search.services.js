@@ -2,7 +2,7 @@
 
 angular.module('app.search.services', ['ngResource'])
     .factory('Search', ['$resource', function($resource) {
-        var api = $resource('/api/todo/search', {}, {
+        var api = $resource('/api/docs/search', {}, {
             'query':  {method:'GET', isArray:false}
         });
 

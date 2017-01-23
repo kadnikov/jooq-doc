@@ -23,10 +23,10 @@ public interface DocumentCrudService {
     public DocumentDTO findById(Long id);
 
     public DocumentDTO update(DocumentDTO updated);
-
-	public List<DocumentDTO> findAllByType(String type);
 	
 	public List<DocumentDTO> findAllByParent(Long parentid);
 
-	Page<DocumentDTO> findAll(Pageable pageable);
+	public Page<DocumentDTO> findAll(Pageable pageable);
+
+	public Page<DocumentDTO> findAllByType(String type, String[] fields, Pageable pageable, String query);
 }

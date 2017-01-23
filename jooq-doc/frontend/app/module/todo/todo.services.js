@@ -2,7 +2,7 @@
 
 angular.module('app.todo.services', ['ngResource'])
     .factory('Todos', ['$resource', 'NotificationService', function($resource, NotificationService) {
-        var api = $resource('/api/todo/:id', {"id": "@id"}, {
+        var api = $resource('/api/docs/:id', {"id": "@id"}, {
             query:  {method: 'GET', params: {}, isArray: false},
             get:    {method: 'GET'},
             save: {method: 'POST'},

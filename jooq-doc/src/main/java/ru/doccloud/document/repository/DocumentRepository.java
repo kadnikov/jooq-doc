@@ -52,8 +52,6 @@ public interface DocumentRepository {
      */
     public Document update(Document todoEntry);
 
-	public List<Document> findAllByType(String type);
-	
 	public List<Document> findAllByParent(Long parent);
 
 	public List<Document> findParents(Long docId);
@@ -69,4 +67,8 @@ public interface DocumentRepository {
 	public void setUser(String userName);
 
 	public Page<Document> findAll(Pageable pageable);
+
+	public Page<Document> findAllByType(String type, String[] fields, Pageable pageable, String query);
+
+	
 }

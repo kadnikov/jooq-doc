@@ -4,7 +4,7 @@ package ru.doccloud.document.repository;
 import static net.petrikainulainen.spring.jooq.todo.db.tables.Documents.DOCUMENTS;
 import static net.petrikainulainen.spring.jooq.todo.db.tables.Links.LINKS;
 
-import java.lang.reflect.Field;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,8 +15,12 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Field;
+import org.jooq.Record;
+import org.jooq.SelectField;
 import org.jooq.SortField;
 import org.jooq.TableField;
+import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +34,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import net.petrikainulainen.spring.jooq.todo.db.tables.Documents;
 import net.petrikainulainen.spring.jooq.todo.db.tables.Links;
 import net.petrikainulainen.spring.jooq.todo.db.tables.records.DocumentsRecord;
@@ -38,6 +48,7 @@ import ru.doccloud.common.service.DateTimeService;
 import ru.doccloud.document.exception.DocumentNotFoundException;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
+import ru.doccloud.document.model.queryParam;
 /**
  * @author Andrey Kadnikov
  */
@@ -258,6 +269,20 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
         return resultCount;
     }
+    
+    private long findTotalCountByType(String type) {
+        LOGGER.debug("Finding search result count by using like expression: {}");
+
+        long resultCount = jooq.fetchCount(
+                jooq.selectFrom(DOCUMENTS)
+                .where(DOCUMENTS.SYS_TYPE.equal(type))
+        );
+
+        LOGGER.debug("Found search result count: {}", resultCount);
+
+        return resultCount;
+    }
+    
 
     private Condition createWhereConditions(String likeExpression) {
         return DOCUMENTS.SYS_DESC.likeIgnoreCase(likeExpression)
@@ -293,7 +318,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
     private TableField getTableField(String sortFieldName) {
         TableField sortField = null;
         try {
-            Field tableField = DOCUMENTS.getClass().getField(sortFieldName);
+            java.lang.reflect.Field tableField = DOCUMENTS.getClass().getField(sortFieldName);
             sortField = (TableField) tableField.get(DOCUMENTS);
         } catch (NoSuchFieldException | IllegalAccessException ex) {
             String errorMessage = String.format("Could not find table field: {}", sortFieldName);
@@ -334,6 +359,43 @@ public class JOOQDocumentRepository implements DocumentRepository {
         return documentEntries;
     }
 
+    private List<Document> convertQueryResults(List<Record> queryResults, String[] fields) {
+        List<Document> documentEntries = new ArrayList<>();
+
+        for (Record queryResult : queryResults) {
+        	
+        	ObjectNode data = JsonNodeFactory.instance.objectNode();
+        	ObjectMapper mapper = new ObjectMapper();
+        	if (fields!=null){
+        	for (String field : fields) {
+        		if (queryResult.getValue(field)!=null){
+            	try {
+					data.put(field,mapper.readTree(queryResult.getValue(field).toString()));
+				} catch (JsonProcessingException e) {
+					e.printStackTrace();
+				} catch (IllegalArgumentException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+        		}
+    		}
+        	}
+			Document documentEntry = Document.getBuilder(queryResult.getValue(DOCUMENTS.SYS_TITLE))
+                    .description(queryResult.getValue(DOCUMENTS.SYS_DESC))
+                    .type(queryResult.getValue(DOCUMENTS.SYS_TYPE))
+                    .id(queryResult.getValue(DOCUMENTS.ID).longValue())
+                    .creationTime(queryResult.getValue(DOCUMENTS.SYS_DATE_CR))
+                    .modificationTime(queryResult.getValue(DOCUMENTS.SYS_DATE_MOD))
+                    .author(queryResult.getValue(DOCUMENTS.SYS_AUTHOR))
+                    .modifier(queryResult.getValue(DOCUMENTS.SYS_MODIFIER))
+                    .data(data)
+                    .build();
+        	documentEntries.add(documentEntry);
+        }
+
+        return documentEntries;
+    }
     private Document convertQueryResultToModelObject(DocumentsRecord queryResult) {
         return Document.getBuilder(queryResult.getSysTitle())
                 .creationTime(queryResult.getSysDateCr())
@@ -378,7 +440,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
     @Transactional
     @Override
-    public Document updateFileInfo(Document documentEntry) {
+    public Document updateFileInfo(Document documentEntry) { 
         LOGGER.info("Updating file info for document: {}", documentEntry);
 
         Timestamp currentTime = dateTimeService.getCurrentTimestamp();
@@ -399,21 +461,70 @@ public class JOOQDocumentRepository implements DocumentRepository {
         //http://www.jooq.org/doc/3.2/manual/sql-building/sql-statements/update-statement/#N11102
 
         return findById(documentEntry.getId());
+    } 
+    
+    
+    private static Field<Object> jsonObject(Field<?> field, String name) {
+        return DSL.field("{0}->{1}", Object.class, field, DSL.inline(name));
+    }
+
+    private static Field<String> jsonText(Field<?> field, String name) {
+        return DSL.field("{0}->>{1}", String.class, field, DSL.inline(name));
     }
     
 	@Override
-	public List<Document> findAllByType(String type) {
+	public Page<Document> findAllByType(String type, String[] fields, Pageable pageable, String query) { 
         LOGGER.info("Finding all Documents by type.");
 
-        List<DocumentsRecord> queryResults = jooq.selectFrom(DOCUMENTS)
-        		.where(DOCUMENTS.SYS_TYPE.equal(type))
-        		.fetchInto(DocumentsRecord.class);
+        ArrayList<SelectField<?>> selectedFields = new ArrayList<SelectField<?>>();
+        selectedFields.add(DOCUMENTS.ID);
+        selectedFields.add(DOCUMENTS.SYS_TITLE);
+        selectedFields.add(DOCUMENTS.SYS_AUTHOR);
+        selectedFields.add(DOCUMENTS.SYS_DATE_CR);
+        selectedFields.add(DOCUMENTS.SYS_DATE_MOD);
+        selectedFields.add(DOCUMENTS.SYS_DESC);
+        selectedFields.add(DOCUMENTS.SYS_MODIFIER);
+        selectedFields.add(DOCUMENTS.SYS_FILE_PATH);
+        selectedFields.add(DOCUMENTS.SYS_TYPE);
+        if (fields!=null){
+        for (String field : fields) {
+        	selectedFields.add(jsonObject(DOCUMENTS.DATA, field).as(field));
+		}
+        }
+        List<queryParam> queryParams = null;
+        LOGGER.info("Query for search - "+query);
+        ObjectMapper mapper = new ObjectMapper();
+        if (query!=null){
+        	try {
+				queryParams = mapper.readValue(query, new TypeReference<List<queryParam>>(){});
+				LOGGER.info("List of params - {} {}",queryParams.toString(),queryParams.size());
+			} catch (IOException e) {
+				LOGGER.error("Error parsing JSON "+ e.getLocalizedMessage());
+				e.printStackTrace();
+			}
+        }
+        Condition cond = DOCUMENTS.SYS_TYPE.equal(type);
+        if (queryParams!=null)
+        for (queryParam param : queryParams) {
+        	LOGGER.info("Param {} {} {} ",param.getField(),param.getOperand(),param.getValue());
+        	cond = cond.and(jsonText(DOCUMENTS.DATA, param.getField()).like("%"+param.getValue()+"%"));
+        }
+        List<Record> queryResults = jooq.select(selectedFields).from(DOCUMENTS)
+        		.where(cond)
+        		.orderBy(getSortFields(pageable.getSort()))
+                .limit(pageable.getPageSize()).offset(pageable.getOffset())
+        		.fetch();//Into(DocumentsRecord.class);
 
-        List<Document> documentEntries = convertQueryResultsToModelObjects(queryResults);
+        List<Document> documentEntries = convertQueryResults(queryResults, fields);
 
-        LOGGER.info("Found {} Document entries", documentEntries.size());
+        long totalCount = findTotalCountByType(type);
 
-        return documentEntries;
+        LOGGER.info("{} document entries matches with the like expression: {}",
+                totalCount
+        );
+
+        return new PageImpl<>(documentEntries, pageable, totalCount);
+
 	}
 
 	@Override
@@ -477,7 +588,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
 		LOGGER.info("Current User - "+userName);
         jooq.execute("SET my.username = '"+userName+"'");
         
-        jooq.execute("SELECT current_setting('my.username') FROM documents LIMIT 1;");
+        //jooq.execute("SELECT current_setting('my.username') FROM documents LIMIT 1;");
 		
 		
 	}

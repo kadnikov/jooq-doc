@@ -22,7 +22,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import ru.doccloud.document.model.UploadedFile;
 
 @Controller
-@RequestMapping("/file")
+@RequestMapping("/api/file")
 public class FileUploadController {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileUploadController.class);
 	  UploadedFile ufile;

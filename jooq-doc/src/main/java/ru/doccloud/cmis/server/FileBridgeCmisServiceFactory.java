@@ -126,7 +126,7 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
     @Override
     public CmisService getService(CallContext context) {
         
-    	LOG.info("[FileBridgeCmisServiceFactory] getService");
+    	// LOG.info("[FileBridgeCmisServiceFactory] getService");
     	// authenticate the user
         // if the authentication fails, authenticate() throws a
         // CmisPermissionDeniedException

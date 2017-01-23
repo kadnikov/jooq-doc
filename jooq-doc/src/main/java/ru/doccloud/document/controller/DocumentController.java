@@ -1,5 +1,6 @@
 package ru.doccloud.document.controller;
 
+import java.io.IOException;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -18,6 +19,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.service.DocumentCrudService;
 import ru.doccloud.document.service.DocumentSearchService;
@@ -26,7 +31,7 @@ import ru.doccloud.document.service.DocumentSearchService;
  * @author Andrey Kadnikov
  */
 @RestController
-@RequestMapping("/api/todo")
+@RequestMapping("/api/docs")
 public class DocumentController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DocumentController.class);
@@ -77,7 +82,7 @@ public class DocumentController {
     
     @RequestMapping(method = RequestMethod.GET)
     public Page<DocumentDTO> findAll(Pageable pageable) {
-        LOGGER.info("Finding {} Document entries for page {} by using search term: {}",
+        LOGGER.info("Finding {} Document entries for page {} ",
                 pageable.getPageSize(),
                 pageable.getPageNumber()
         );
@@ -93,12 +98,23 @@ public class DocumentController {
     }
     
     @RequestMapping(value = "/type/{type}", method = RequestMethod.GET)
-    public List<DocumentDTO> findByType(@PathVariable("type") String type) {
-        LOGGER.info("Finding all Documents by type");
+    public Page<DocumentDTO> findByType(@PathVariable("type") String type, @RequestParam(value = "fields",required=false) String fields, @RequestParam(value = "query",required=false) String query,Pageable pageable) {
+        LOGGER.info("Finding {} Document entries for page {} by type: {} and fields {}",
+                pageable.getPageSize(),
+                pageable.getPageNumber(),
+                type, fields
+        );
+        String[] fieldsArr = null;
+        if (fields!=null){
+        	fieldsArr = fields.split(",");
+        }
 
-        List<DocumentDTO> documentEntries = crudService.findAllByType(type);
+        Page<DocumentDTO> documentEntries = crudService.findAllByType(type, fieldsArr, pageable, query);
 
-        LOGGER.info("Found {} Document entries.");
+        LOGGER.info("Found {} Document entries for page: {}",
+        		documentEntries.getNumberOfElements(),
+        		documentEntries.getNumber()
+        );
 
         return documentEntries;
     }

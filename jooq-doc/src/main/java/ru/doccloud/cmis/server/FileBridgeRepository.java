@@ -132,6 +132,9 @@ import org.jooq.DSLContext;
 import org.jtransfo.JTransfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import ru.doccloud.common.service.CurrentTimeDateTimeService;
 import ru.doccloud.document.dto.DocumentDTO;
@@ -1185,24 +1188,15 @@ public class FileBridgeRepository {
         Set<String> filterCollection = FileBridgeUtils.splitFilter(filter);
 
         // check path
-        if (folderPath == null || folderPath.length() == 0 || folderPath.charAt(0) != '/') {
+        if (folderPath == null || folderPath.length() == 0) {
             throw new CmisInvalidArgumentException("Invalid folder path!");
         }
 
-        // get the file or folder
-        File file = null;
-        if (folderPath.length() == 1) {
-            file = root;
-        } else {
-            String path = folderPath.replace('/', File.separatorChar).substring(1);
-            file = new File(root, path);
-        }
-
-        if (!file.exists()) {
-            throw new CmisObjectNotFoundException("Path doesn't exist.");
-        }
-
-        return compileObjectData(context, file, filterCollection, includeAllowableActions, includeACL, userReadOnly,
+        Pageable pageable = new PageRequest(0, 1);
+        Page<Document> docPage = repository.findBySearchTerm(folderPath.substring(folderPath.lastIndexOf("/")+1, folderPath.length()), pageable);
+        List<DocumentDTO> dtos = transformer.convertList(docPage.getContent(), DocumentDTO.class);
+        DocumentDTO doc = dtos.iterator().next();
+        return compileObjectData(context, doc, filterCollection, includeAllowableActions, includeACL, userReadOnly,
                 objectInfos);
     }
 
@@ -1467,7 +1461,7 @@ public class FileBridgeRepository {
                 addPropertyId(result, typeId, filter, PropertyIds.BASE_TYPE_ID, BaseTypeId.CMIS_FOLDER.value());
                 addPropertyId(result, typeId, filter, PropertyIds.OBJECT_TYPE_ID, BaseTypeId.CMIS_FOLDER.value());
                 String path = doc.getTitle();
-                addPropertyString(result, typeId, filter, PropertyIds.PATH, path);
+                addPropertyString(result, typeId, filter, PropertyIds.PATH, "/"+path);
 
                 // folder properties
                 if (doc.getId()!=0) {
