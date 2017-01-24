@@ -33,7 +33,7 @@
         <build.profile.id>doccloud</build.profile.id>
         <skip.db.creation>false</skip.db.creation>
         <skip.integration.tests>true</skip.integration.tests>
-        <skip.unit.tests>false</skip.unit.tests>
+        <skip.unit.tests>true</skip.unit.tests>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <profiles>
@@ -90,7 +90,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-war-plugin</artifactId>
-                        
+
                     </plugin>
                 </plugins>
             </build>
