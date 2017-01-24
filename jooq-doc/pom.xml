@@ -110,7 +110,7 @@
         </profile>
     </profiles>
     <build>
-        <finalName>jooqTest</finalName>
+        <finalName>jooq</finalName>
         <filters>
             <filter>profiles/${build.profile.id}/config.properties</filter>
         </filters>
