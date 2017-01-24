@@ -331,6 +331,7 @@
                 <configuration>
                     <warName>jooq</warName>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <classesClassifier>true</classesClassifier>
                     <webResources>
                         <resource>
                             <directory>frontend/_public/frontend</directory>
