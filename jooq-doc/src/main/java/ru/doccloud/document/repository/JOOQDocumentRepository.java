@@ -507,7 +507,14 @@ public class JOOQDocumentRepository implements DocumentRepository {
         if (queryParams!=null)
         for (queryParam param : queryParams) {
         	LOGGER.info("Param {} {} {} ",param.getField(),param.getOperand(),param.getValue());
-        	cond = cond.and(jsonText(DOCUMENTS.DATA, param.getField()).like("%"+param.getValue()+"%"));
+        	if (param.getOperand()!=null){
+        	if ("like".equals(param.getOperand().toLowerCase()))
+        		cond = cond.and(jsonText(DOCUMENTS.DATA, param.getField()).like("%"+param.getValue()+"%"));
+        	if ("more".equals(param.getOperand().toLowerCase()))
+        		cond = cond.and(jsonText(DOCUMENTS.DATA, param.getField()).greaterOrEqual(param.getValue()));
+        	if ("less".equals(param.getOperand().toLowerCase()))
+        		cond = cond.and(jsonText(DOCUMENTS.DATA, param.getField()).lessThan(param.getValue()));
+        	}
         }
         List<Record> queryResults = jooq.select(selectedFields).from(DOCUMENTS)
         		.where(cond)
