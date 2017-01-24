@@ -180,8 +180,8 @@ public class FileBridgeRepository {
     /** CMIS 1.1 repository info. */
     private final RepositoryInfo repositoryInfo11;
 
-    public FileBridgeRepository(final String repositoryId, final String rootPath,
-            final FileBridgeTypeManager typeManager, DSLContext jooq, JTransfo transformer) {
+    FileBridgeRepository(final String repositoryId, final String rootPath,
+                         final FileBridgeTypeManager typeManager, DSLContext jooq, JTransfo transformer) {
         // check repository id
         if (repositoryId == null || repositoryId.trim().length() == 0) {
             throw new IllegalArgumentException("Invalid repository id!");
