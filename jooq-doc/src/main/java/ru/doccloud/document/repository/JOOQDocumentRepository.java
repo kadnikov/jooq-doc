@@ -319,7 +319,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
     private Field<String> getTableField(String sortFieldName) {
         Field<String> sortField = null;
         try {
-            java.lang.reflect.Field tableField = DOCUMENTS.getClass().getField(sortFieldName);
+            java.lang.reflect.Field tableField = DOCUMENTS.getClass().getField(sortFieldName.toUpperCase());
             sortField = (TableField) tableField.get(DOCUMENTS);
             LOGGER.info("sortField - "+sortField);
         } catch (NoSuchFieldException | IllegalAccessException ex) {
@@ -513,6 +513,8 @@ public class JOOQDocumentRepository implements DocumentRepository {
         for (queryParam param : queryParams) {
         	LOGGER.info("Param {} {} {} ",param.getField(),param.getOperand(),param.getValue());
         	if (param.getOperand()!=null){
+        		if ("eq".equals(param.getOperand().toLowerCase()))
+	        		cond = cond.and(getTableField(param.getField()).equal(param.getValue()));
 	        	if ("cn".equals(param.getOperand().toLowerCase()))
 	        		cond = cond.and(getTableField(param.getField()).like("%"+param.getValue()+"%"));
 	        	if ("ge".equals(param.getOperand().toLowerCase()))
