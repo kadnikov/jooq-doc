@@ -308,7 +308,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
             Sort.Direction sortDirection = specifiedField.getDirection();
             LOGGER.debug("Getting sort field with name: {} and direction: {}", sortFieldName, sortDirection);
 
-            TableField tableField = getTableField(sortFieldName);
+            Field<String> tableField = getTableField(sortFieldName);
             SortField<?> querySortField = convertTableFieldToSortField(tableField, sortDirection);
             querySortFields.add(querySortField);
         }
@@ -316,22 +316,22 @@ public class JOOQDocumentRepository implements DocumentRepository {
         return querySortFields;
     }
 
-    private TableField getTableField(String sortFieldName) {
-        TableField sortField = null;
+    private Field<String> getTableField(String sortFieldName) {
+        Field<String> sortField = null;
         try {
             java.lang.reflect.Field tableField = DOCUMENTS.getClass().getField(sortFieldName);
             sortField = (TableField) tableField.get(DOCUMENTS);
             LOGGER.info("sortField - "+sortField);
         } catch (NoSuchFieldException | IllegalAccessException ex) {
-        	
-            String errorMessage = String.format("Could not find table field: {}", sortFieldName);
-            throw new InvalidDataAccessApiUsageException(errorMessage, ex);
+        	LOGGER.info("Could not find table field: {}, Try to search in JSON data", sortFieldName);
+        	sortField = jsonText(DOCUMENTS.DATA, sortFieldName);
+            
         }
 
         return sortField;
     }
 
-    private SortField<?> convertTableFieldToSortField(TableField tableField, Sort.Direction sortDirection) {
+    private SortField<?> convertTableFieldToSortField(Field<String> tableField, Sort.Direction sortDirection) {
         if (sortDirection == Sort.Direction.ASC) {
             return tableField.asc();
         }
@@ -514,11 +514,11 @@ public class JOOQDocumentRepository implements DocumentRepository {
         	LOGGER.info("Param {} {} {} ",param.getField(),param.getOperand(),param.getValue());
         	if (param.getOperand()!=null){
 	        	if ("cn".equals(param.getOperand().toLowerCase()))
-	        		cond = cond.and(jsonText(DOCUMENTS.DATA, param.getField()).like("%"+param.getValue()+"%"));
+	        		cond = cond.and(getTableField(param.getField()).like("%"+param.getValue()+"%"));
 	        	if ("ge".equals(param.getOperand().toLowerCase()))
-	        		cond = cond.and(jsonText(DOCUMENTS.DATA, param.getField()).greaterOrEqual(param.getValue()));
+	        		cond = cond.and(getTableField(param.getField()).greaterOrEqual(param.getValue()));
 	        	if ("le".equals(param.getOperand().toLowerCase()))
-	        		cond = cond.and(jsonText(DOCUMENTS.DATA, param.getField()).lessThan(param.getValue()));
+	        		cond = cond.and(getTableField(param.getField()).lessThan(param.getValue()));
         	}
         }
         List<Record> queryResults = jooq.select(selectedFields).from(DOCUMENTS)
