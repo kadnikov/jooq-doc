@@ -48,6 +48,7 @@ import ru.doccloud.common.service.DateTimeService;
 import ru.doccloud.document.exception.DocumentNotFoundException;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
+import ru.doccloud.document.model.filterBean;
 import ru.doccloud.document.model.queryParam;
 /**
  * @author Andrey Kadnikov
@@ -320,7 +321,9 @@ public class JOOQDocumentRepository implements DocumentRepository {
         try {
             java.lang.reflect.Field tableField = DOCUMENTS.getClass().getField(sortFieldName);
             sortField = (TableField) tableField.get(DOCUMENTS);
+            LOGGER.info("sortField - "+sortField);
         } catch (NoSuchFieldException | IllegalAccessException ex) {
+        	
             String errorMessage = String.format("Could not find table field: {}", sortFieldName);
             throw new InvalidDataAccessApiUsageException(errorMessage, ex);
         }
@@ -491,12 +494,14 @@ public class JOOQDocumentRepository implements DocumentRepository {
         	selectedFields.add(jsonObject(DOCUMENTS.DATA, field).as(field));
 		}
         }
+        filterBean filter = null;
         List<queryParam> queryParams = null;
         LOGGER.info("Query for search - "+query);
         ObjectMapper mapper = new ObjectMapper();
         if (query!=null){
         	try {
-				queryParams = mapper.readValue(query, new TypeReference<List<queryParam>>(){});
+        		filter = mapper.readValue(query, new TypeReference<filterBean>(){});
+        		queryParams = filter.getMrules();
 				LOGGER.info("List of params - {} {}",queryParams.toString(),queryParams.size());
 			} catch (IOException e) {
 				LOGGER.error("Error parsing JSON "+ e.getLocalizedMessage());

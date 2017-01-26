@@ -7,9 +7,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class queryParam {
 	@JsonProperty("field")
 	public String mfield;
-	@JsonProperty("operand")
+	@JsonProperty("op")
 	public String moperand;
-	@JsonProperty("value")
+	@JsonProperty("data")
 	public String mvalue;
 	
 	public queryParam(){

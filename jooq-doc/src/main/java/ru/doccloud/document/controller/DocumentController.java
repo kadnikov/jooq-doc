@@ -98,7 +98,7 @@ public class DocumentController {
     }
     
     @RequestMapping(value = "/type/{type}", method = RequestMethod.GET)
-    public Page<DocumentDTO> findByType(@PathVariable("type") String type, @RequestParam(value = "fields",required=false) String fields, @RequestParam(value = "query",required=false) String query,Pageable pageable) {
+    public Page<DocumentDTO> findByType(@PathVariable("type") String type, @RequestParam(value = "fields",required=false) String fields, @RequestParam(value = "filters",required=false) String query,Pageable pageable) {
         LOGGER.info("Finding {} Document entries for page {} by type: {} and fields {}",
                 pageable.getPageSize(),
                 pageable.getPageNumber(),
