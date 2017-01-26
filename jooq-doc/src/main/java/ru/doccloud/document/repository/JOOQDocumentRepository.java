@@ -271,12 +271,12 @@ public class JOOQDocumentRepository implements DocumentRepository {
         return resultCount;
     }
     
-    private long findTotalCountByType(String type) {
+    private long findTotalCountByType(Condition cond) {
         LOGGER.debug("Finding search result count by using like expression: {}");
 
         long resultCount = jooq.fetchCount(
                 jooq.selectFrom(DOCUMENTS)
-                .where(DOCUMENTS.SYS_TYPE.equal(type))
+                .where(cond)
         );
 
         LOGGER.debug("Found search result count: {}", resultCount);
@@ -531,7 +531,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
         List<Document> documentEntries = convertQueryResults(queryResults, fields);
 
-        long totalCount = findTotalCountByType(type);
+        long totalCount = findTotalCountByType(cond);
 
         LOGGER.info("{} document entries matches with the like expression: {}",
                 totalCount
