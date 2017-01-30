@@ -520,7 +520,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
 	        	if ("ge".equals(param.getOperand().toLowerCase()))
 	        		cond = cond.and(getTableField(param.getField()).greaterOrEqual(param.getValue()));
 	        	if ("le".equals(param.getOperand().toLowerCase()))
-	        		cond = cond.and(getTableField(param.getField()).lessThan(param.getValue()));
+	        		cond = cond.and(getTableField(param.getField()).lessOrEqual(param.getValue()));
         	}
         }
         List<Record> queryResults = jooq.select(selectedFields).from(DOCUMENTS)

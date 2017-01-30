@@ -69,9 +69,9 @@ public class FileUploadController {
 	    }
 	 
 	     JSONObject file = new JSONObject();
-	     file.put("url", "http://localhost:8080/file/get/"+Calendar.getInstance().getTimeInMillis());
-	     file.put("thumbnailUrl", "http://localhost:8080/file/get/"+Calendar.getInstance().getTimeInMillis());
-	     file.put("deleteUrl", "http://localhost:8080/file/get/"+Calendar.getInstance().getTimeInMillis());
+	     file.put("url", "/api/file/get/"+Calendar.getInstance().getTimeInMillis());
+	     file.put("thumbnailUrl", "/api/file/get/"+Calendar.getInstance().getTimeInMillis());
+	     file.put("deleteUrl", "/api/file/get/"+Calendar.getInstance().getTimeInMillis());
 	     file.put("deleteType", "DELETE");
 	     
 	     file.put("size", ufile.length);
