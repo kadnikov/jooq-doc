@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -21,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
 import ru.doccloud.common.json.JodaModule;
+import ru.doccloud.document.controller.TimeExecutionProfiler;
 
 /**
  * @author Andrey Kadnikov
@@ -32,6 +34,7 @@ import ru.doccloud.common.json.JodaModule;
 })
 @EnableWebMvc
 @EnableSpringDataWebSupport
+@EnableAspectJAutoProxy
 public class WebAppContext extends WebMvcConfigurerAdapter {
 
     @Override
@@ -79,5 +82,10 @@ public class WebAppContext extends WebMvcConfigurerAdapter {
         CommonsMultipartResolver resolver=new CommonsMultipartResolver();
         resolver.setDefaultEncoding("utf-8");
         return resolver;
+    }
+    
+    @Bean 
+    public TimeExecutionProfiler timeExecutionProfiler() {
+        return new TimeExecutionProfiler(); 
     }
 }
