@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
 import ru.doccloud.common.json.JodaModule;
-import ru.doccloud.document.controller.TimeExecutionProfiler;
+import ru.doccloud.common.profiler.TimeExecutionProfiler;
 
 /**
  * @author Andrey Kadnikov

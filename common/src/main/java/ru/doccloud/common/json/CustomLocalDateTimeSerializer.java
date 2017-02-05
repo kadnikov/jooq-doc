@@ -20,7 +20,7 @@ public class CustomLocalDateTimeSerializer extends JsonSerializer<LocalDateTime>
 
     private final DateTimeFormatter dateTimeFormat = DateTimeFormat.forPattern(DateTimeConstants.TIMESTAMP_PATTERN);
 
-    public CustomLocalDateTimeSerializer() {
+    CustomLocalDateTimeSerializer() {
     }
 
     @Override

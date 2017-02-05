@@ -31,9 +31,13 @@ public class CmisLifecycleBean implements ServletContextAware,InitializingBean, 
     private static final String CONFIG_FILENAME = "/repository.properties";
     private static final String PROPERTY_CLASS = "class";
     
+    private final CmisServiceFactory factory;
+
     @Autowired
-    private CmisServiceFactory factory;
-    
+    public CmisLifecycleBean(CmisServiceFactory factory) {
+        this.factory = factory;
+    }
+
 
     @Override
     public void setServletContext(ServletContext servletContext)

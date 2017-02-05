@@ -34,16 +34,14 @@ public class ContentRangeInputStream extends FilterInputStream {
     private static final int BUFFER_SIZE = 4096;
 
     private long offset;
-    private long length;
     private long remaining;
 
-    public ContentRangeInputStream(InputStream stream, BigInteger offset, BigInteger length) {
+    ContentRangeInputStream(InputStream stream, BigInteger offset, BigInteger length) {
         super(stream);
 
         this.offset = offset != null ? offset.longValue() : 0;
-        this.length = length != null ? length.longValue() : Long.MAX_VALUE;
 
-        this.remaining = this.length;
+        this.remaining = length != null ? length.longValue() : Long.MAX_VALUE;
 
         if (this.offset > 0) {
             skipBytes();

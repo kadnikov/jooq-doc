@@ -1,4 +1,4 @@
-package ru.doccloud.document.controller;
+package ru.doccloud.common.profiler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

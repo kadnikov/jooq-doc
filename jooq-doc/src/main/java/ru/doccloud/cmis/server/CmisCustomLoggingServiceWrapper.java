@@ -41,7 +41,7 @@ public class CmisCustomLoggingServiceWrapper extends AbstractCmisServiceWrapper 
     /**
      * slf logging version with dual output to console and slf
      */
-    protected void slflog(String operation, String repositoryId) {
+    private void slflog(String operation, String repositoryId) {
         if (repositoryId == null) {
             repositoryId = "<none>";
         }

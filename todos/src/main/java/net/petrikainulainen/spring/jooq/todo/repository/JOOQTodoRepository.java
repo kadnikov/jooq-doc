@@ -1,7 +1,7 @@
 package net.petrikainulainen.spring.jooq.todo.repository;
 
 import net.petrikainulainen.spring.jooq.todo.db.tables.records.TodosRecord;
-import net.petrikainulainen.spring.jooq.todo.exception.TodoNotFoundException;
+import ru.doccloud.common.exception.TodoNotFoundException;
 import net.petrikainulainen.spring.jooq.todo.model.Todo;
 import ru.doccloud.common.service.DateTimeService;
 

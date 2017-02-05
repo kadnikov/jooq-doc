@@ -4,7 +4,7 @@ import net.petrikainulainen.spring.jooq.common.TestDateUtil;
 import net.petrikainulainen.spring.jooq.config.ServiceTestContext;
 import net.petrikainulainen.spring.jooq.todo.dto.TodoDTO;
 import net.petrikainulainen.spring.jooq.todo.dto.TodoDTOBuilder;
-import net.petrikainulainen.spring.jooq.todo.exception.TodoNotFoundException;
+import ru.doccloud.common.exception.TodoNotFoundException;
 import net.petrikainulainen.spring.jooq.todo.model.Todo;
 import net.petrikainulainen.spring.jooq.todo.repository.TodoRepository;
 

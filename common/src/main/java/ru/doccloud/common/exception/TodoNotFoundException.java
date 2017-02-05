@@ -1,4 +1,4 @@
-package net.petrikainulainen.spring.jooq.todo.exception;
+package ru.doccloud.common.exception;
 
 /**
  * @author Petri Kainulainen

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import net.petrikainulainen.spring.jooq.todo.exception.TodoNotFoundException;
+import ru.doccloud.common.exception.TodoNotFoundException;
 
 import java.util.List;
 

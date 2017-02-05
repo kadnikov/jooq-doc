@@ -6,7 +6,7 @@ import com.github.springtestdbunit.annotation.ExpectedDatabase;
 import com.github.springtestdbunit.assertion.DatabaseAssertionMode;
 
 import net.petrikainulainen.spring.jooq.todo.IntegrationTestConstants;
-import net.petrikainulainen.spring.jooq.todo.exception.TodoNotFoundException;
+import ru.doccloud.common.exception.TodoNotFoundException;
 import net.petrikainulainen.spring.jooq.todo.model.Todo;
 import ru.doccloud.config.PersistenceContext;
 
@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {PersistenceContext.class})
-//@ContextConfiguration(locations = {"classpath:exampleApplicationContext-persistence.xml"})
+//@ContextConfiguration(locations = {"classpath:exampleApplicationContext-persistence_orig.xml"})
 @TestExecutionListeners({ DependencyInjectionTestExecutionListener.class,
         DirtiesContextTestExecutionListener.class,
         TransactionalTestExecutionListener.class,
