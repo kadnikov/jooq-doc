@@ -36,7 +36,7 @@ public class FileBridgeUserManager {
 
     private final Map<String, String> logins;
 
-    public FileBridgeUserManager() {
+    FileBridgeUserManager() {
         logins = new HashMap<String, String>();
     }
 
@@ -50,7 +50,7 @@ public class FileBridgeUserManager {
     /**
      * Adds a login.
      */
-    public synchronized void addLogin(String username, String password) {
+    synchronized void addLogin(String username, String password) {
         if (username == null || password == null) {
             return;
         }
@@ -61,7 +61,7 @@ public class FileBridgeUserManager {
     /**
      * Takes user and password from the CallContext and checks them.
      */
-    public synchronized String authenticate(CallContext context) {
+    synchronized String authenticate(CallContext context) {
         // check user and password
         if (!authenticate(context.getUsername(), context.getPassword())) {
             throw new CmisPermissionDeniedException("Invalid username or password.");

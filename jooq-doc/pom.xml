@@ -87,6 +87,16 @@
             <groupId>ru.doccloud</groupId>
             <artifactId>config</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>ru.doccloud</groupId>
+            <artifactId>cmis</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.doccloud</groupId>
+            <artifactId>docmanagement</artifactId>
+        </dependency>
         <!-- Commons Lang -->
         <dependency>
             <groupId>org.apache.commons</groupId>
