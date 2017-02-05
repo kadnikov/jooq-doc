@@ -282,9 +282,7 @@
                         <skip>${skip.db.creation}</skip>
                         <fileset>
                             <basedir>${main.basedir}/dbconfig</basedir>
-                            <!--<includes>-->
-                                <!--<include>${main.basedir}/dbconfig/schema.sql</include>-->
-                            <!--</includes>-->
+
                         </fileset>
                     </configuration>
 
@@ -302,9 +300,7 @@
                                 <password>${db.password}</password>
 
                                 <autocommit>true</autocommit>
-                                <!--<srcFiles>-->
-                                    <!--<srcFile>src/main/resources/schema.sql</srcFile>-->
-                                <!--</srcFiles>-->
+
                             </configuration>
                         </execution>
                     </executions>
