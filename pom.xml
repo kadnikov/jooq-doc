@@ -613,31 +613,31 @@
             <dependency>
                 <groupId>ru.doccloud</groupId>
                 <artifactId>todos</artifactId>
-                <version>1.1.0-SNAPSHOT</version>
+                <version>0.1</version>
             </dependency>
 
             <dependency>
                 <groupId>ru.doccloud</groupId>
                 <artifactId>cmis</artifactId>
-                <version>1.1.0-SNAPSHOT</version>
+                <version>0.1</version>
             </dependency>
 
             <dependency>
                 <groupId>ru.doccloud</groupId>
                 <artifactId>docmanagement</artifactId>
-                <version>1.1.0-SNAPSHOT</version>
+                <version>0.1</version>
             </dependency>
 
             <dependency>
                 <groupId>ru.doccloud</groupId>
                 <artifactId>common</artifactId>
-                <version>1.1.0-SNAPSHOT</version>
+                <version>0.1</version>
             </dependency>
 
             <dependency>
                 <groupId>ru.doccloud</groupId>
                 <artifactId>config</artifactId>
-                <version>1.1.0-SNAPSHOT</version>
+                <version>0.1</version>
             </dependency>
 
 
