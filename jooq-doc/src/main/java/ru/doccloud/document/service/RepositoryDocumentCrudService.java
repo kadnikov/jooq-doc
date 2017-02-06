@@ -36,8 +36,13 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 
     @Autowired
     public RepositoryDocumentCrudService(DocumentRepository repository, JTransfo transformer) {
+    	LOGGER.info("Create RepositoryDocumentCrudService");
         this.repository = repository;
         this.transformer = transformer;
+    }
+    
+    public DocumentRepository getRepository(){
+    	return this.repository;
     }
 
     @Transactional
@@ -47,8 +52,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         if (dto.getId()==null){
         	//dto.setId(DEFAULT);
         }
-        repository.setUser();
-        
+                
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         dto.setAuthor(request.getRemoteUser());
         Document added = createModel(dto);
@@ -92,7 +96,6 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     @Override
     public List<DocumentDTO> findAll() {
         LOGGER.info("Finding all Document entries.");
-        repository.setUser();
         
         List<Document> docEntries = repository.findAll();
 
@@ -107,7 +110,6 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         LOGGER.info("Finding all Document entries.", 
                 pageable.getPageSize(),
                 pageable.getPageNumber());
-        repository.setUser();
         
         Page<Document> searchResults = repository.findAll(pageable);
 
@@ -125,7 +127,6 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     @Override
     public DocumentDTO findById(Long id) {
         LOGGER.info("Finding Document entry with id: {}", id);
-        repository.setUser();
         
         Document found = repository.findById(id);
 
@@ -138,7 +139,6 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     @Override
     public DocumentDTO update(DocumentDTO dto) {
         LOGGER.info("Updating the information of a Document entry: {}", dto);
-        repository.setUser();
         
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         dto.setModifier(request.getRemoteUser());
@@ -164,7 +164,6 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 	@Override
 	public Page<DocumentDTO> findAllByType(String type, String[] fields, Pageable pageable, String query) {
 		LOGGER.info("Finding Documents by Type.");
-		repository.setUser();
 		
         Page<Document> searchResults = repository.findAllByType(type, fields, pageable, query);
 
@@ -181,7 +180,6 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 	@Override
 	public List<DocumentDTO> findAllByParent(Long parentid) {
 		LOGGER.info("Finding Documents by Type.");
-		repository.setUser();
 		
         List<Document> docEntries = repository.findAllByParent(parentid);
 

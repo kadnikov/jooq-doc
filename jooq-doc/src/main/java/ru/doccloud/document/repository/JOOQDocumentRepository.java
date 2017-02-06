@@ -589,6 +589,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
         return documentEntries;
 	}
 
+	@Transactional
 	@Override
 	public void setUser() {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
@@ -597,6 +598,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
 		
 	}
 	
+	@Transactional
 	@Override
 	public void setUser(String userName) {
 		LOGGER.info("Current User - "+userName);
