@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>todos</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>0.1</version>
     <packaging>jar</packaging>
 
     <name>Todo</name>
@@ -18,7 +18,7 @@
    <parent>
         <groupId>ru.doccloud</groupId>
         <artifactId>parent</artifactId>
-        <version>1.0-SNAPSHOT</version>
+       <version>0.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 

@@ -4,7 +4,7 @@
 
     <artifactId>jooq-only</artifactId>
     <packaging>war</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1</version>
     <name>Using jOOQ with Spring</name>
     <description>
         This example demonstrates how you can create a repository for your application by using jOOQ.
@@ -19,7 +19,7 @@
 <parent>
         <groupId>ru.doccloud</groupId>
         <artifactId>parent</artifactId>
-        <version>1.0-SNAPSHOT</version>
+    <version>0.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
