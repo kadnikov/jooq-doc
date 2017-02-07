@@ -609,7 +609,6 @@
     <dependencyManagement>
 
         <dependencies>
-
             <dependency>
                 <groupId>ru.doccloud</groupId>
                 <artifactId>todos</artifactId>
