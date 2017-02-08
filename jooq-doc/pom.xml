@@ -73,30 +73,34 @@
    
     <dependencies>
 
-        <!--<dependency>-->
-            <!--<groupId>ru.doccloud</groupId>-->
-            <!--<artifactId>todos</artifactId>-->
+        <dependency>
+            <groupId>ru.doccloud</groupId>
+            <artifactId>todos</artifactId>
+            <version>0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>ru.doccloud</groupId>
+            <artifactId>common</artifactId>
+            <version>0.1</version>
+        </dependency>
 
-        <!--</dependency>-->
-        <!--<dependency>-->
-            <!--<groupId>ru.doccloud</groupId>-->
-            <!--<artifactId>common</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>ru.doccloud</groupId>
+            <artifactId>config</artifactId>
+            <version>0.1</version>
+        </dependency>
 
-        <!--<dependency>-->
-            <!--<groupId>ru.doccloud</groupId>-->
-            <!--<artifactId>config</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>ru.doccloud</groupId>
+            <artifactId>cmis</artifactId>
+            <version>0.1</version>
+        </dependency>
 
-        <!--<dependency>-->
-            <!--<groupId>ru.doccloud</groupId>-->
-            <!--<artifactId>cmis</artifactId>-->
-        <!--</dependency>-->
-
-        <!--<dependency>-->
-            <!--<groupId>ru.doccloud</groupId>-->
-            <!--<artifactId>docmanagement</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>ru.doccloud</groupId>
+            <artifactId>docmanagement</artifactId>
+            <version>0.1</version>
+        </dependency>
         <!-- Commons Lang -->
         <dependency>
             <groupId>org.apache.commons</groupId>
