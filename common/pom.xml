@@ -19,7 +19,7 @@
         <groupId>ru.doccloud</groupId>
         <artifactId>parent</artifactId>
        <version>0.1</version>
-        <relativePath>../pom.xml</relativePath>
+        <!--<relativePath>../pom.xml</relativePath>-->
     </parent>
 
     <!--<profiles>-->
