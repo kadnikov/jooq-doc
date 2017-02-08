@@ -20,7 +20,7 @@
         <groupId>ru.doccloud</groupId>
         <artifactId>parent</artifactId>
     <version>0.1</version>
-        <relativePath>../pom.xml</relativePath>
+        <!--<relativePath>../pom.xml</relativePath>-->
     </parent>
 
 <build>
@@ -73,30 +73,30 @@
    
     <dependencies>
 
-        <dependency>
-            <groupId>ru.doccloud</groupId>
-            <artifactId>todos</artifactId>
+        <!--<dependency>-->
+            <!--<groupId>ru.doccloud</groupId>-->
+            <!--<artifactId>todos</artifactId>-->
 
-        </dependency>
-        <dependency>
-            <groupId>ru.doccloud</groupId>
-            <artifactId>common</artifactId>
-        </dependency>
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>ru.doccloud</groupId>-->
+            <!--<artifactId>common</artifactId>-->
+        <!--</dependency>-->
 
-        <dependency>
-            <groupId>ru.doccloud</groupId>
-            <artifactId>config</artifactId>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>ru.doccloud</groupId>-->
+            <!--<artifactId>config</artifactId>-->
+        <!--</dependency>-->
 
-        <dependency>
-            <groupId>ru.doccloud</groupId>
-            <artifactId>cmis</artifactId>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>ru.doccloud</groupId>-->
+            <!--<artifactId>cmis</artifactId>-->
+        <!--</dependency>-->
 
-        <dependency>
-            <groupId>ru.doccloud</groupId>
-            <artifactId>docmanagement</artifactId>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>ru.doccloud</groupId>-->
+            <!--<artifactId>docmanagement</artifactId>-->
+        <!--</dependency>-->
         <!-- Commons Lang -->
         <dependency>
             <groupId>org.apache.commons</groupId>
