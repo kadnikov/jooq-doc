@@ -56,11 +56,11 @@
 
     <dependencies>
 
-        <dependency>
-            <groupId>ru.doccloud</groupId>
-            <artifactId>todos</artifactId>
-            <version>0.1</version>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>ru.doccloud</groupId>-->
+            <!--<artifactId>todos</artifactId>-->
+            <!--<version>0.1</version>-->
+        <!--</dependency>-->
 
         <dependency>
             <groupId>ru.doccloud</groupId>
