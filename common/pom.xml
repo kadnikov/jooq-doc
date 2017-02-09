@@ -19,15 +19,8 @@
         <groupId>ru.doccloud</groupId>
         <artifactId>parent</artifactId>
        <version>0.1</version>
-        <!--<relativePath>../pom.xml</relativePath>-->
     </parent>
 
-    <!--<profiles>-->
-        <!--<profile>-->
-            <!--<id>doccloud</id>-->
-
-        <!--</profile>-->
-    <!--</profiles>-->
     <build>
         <plugins>
             <plugin>

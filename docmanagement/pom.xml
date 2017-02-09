@@ -19,7 +19,6 @@
         <groupId>ru.doccloud</groupId>
         <artifactId>parent</artifactId>
        <version>0.1</version>
-        <!--<relativePath>../pom.xml</relativePath>-->
     </parent>
 
     <build>
@@ -56,17 +55,11 @@
 
     <dependencies>
 
-        <!--<dependency>-->
-            <!--<groupId>ru.doccloud</groupId>-->
-            <!--<artifactId>todos</artifactId>-->
-            <!--<version>0.1</version>-->
-        <!--</dependency>-->
 
         <dependency>
             <groupId>ru.doccloud</groupId>
             <artifactId>common</artifactId>
             <version>0.1</version>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
