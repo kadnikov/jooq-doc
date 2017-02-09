@@ -6,10 +6,8 @@
     <artifactId>common</artifactId>
     <version>0.1</version>
     <packaging>jar</packaging>
-
     <name>Common</name>
     <description>This jar provides classes for todo management. Deprecated must be remove in the future</description>
-    <url>http://maven.apache.org</url>
 
     <properties>
         <main.basedir>${project.parent.basedir}</main.basedir>
@@ -38,16 +36,11 @@
                 <artifactId>maven-compiler-plugin</artifactId>
 
             </plugin>
-            <!--<plugin>-->
-                <!--<groupId>org.apache.maven.plugins</groupId>-->
-                <!--<artifactId>maven-resources-plugin</artifactId>-->
 
-            <!--</plugin>-->
-            <!--<plugin>-->
-                <!--<groupId>org.codehaus.mojo</groupId>-->
-                <!--<artifactId>properties-maven-plugin</artifactId>-->
-
-            <!--</plugin>-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+            </plugin>
 
         </plugins>
     </build>
