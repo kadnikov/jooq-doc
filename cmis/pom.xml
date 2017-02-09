@@ -17,7 +17,7 @@
 
    <parent>
         <groupId>ru.doccloud</groupId>
-        <artifactId>parent</artifactId>
+        <artifactId>jooq-doc</artifactId>
        <version>0.1</version>
         <!--<relativePath>../pom.xml</relativePath>-->
     </parent>
