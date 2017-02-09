@@ -2,7 +2,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>jooq-only</artifactId>
+    <artifactId>jooq-web</artifactId>
     <packaging>war</packaging>
     <version>0.1</version>
     <name>Using jOOQ with Spring</name>
@@ -16,10 +16,10 @@
     </properties>
 
 
-<parent>
+    <parent>
         <groupId>ru.doccloud</groupId>
         <artifactId>parent</artifactId>
-    <version>0.1</version>
+        <version>0.1</version>
     </parent>
 
 <build>

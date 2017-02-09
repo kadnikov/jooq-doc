@@ -6,8 +6,8 @@
     <artifactId>parent</artifactId>
     <packaging>pom</packaging>
     <version>0.1</version>
-    <name>JooqDoc</name>
-    <description>Jooq project</description>
+    <!--<name>JooqDoc</name>-->
+    <!--<description>Jooq project</description>-->
 
 
     <properties>
@@ -34,11 +34,10 @@
 
     <modules>
         <module>common</module>
-
         <module>config</module>
         <module>cmis</module>
         <module>docmanagement</module>
-        <module>jooq-doc</module>
+        <module>jooq-web</module>
     </modules>
 
 
@@ -620,32 +619,6 @@
     <dependencyManagement>
 
         <dependencies>
-
-            <!--<dependency>-->
-                <!--<groupId>ru.doccloud</groupId>-->
-                <!--<artifactId>cmis</artifactId>-->
-                <!--<version>0.1</version>-->
-            <!--</dependency>-->
-
-            <!--<dependency>-->
-                <!--<groupId>ru.doccloud</groupId>-->
-                <!--<artifactId>docmanagement</artifactId>-->
-                <!--<version>0.1</version>-->
-            <!--</dependency>-->
-
-            <!--<dependency>-->
-                <!--<groupId>ru.doccloud</groupId>-->
-                <!--<artifactId>common</artifactId>-->
-                <!--<version>0.1</version>-->
-            <!--</dependency>-->
-
-            <!--<dependency>-->
-                <!--<groupId>ru.doccloud</groupId>-->
-                <!--<artifactId>config</artifactId>-->
-                <!--<version>0.1</version>-->
-            <!--</dependency>-->
-
-
             <dependency>
                 <groupId>org.aspectj</groupId>
                 <artifactId>aspectjrt</artifactId>

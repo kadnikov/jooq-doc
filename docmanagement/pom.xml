@@ -4,12 +4,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>docmanagement</artifactId>
-    <version>0.1</version>
     <packaging>jar</packaging>
-
     <name>docmanagement</name>
-    <description>This jar provides classes for todo management. Deprecated must be remove in the future</description>
-    <url>http://maven.apache.org</url>
+    <version>0.1</version>
 
     <properties>
         <main.basedir>${project.parent.basedir}</main.basedir>
