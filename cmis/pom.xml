@@ -50,12 +50,14 @@
             <groupId>ru.doccloud</groupId>
             <artifactId>docmanagement</artifactId>
             <version>0.1</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
         <groupId>ru.doccloud</groupId>
         <artifactId>config</artifactId>
             <version>0.1</version>
+            <scope>provided</scope>
     </dependency>
 
 
