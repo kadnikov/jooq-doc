@@ -12,13 +12,13 @@ import org.springframework.jdbc.support.SQLStateSQLExceptionTranslator;
  * The idea behind this is borrowed from Adam Zell's Gist
  *
  * See this more details: https://gist.github.com/azell/5655888
- * @author Petri Kainulainen
  */
 public class JOOQToSpringExceptionTransformer extends DefaultExecuteListener {
 
     @Override
     public void exception(ExecuteContext ctx) {
     	//SQLDialect dialect = ctx.configuration().dialect();
+//        todo  move dialect to comfig
         String dialect ="PostgreSQL";
         SQLExceptionTranslator translator = (dialect != null)
                 ? new SQLErrorCodeSQLExceptionTranslator(dialect)

@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 public class CmisCustomLoggingServiceWrapper extends AbstractCmisServiceWrapper {
 
     // slf4j example
-    private static final Logger LOG = LoggerFactory.getLogger(CmisCustomLoggingServiceWrapper.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CmisCustomLoggingServiceWrapper.class);
 
     // provide constructor
     public CmisCustomLoggingServiceWrapper(CmisService service) {
@@ -54,7 +54,7 @@ public class CmisCustomLoggingServiceWrapper extends AbstractCmisServiceWrapper 
 
         String binding = getCallContext().getBinding();
 
-        LOG.debug("Operation: {}, Repository ID: {}, Binding: {}, User Agent: {}", "getChildren ", repositoryId, binding,
+        LOGGER.debug("Operation: {}, Repository ID: {}, Binding: {}, User Agent: {}", "getChildren ", repositoryId, binding,
                 userAgent);
     }
 
@@ -63,7 +63,7 @@ public class CmisCustomLoggingServiceWrapper extends AbstractCmisServiceWrapper 
             Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter,
             Boolean includePathSegment, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
 
-        if(LOG.isDebugEnabled()) {
+        if(LOGGER.isDebugEnabled()) {
             slflog(repositoryId);
         }
         long startTime = System.currentTimeMillis();
@@ -73,7 +73,7 @@ public class CmisCustomLoggingServiceWrapper extends AbstractCmisServiceWrapper 
                 skipCount, extension);
 
         // dual log output in case logger not configured
-        LOG.debug("[CmisCustomServiceWrapper] Exiting method getChildren. time (ms):"
+        LOGGER.debug("[CmisCustomServiceWrapper] Exiting method getChildren. time (ms):"
                 + (System.currentTimeMillis() - startTime));
         return retVal;
     }

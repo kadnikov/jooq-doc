@@ -51,7 +51,7 @@ import ru.doccloud.config.PersistenceContext;
 @Service
 public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
 
-    private static final Logger LOG = LoggerFactory.getLogger(FileBridgeCmisServiceFactory.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileBridgeCmisServiceFactory.class);
 
     private static final String PREFIX_LOGIN = "login.";
     private static final String PREFIX_REPOSITORY = "repository.";
@@ -73,9 +73,11 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
     /** Default depth value for getDescendants(). */
     private static final BigInteger DEFAULT_DEPTH_OBJECTS = BigInteger.valueOf(10);
     
-    private final ApplicationContext appContext;
+    @Autowired
+    private ApplicationContext appContext;
     
-    private final JTransfo transformer;
+    @Autowired
+    private JTransfo transformer;
     
     /** Each thread gets its own {@link FileBridgeCmisService} instance. */
     // old threadLocalService
@@ -91,15 +93,9 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
     private FileBridgeUserManager userManager;
     private FileBridgeTypeManager typeManager;
 
-    @Autowired
-    public FileBridgeCmisServiceFactory(ApplicationContext appContext, JTransfo transformer) {
-        this.appContext = appContext;
-        this.transformer = transformer;
-    }
-
     @Override
     public void init(Map<String, String> parameters) {
-        LOG.info("[FileBridgeCmisServiceFactory] init");
+        LOGGER.info("[FileBridgeCmisServiceFactory] init");
 
         // New for Chameleon **
         wrapperManager = new CmisServiceWrapperManager();
@@ -112,7 +108,7 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
         // what happens to our
         // custom parameters
         for (String currentKey : parameters.keySet()) {
-            LOG.info("[FileBridgeCmisServiceFactory]Key: " + currentKey + " ->Value:" + parameters.get(currentKey));
+            LOGGER.info("[FileBridgeCmisServiceFactory]Key: " + currentKey + " ->Value:" + parameters.get(currentKey));
         }
 
         repositoryManager = new FileBridgeRepositoryManager();
@@ -130,7 +126,7 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
     @Override
     public CmisService getService(CallContext context) {
         
-    	// LOG.info("[FileBridgeCmisServiceFactory] getService");
+    	// LOGGER.info("[FileBridgeCmisServiceFactory] getService");
     	// authenticate the user
         // if the authentication fails, authenticate() throws a
         // CmisPermissionDeniedException
@@ -165,7 +161,7 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
      * definitions.
      */
     private void readConfiguration(Map<String, String> parameters) {
-    	LOG.info("[FileBridgeCmisServiceFactory] readConfiguration");
+    	LOGGER.info("[FileBridgeCmisServiceFactory] readConfiguration");
         List<String> keys = new ArrayList<String>(parameters.keySet());
         Collections.sort(keys);
 
@@ -186,7 +182,7 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
                     password = usernameAndPassword.substring(x + 1);
                 }
 
-                LOG.info("Adding login '{}'.", username);
+                LOGGER.info("Adding login '{}'.", username);
 
                 userManager.addLogin(username, password);
             } else if (key.startsWith(PREFIX_REPOSITORY)) {
@@ -217,10 +213,10 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
                     // new repository
                     String root = parameters.get(key);
 
-                    LOG.info("Adding repository '{}': {}", repositoryId, root);
-                    LOG.info("appContext: {}", appContext);        
+                    LOGGER.info("Adding repository '{}': {}", repositoryId, root);
+                    LOGGER.info("appContext: {}", appContext);
                     PersistenceContext pctx = appContext.getBean(PersistenceContext.class);
-                    LOG.info("pctx: {}", pctx);   
+                    LOGGER.info("pctx: {}", pctx);
                     DSLContext jooq = pctx.dsl();
                     
                     FileBridgeRepository fsr = new FileBridgeRepository(repositoryId, root, typeManager, jooq, transformer);

@@ -24,6 +24,7 @@ import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -588,6 +589,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
         return documentEntries;
 	}
 
+	@Transactional
 	@Override
 	public void setUser() {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
@@ -596,6 +598,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
 		
 	}
 	
+	@Transactional
 	@Override
 	public void setUser(String userName) {
 		LOGGER.info("Current User - "+userName);

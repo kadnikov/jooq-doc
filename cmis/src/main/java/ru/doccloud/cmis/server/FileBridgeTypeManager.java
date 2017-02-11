@@ -48,7 +48,7 @@ import org.slf4j.LoggerFactory;
  */
 public class FileBridgeTypeManager {
 
-    private static final Logger LOG = LoggerFactory.getLogger(FileBridgeTypeManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileBridgeTypeManager.class);
 
     private static final String NAMESPACE = "http://chemistry.apache.org/opencmis/fileshare";
 
@@ -114,8 +114,8 @@ public class FileBridgeTypeManager {
 
         typeDefinitions.put(newType.getId(), newType);
 
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Added type '{}'.", type.getId());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Added type '{}'.", type.getId());
         }
     }
 
