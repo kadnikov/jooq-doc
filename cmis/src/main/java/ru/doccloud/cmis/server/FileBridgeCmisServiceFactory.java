@@ -73,11 +73,9 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
     /** Default depth value for getDescendants(). */
     private static final BigInteger DEFAULT_DEPTH_OBJECTS = BigInteger.valueOf(10);
     
-    @Autowired
-    private ApplicationContext appContext;
+    private final ApplicationContext appContext;
     
-    @Autowired
-    private JTransfo transformer;
+    private final JTransfo transformer;
     
     /** Each thread gets its own {@link FileBridgeCmisService} instance. */
     // old threadLocalService
@@ -92,6 +90,12 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
     private FileBridgeRepositoryManager repositoryManager;
     private FileBridgeUserManager userManager;
     private FileBridgeTypeManager typeManager;
+
+    @Autowired
+    public FileBridgeCmisServiceFactory(ApplicationContext appContext, JTransfo transformer) {
+        this.appContext = appContext;
+        this.transformer = transformer;
+    }
 
     @Override
     public void init(Map<String, String> parameters) {

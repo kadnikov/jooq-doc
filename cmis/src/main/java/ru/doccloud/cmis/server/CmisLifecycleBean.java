@@ -48,7 +48,7 @@ public class CmisLifecycleBean implements ServletContextAware,InitializingBean, 
     @Override
     public void afterPropertiesSet() throws Exception
     {
-    	LOG.info("Factory: "+factory);
+    	LOG.debug("Factory: "+factory);
     	
         if (factory != null)
         {
@@ -74,7 +74,7 @@ public class CmisLifecycleBean implements ServletContextAware,InitializingBean, 
         }
     }
     
-    private CmisServiceFactory createServiceFactory(String filename) {
+    private CmisServiceFactory createServiceFactory(final String filename) {
         // load properties
         InputStream stream = this.getClass().getResourceAsStream(filename);
 
@@ -94,7 +94,7 @@ public class CmisLifecycleBean implements ServletContextAware,InitializingBean, 
         }
 
         // get 'class' property
-        String className = props.getProperty(PROPERTY_CLASS);
+        final String className = props.getProperty(PROPERTY_CLASS);
         if (className == null) {
             LOG.warn("Configuration doesn't contain the property 'class'!");
             return null;
@@ -104,15 +104,15 @@ public class CmisLifecycleBean implements ServletContextAware,InitializingBean, 
         Map<String, String> parameters = new HashMap<String, String>();
 
         for (Enumeration<?> e = props.propertyNames(); e.hasMoreElements();) {
-            String key = (String) e.nextElement();
-            String value = props.getProperty(key);
+            final String key = (String) e.nextElement();
+            final String value = props.getProperty(key);
             parameters.put(key, value);
         }
 
         factory.init(parameters);
 
-        if (LOG.isInfoEnabled()) {
-            LOG.info("Initialized Services Factory: {}", factory.getClass().getName());
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Initialized Services Factory: {}", factory.getClass().getName());
         }
 
         return factory;

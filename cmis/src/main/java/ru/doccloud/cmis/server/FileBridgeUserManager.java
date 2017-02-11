@@ -37,7 +37,7 @@ public class FileBridgeUserManager {
     private final Map<String, String> logins;
 
     FileBridgeUserManager() {
-        logins = new HashMap<String, String>();
+        logins = new HashMap<>();
     }
 
     /**
@@ -50,7 +50,7 @@ public class FileBridgeUserManager {
     /**
      * Adds a login.
      */
-    synchronized void addLogin(String username, String password) {
+    synchronized void addLogin(final String username, final String password) {
         if (username == null || password == null) {
             return;
         }
@@ -73,13 +73,10 @@ public class FileBridgeUserManager {
     /**
      * Authenticates a user against the configured logins.
      */
-    private synchronized boolean authenticate(String username, String password) {
-        String pwd = logins.get(username);
-        if (pwd == null) {
-            return false;
-        }
+    private synchronized boolean authenticate(final String username, final String password) {
+        final String pwd = logins.get(username);
+        return pwd != null && pwd.equals(password);
 
-        return pwd.equals(password);
     }
 
     @Override

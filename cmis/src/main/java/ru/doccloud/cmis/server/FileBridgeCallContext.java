@@ -33,10 +33,10 @@ import org.apache.chemistry.opencmis.server.support.CallContextWrapper;
  */
 public class FileBridgeCallContext extends CallContextWrapper {
 
-    public final static String REQUEST_TIMESTAMP_KEY = "request.timestamp";
+    private final static String REQUEST_TIMESTAMP_KEY = "request.timestamp";
     private GregorianCalendar requestTimestamp;
 
-    public FileBridgeCallContext(CallContext context) {
+    FileBridgeCallContext(CallContext context) {
         super(context);
     }
 
@@ -57,7 +57,7 @@ public class FileBridgeCallContext extends CallContextWrapper {
      * @param requestTimestamp
      *            the timestamp
      */
-    public void setRequestTimestamp(GregorianCalendar requestTimestamp) {
+    void setRequestTimestamp(GregorianCalendar requestTimestamp) {
         this.requestTimestamp = requestTimestamp;
     }
 

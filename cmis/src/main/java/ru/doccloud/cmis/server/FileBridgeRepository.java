@@ -128,6 +128,7 @@ import org.apache.chemistry.opencmis.commons.impl.server.ObjectInfoImpl;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
 import org.jtransfo.JTransfo;
 import org.slf4j.Logger;
@@ -348,15 +349,15 @@ public class FileBridgeRepository {
     /**
      * Returns the root directory of this repository
      */
-    public File getRootDirectory() {
+    File getRootDirectory() {
         return root;
     }
 
     /**
      * Sets read-only flag for the given user.
      */
-    public void setUserReadOnly(String user) {
-        if (user == null || user.length() == 0) {
+    void setUserReadOnly(final String user) {
+        if (StringUtils.isBlank(user)) {
             return;
         }
 
@@ -366,8 +367,8 @@ public class FileBridgeRepository {
     /**
      * Sets read-write flag for the given user.
      */
-    public void setUserReadWrite(String user) {
-        if (user == null || user.length() == 0) {
+    void setUserReadWrite(final String user) {
+        if (StringUtils.isBlank(user)) {
             return;
         }
 
@@ -379,7 +380,7 @@ public class FileBridgeRepository {
     /**
      * CMIS getRepositoryInfo.
      */
-    public RepositoryInfo getRepositoryInfo(CallContext context) {
+    RepositoryInfo getRepositoryInfo(CallContext context) {
         checkUser(context, false);
 
         if (context.getCmisVersion() == CmisVersion.CMIS_1_0) {
@@ -392,8 +393,8 @@ public class FileBridgeRepository {
     /**
      * CMIS getTypesChildren.
      */
-    public TypeDefinitionList getTypeChildren(CallContext context, String typeId, Boolean includePropertyDefinitions,
-            BigInteger maxItems, BigInteger skipCount) {
+    TypeDefinitionList getTypeChildren(CallContext context, String typeId, Boolean includePropertyDefinitions,
+                                       BigInteger maxItems, BigInteger skipCount) {
         checkUser(context, false);
 
         return typeManager.getTypeChildren(context, typeId, includePropertyDefinitions, maxItems, skipCount);
@@ -412,7 +413,7 @@ public class FileBridgeRepository {
     /**
      * CMIS getTypeDefinition.
      */
-    public TypeDefinition getTypeDefinition(CallContext context, String typeId) {
+    TypeDefinition getTypeDefinition(CallContext context, String typeId) {
         checkUser(context, false);
 
         return typeManager.getTypeDefinition(context, typeId);
@@ -446,8 +447,8 @@ public class FileBridgeRepository {
     /**
      * CMIS createDocument.
      */
-    public String createDocument(CallContext context, Properties properties, String folderId,
-            ContentStream contentStream, VersioningState versioningState) {
+    String createDocument(CallContext context, Properties properties, String folderId,
+                          ContentStream contentStream, VersioningState versioningState) {
         checkUser(context, true);
 
         // check versioning state
@@ -483,7 +484,7 @@ public class FileBridgeRepository {
 	            String mimeType = FileBridgeUtils.getStringProperty(properties, PropertyIds.CONTENT_STREAM_LENGTH);
 	            LOGGER.debug("Uploaded file - "+filePath+" - "+fileLength+" - "+mimeType);
 	            if (fileLength==null){
-	            	doc.setFileLength(new Long(0));
+	            	doc.setFileLength(0L);
 	            }else{
 	            	doc.setFileLength(fileLength.longValue());
 	            }
@@ -2020,7 +2021,7 @@ public class FileBridgeRepository {
             entry.setPrincipal(principal);
             entry.setPermissions(new ArrayList<String>());
             entry.getPermissions().add(BasicPermissions.READ);
-            if (!ue.getValue().booleanValue() && file.canWrite()) {
+            if (!ue.getValue() && file.canWrite()) {
                 entry.getPermissions().add(BasicPermissions.WRITE);
                 entry.getPermissions().add(BasicPermissions.ALL);
             }
@@ -2043,13 +2044,9 @@ public class FileBridgeRepository {
      * @return <code>true</code> if the name is valid, <code>false</code>
      *         otherwise
      */
-    private boolean isValidName(String name) {
-        if (name == null || name.length() == 0 || name.indexOf(File.separatorChar) != -1
-                || name.indexOf(File.pathSeparatorChar) != -1) {
-            return false;
-        }
-
-        return true;
+    private boolean isValidName(final String name) {
+        return !(name == null || name.length() == 0 || name.indexOf(File.separatorChar) != -1
+                || name.indexOf(File.pathSeparatorChar) != -1);
     }
 
     /**
@@ -2061,18 +2058,15 @@ public class FileBridgeRepository {
      * 
      * @return <code>true</code> if the folder is empty.
      */
-    private boolean isFolderEmpty(File folder) {
+    private boolean isFolderEmpty(final File folder) {
         if (!folder.isDirectory()) {
             return true;
         }
 
         String[] fileNames = folder.list();
 
-        if ((fileNames == null) || (fileNames.length == 0)) {
-            return true;
-        }
+        return (fileNames == null) || (fileNames.length == 0);
 
-        return false;
     }
 
     /**
@@ -2089,19 +2083,19 @@ public class FileBridgeRepository {
             throw new CmisPermissionDeniedException("Unknown user!");
         }
 
-        if (readOnly.booleanValue() && writeRequired) {
+        if (readOnly && writeRequired) {
             throw new CmisPermissionDeniedException("No write permission!");
         }
 
         repository.setUser(context.getUsername());
         
-        return readOnly.booleanValue();
+        return readOnly;
     }
 
     /**
      * Returns the File object by id or throws an appropriate exception.
      */
-    private File getFile(String id) {
+    private File getFile(final String id) {
         try {
             return idToFile(id);
         } catch (Exception e) {
@@ -2113,8 +2107,8 @@ public class FileBridgeRepository {
      * Converts an id to a File object. A simple and insecure implementation,
      * but good enough for now.
      */
-    private File idToFile(String id) throws IOException {
-        if (id == null || id.length() == 0) {
+    private File idToFile(final String id) throws IOException {
+        if (StringUtils.isBlank(id)) {
             throw new CmisInvalidArgumentException("Id is not valid!");
         }
 
@@ -2129,7 +2123,7 @@ public class FileBridgeRepository {
     /**
      * Returns the id of a File object or throws an appropriate exception.
      */
-    private String getId(File file) {
+    private String getId(final File file) {
         try {
             return fileToId(file);
         } catch (Exception e) {
@@ -2141,7 +2135,7 @@ public class FileBridgeRepository {
      * Creates a File object from an id. A simple and insecure implementation,
      * but good enough for now.
      */
-    private String fileToId(File file) throws IOException {
+    private String fileToId(final File file) throws IOException {
         if (file == null) {
             throw new IllegalArgumentException("File is not valid!");
         }
@@ -2155,7 +2149,7 @@ public class FileBridgeRepository {
         return Base64.encodeBytes(path.getBytes("UTF-8"));
     }
 
-    private String getRepositoryPath(File file) {
+    private String getRepositoryPath(final File file) {
         String path = file.getAbsolutePath().substring(root.getAbsolutePath().length())
                 .replace(File.separatorChar, '/');
         if (path.length() == 0) {

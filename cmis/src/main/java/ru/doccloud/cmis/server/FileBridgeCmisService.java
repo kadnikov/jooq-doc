@@ -53,22 +53,20 @@ import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.chemistry.opencmis.server.support.wrapper.CallContextAwareCmisService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import ru.doccloud.document.dto.DocumentDTO;
 
 /**
  * FileShare Service implementation.
  */
 public class FileBridgeCmisService extends AbstractCmisService implements CallContextAwareCmisService {
 
-	@Autowired
-    private final FileBridgeRepositoryManager repositoryManager;
+	private final FileBridgeRepositoryManager repositoryManager;
     private CallContext context;
 
-    public FileBridgeCmisService(final FileBridgeRepositoryManager repositoryManager) {
+    @Autowired
+    public FileBridgeCmisService(FileBridgeRepositoryManager repositoryManager) {
         this.repositoryManager = repositoryManager;
     }
+
 
     // --- Call Context ---
 

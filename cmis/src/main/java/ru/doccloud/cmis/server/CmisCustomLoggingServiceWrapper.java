@@ -41,7 +41,7 @@ public class CmisCustomLoggingServiceWrapper extends AbstractCmisServiceWrapper 
     /**
      * slf logging version with dual output to console and slf
      */
-    private void slflog(String operation, String repositoryId) {
+    private void slflog(String repositoryId) {
         if (repositoryId == null) {
             repositoryId = "<none>";
         }
@@ -54,7 +54,7 @@ public class CmisCustomLoggingServiceWrapper extends AbstractCmisServiceWrapper 
 
         String binding = getCallContext().getBinding();
 
-        LOG.info("Operation: {}, Repository ID: {}, Binding: {}, User Agent: {}", operation, repositoryId, binding,
+        LOG.debug("Operation: {}, Repository ID: {}, Binding: {}, User Agent: {}", "getChildren ", repositoryId, binding,
                 userAgent);
     }
 
@@ -63,26 +63,18 @@ public class CmisCustomLoggingServiceWrapper extends AbstractCmisServiceWrapper 
             Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter,
             Boolean includePathSegment, BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
 
-        slflog("getChildren ", repositoryId);
+        if(LOG.isDebugEnabled()) {
+            slflog(repositoryId);
+        }
         long startTime = System.currentTimeMillis();
-
-        CallContext sharedContext = this.getCallContext();
-
-        // Get the native domain object from the call context if one is shared
-        // by the vendor (example only)
-        // Your CMIS vendor's documentation must expose the name of any shared
-        // objects they place here for extensions.
-        // Object objShared = sharedContext.get("shared_key_name_from_vendor");
 
         ObjectInFolderList retVal = getWrappedService().getChildren(repositoryId, folderId, filter, orderBy,
                 includeAllowableActions, includeRelationships, renditionFilter, includePathSegment, maxItems,
                 skipCount, extension);
 
         // dual log output in case logger not configured
-        LOG.info("[CmisCustomServiceWrapper] Exiting method getChildren. time (ms):"
+        LOG.debug("[CmisCustomServiceWrapper] Exiting method getChildren. time (ms):"
                 + (System.currentTimeMillis() - startTime));
-        // System.out.println("[CmisCustomServiceWrapper] Exiting method getChildren. time (ms):"
-        // + (System.currentTimeMillis() - startTime));
         return retVal;
     }
 

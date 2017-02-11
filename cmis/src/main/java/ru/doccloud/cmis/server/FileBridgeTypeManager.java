@@ -55,7 +55,7 @@ public class FileBridgeTypeManager {
     private final TypeDefinitionFactory typeDefinitionFactory;
     private final Map<String, TypeDefinition> typeDefinitions;
 
-    public FileBridgeTypeManager() {
+    FileBridgeTypeManager() {
         // set up TypeDefinitionFactory
         typeDefinitionFactory = TypeDefinitionFactory.newInstance();
         typeDefinitionFactory.setDefaultNamespace(NAMESPACE);
@@ -135,7 +135,7 @@ public class FileBridgeTypeManager {
     /**
      * Returns the internal type definition.
      */
-    public synchronized TypeDefinition getInternalTypeDefinition(String typeId) {
+    synchronized TypeDefinition getInternalTypeDefinition(String typeId) {
         return typeDefinitions.get(typeId);
     }
 
@@ -148,7 +148,7 @@ public class FileBridgeTypeManager {
 
     // --- service methods ---
 
-    public TypeDefinition getTypeDefinition(CallContext context, String typeId) {
+    TypeDefinition getTypeDefinition(CallContext context, String typeId) {
         TypeDefinition type = typeDefinitions.get(typeId);
         if (type == null) {
             throw new CmisObjectNotFoundException("Type '" + typeId + "' is unknown!");
@@ -157,14 +157,14 @@ public class FileBridgeTypeManager {
         return typeDefinitionFactory.copy(type, true, context.getCmisVersion());
     }
 
-    public TypeDefinitionList getTypeChildren(CallContext context, String typeId, Boolean includePropertyDefinitions,
-            BigInteger maxItems, BigInteger skipCount) {
+    TypeDefinitionList getTypeChildren(CallContext context, String typeId, Boolean includePropertyDefinitions,
+                                       BigInteger maxItems, BigInteger skipCount) {
         return typeDefinitionFactory.createTypeDefinitionList(typeDefinitions, typeId, includePropertyDefinitions,
                 maxItems, skipCount, context.getCmisVersion());
     }
 
-    public List<TypeDefinitionContainer> getTypeDescendants(CallContext context, String typeId, BigInteger depth,
-            Boolean includePropertyDefinitions) {
+    List<TypeDefinitionContainer> getTypeDescendants(CallContext context, String typeId, BigInteger depth,
+                                                     Boolean includePropertyDefinitions) {
         return typeDefinitionFactory.createTypeDescendants(typeDefinitions, typeId, depth, includePropertyDefinitions,
                 context.getCmisVersion());
     }

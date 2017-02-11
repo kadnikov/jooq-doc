@@ -37,14 +37,14 @@ public class FileBridgeRepositoryManager {
 
     private final Map<String, FileBridgeRepository> repositories;
 
-    public FileBridgeRepositoryManager() {
+    FileBridgeRepositoryManager() {
         repositories = new HashMap<String, FileBridgeRepository>();
     }
 
     /**
      * Adds a repository object.
      */
-    public void addRepository(FileBridgeRepository fsr) {
+    void addRepository(FileBridgeRepository fsr) {
         if (fsr == null || fsr.getRepositoryId() == null) {
             return;
         }
@@ -55,7 +55,7 @@ public class FileBridgeRepositoryManager {
     /**
      * Gets a repository object by id.
      */
-    public FileBridgeRepository getRepository(String repositoryId) {
+    FileBridgeRepository getRepository(String repositoryId) {
         FileBridgeRepository result = repositories.get(repositoryId);
         if (result == null) {
             throw new CmisObjectNotFoundException("Unknown repository '" + repositoryId + "'!");
