@@ -24,8 +24,6 @@ public class CustomJsonDataDeserializer extends JsonDeserializer<JsonNode> {
     	JsonNode actualObj = null;
 		try {
 			actualObj = mapper.readTree(jsonParser.getText());
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

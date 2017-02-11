@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
 
@@ -15,7 +16,7 @@ public interface DocumentRepository {
 
     /**
      * Adds a new Document.
-     * @param documentoEntry  The information of the added document entry.
+     * @param documentEntry  The information of the added document entry.
      * @return  The added document entry.
      */
     public Document add(Document documentEntry);
@@ -24,7 +25,7 @@ public interface DocumentRepository {
      * Deletes a document entry.
      * @param id    The id of the deleted document entry.
      * @return  The deleted document entry.
-     * @throws ru.doccloud.document.exception.DocumentNotFoundException If the deleted todo entry is not found.
+     * @throws DocumentNotFoundException If the deleted todo entry is not found.
      */
     public Document delete(Long id);
 
@@ -38,7 +39,7 @@ public interface DocumentRepository {
      * Finds a Document entry.
      * @param id    The id of the requested Document entry.
      * @return  The found Document entry.
-     * @throws ru.doccloud.document.exception.DocumentNotFoundException If Document entry is not found.
+     * @throws DocumentNotFoundException If Document entry is not found.
      */
     public Document findById(Long id);
 
@@ -48,7 +49,7 @@ public interface DocumentRepository {
      * Updates the information of a Document entry.
      * @param todoEntry   The new information of a Document entry.
      * @return  The updated Document entry.
-     * @throws ru.doccloud.document.exception.DocumentNotFoundException If the updated Document entry is not found.
+     * @throws DocumentNotFoundException If the updated Document entry is not found.
      */
     public Document update(Document todoEntry);
 

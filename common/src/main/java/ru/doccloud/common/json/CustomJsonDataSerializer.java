@@ -1,6 +1,5 @@
 package ru.doccloud.common.json;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -23,8 +22,7 @@ public class CustomJsonDataSerializer extends JsonSerializer<JsonNode> {
 
     @Override
     public void serialize(JsonNode node, JsonGenerator jsonGenerator, SerializerProvider provider)
-            throws IOException, JsonGenerationException
-    {
+            throws IOException {
         if (node == null) {
         	LOGGER.info("Node == null");
             jsonGenerator.writeNull();

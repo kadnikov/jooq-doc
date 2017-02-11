@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import ru.doccloud.common.exception.TodoNotFoundException;
+import ru.doccloud.common.exception.DocumentNotFoundException;
 
 import java.util.List;
 
@@ -24,9 +24,9 @@ public class RestErrorHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RestErrorHandler.class);
 
-    @ExceptionHandler(TodoNotFoundException.class)
+    @ExceptionHandler(DocumentNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public void handleTodoNotFound(TodoNotFoundException ex) {
+    public void handleTodoNotFound(DocumentNotFoundException ex) {
         LOGGER.info("Todo entry was not found. Returning HTTP status code 404");
     }
 

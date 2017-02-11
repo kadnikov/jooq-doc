@@ -13,13 +13,13 @@ import org.joda.time.format.DateTimeFormatter;
 import java.io.IOException;
 
 /**
- * @author Petri Kainulainen
+ *
  */
 public class CustomLocalDateTimeDeserializer extends JsonDeserializer<LocalDateTime> {
 
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern(DateTimeConstants.TIMESTAMP_PATTERN);
 
-    public CustomLocalDateTimeDeserializer() {
+    CustomLocalDateTimeDeserializer() {
     }
 
     @Override

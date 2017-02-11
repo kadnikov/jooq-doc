@@ -11,7 +11,7 @@ public class ValidationError {
     private final String errorMessage;
     private final String field;
 
-    public ValidationError(String field, String errorCode, String errorMessage) {
+    ValidationError(String field, String errorCode, String errorMessage) {
         this.errorCode = errorCode;
         this.errorMessage = errorMessage;
         this.field = field;

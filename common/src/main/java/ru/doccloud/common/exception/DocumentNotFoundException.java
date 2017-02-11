@@ -1,4 +1,4 @@
-package ru.doccloud.document.exception;
+package ru.doccloud.common.exception;
 
 /**
  * @author Andrey Kadnikov

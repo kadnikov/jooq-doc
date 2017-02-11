@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.joda.time.LocalDateTime;
 
 /**
- * @author Petri Kainulainen
+ *
  */
 public class JodaModule extends SimpleModule {
 

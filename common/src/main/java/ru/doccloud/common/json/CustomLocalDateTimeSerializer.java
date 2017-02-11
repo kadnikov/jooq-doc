@@ -14,7 +14,7 @@ import org.joda.time.format.DateTimeFormatter;
 import java.io.IOException;
 
 /**
- * @author Petri Kainulainen
+ *
  */
 public class CustomLocalDateTimeSerializer extends JsonSerializer<LocalDateTime> {
 

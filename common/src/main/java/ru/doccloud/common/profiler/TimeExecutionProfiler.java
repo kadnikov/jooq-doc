@@ -21,11 +21,11 @@ public class TimeExecutionProfiler {
 	@Around("businessMethods()")
 	public Object profile(ProceedingJoinPoint pjp) throws Throwable {
 		long start = System.currentTimeMillis();
-	    logger.info("ServicesProfiler.profile(): Going to call the method: {}", pjp.getSignature().getName());
+	    logger.debug("ServicesProfiler.profile(): Going to call the method: {}", pjp.getSignature().getName());
 	    Object output = pjp.proceed();
 	    logger.info("ServicesProfiler.profile(): Method execution completed.");
 	    long elapsedTime = System.currentTimeMillis() - start;
-	    logger.info("ServicesProfiler.profile(): Method execution time: " + elapsedTime + " milliseconds.");
+	    logger.debug("ServicesProfiler.profile(): Method execution time: " + elapsedTime + " milliseconds.");
 	
 	    return output;
 	}
