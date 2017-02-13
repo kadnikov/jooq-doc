@@ -28,6 +28,7 @@
         <skip.unit.tests>true</skip.unit.tests>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.basedir>${project.basedir}</main.basedir>
+            <phase.prop>none</phase.prop>
     </properties>
 
     <modules>
@@ -293,7 +294,7 @@
                     <executions>
                         <execution>
                             <id>create-database-pg</id>
-                            <phase>generate-sources</phase>
+                            <phase>${phase.prop}</phase>
                             <goals>
                                 <goal>execute</goal>
                             </goals>
@@ -333,7 +334,7 @@
                     <executions>
                         <execution>
                             <id>generate-pg</id>
-                            <phase>generate-sources</phase>
+                            <phase>${phase.prop}</phase>
                             <goals>
                                 <goal>generate</goal>
                             </goals>

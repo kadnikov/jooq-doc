@@ -11,6 +11,7 @@
 
     <properties>
         <main.basedir>${project.parent.basedir}</main.basedir>
+        <phase.prop>none</phase.prop>
     </properties>
 
    <parent>

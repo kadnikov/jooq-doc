@@ -6,10 +6,12 @@
     <artifactId>docmanagement</artifactId>
     <packaging>jar</packaging>
     <name>docmanagement</name>
+
     <version>0.1</version>
 
     <properties>
         <main.basedir>${project.parent.basedir}</main.basedir>
+        <phase.prop>generate-sources</phase.prop>
     </properties>
 
    <parent>
