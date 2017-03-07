@@ -337,12 +337,12 @@ function querySubmit() {
 	var queryForm = document.getElementById('queryForm');	
 	queryForm.action = repositoryUrl;
 
-	var queryParams = {};
-	queryParams.q = queryForm.q.value;
-	queryParams.maxItems = queryForm.maxItems.value;
-	queryParams.skipCount = queryForm.skipCount.value;
+	var QueryParams = {};
+	QueryParams.q = queryForm.q.value;
+	QueryParams.maxItems = queryForm.maxItems.value;
+	QueryParams.skipCount = queryForm.skipCount.value;
 
-	loadCmisRepositoryData('query', 'queryCallback', queryParams);
+	loadCmisRepositoryData('query', 'queryCallback', QueryParams);
 }
 
 function queryCallback(result) {

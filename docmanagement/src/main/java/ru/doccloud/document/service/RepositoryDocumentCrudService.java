@@ -56,8 +56,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         dto.setAuthor(request.getRemoteUser());
-        Document added = createModel(dto);
-        Document persisted = repository.add(added);
+        Document persisted = repository.add(createModel(dto));
 
         LOGGER.info("Added Document entry with information: {}", persisted);
 
@@ -71,8 +70,8 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         if (dto.getId()==null){
         	//dto.setId(DEFAULT);
         }
-        Document added = createModel(dto);
-        Document persisted = repository.add(added);
+//        Document added = createModel(dto);
+        Document persisted = repository.add(createModel(dto));
         
         Link parentLink = repository.addLink(folderId, persisted.getId());
 

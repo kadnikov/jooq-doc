@@ -494,7 +494,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
         	selectedFields.add(jsonObject(DOCUMENTS.DATA, field).as(field));
 		}
         }
-        filterBean filter = null;
+        FilterBean filter = null;
         List<queryParam> queryParams = null;
         LOGGER.info("Query for search - "+query);
         ObjectMapper mapper = new ObjectMapper();

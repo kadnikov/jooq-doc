@@ -2,6 +2,7 @@ package ru.doccloud.document.model;
 
 import java.sql.Timestamp;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.joda.time.LocalDateTime;
 
@@ -27,6 +28,8 @@ public class Document {
     private final String description;
     
     private final String filePath;
+
+    private final String fileName;
     
     private final String fileMimeType;
     
@@ -60,6 +63,8 @@ public class Document {
         this.fileMimeType = builder.fileMimeType;
         
         this.fileLength = builder.fileLength;
+
+        this.fileName = builder.fileName;
         
         this.author = builder.author;
         
@@ -108,14 +113,21 @@ public class Document {
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
-                .append("id", id)
-                .append("creationTime", creationTime)
-                .append("description", description)
-                .append("modificationTime", modificationTime)
-                .append("title", title)
-                .append("data", data)
-                .build();
+        return "Document{" +
+                "id=" + id +
+                ", creationTime=" + creationTime +
+                ", author='" + author + '\'' +
+                ", modificationTime=" + modificationTime +
+                ", modifier='" + modifier + '\'' +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", filePath='" + filePath + '\'' +
+                ", fileName='" + fileName + '\'' +
+                ", fileMimeType='" + fileMimeType + '\'' +
+                ", fileLength=" + fileLength +
+                ", type='" + type + '\'' +
+                ", data=" + data +
+                '}';
     }
 
     public String getFileMimeType() {
@@ -149,6 +161,8 @@ public class Document {
 		private String filePath;
 		
 		private Long fileLength;
+
+		private String fileName;
 
 		private String fileMimeType;
         
@@ -184,7 +198,12 @@ public class Document {
             this.filePath = filePath;
             return this;
         }
-        
+
+        public Builder fileName(String fileName){
+            this.fileName = fileName;
+            return this;
+        }
+
         public Builder author(String author) {
             this.author = author;
             return this;
@@ -199,7 +218,9 @@ public class Document {
             this.fileLength = fileLength;
             return this;
         }
-        
+
+
+
         public Builder creationTime(Timestamp creationTime) {
             this.creationTime = creationTime;
             return this;

@@ -4,14 +4,14 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class filterBean {
+public class FilterBean {
 	@JsonProperty("groupOp")
-	public String mgroupOp;
+	private String mgroupOp;
 	
 	@JsonProperty("rules")
-	public List<queryParam> mrules;
+	private List<QueryParam> mrules;
 
-	public filterBean() {
+	public FilterBean() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
@@ -24,11 +24,11 @@ public class filterBean {
 		this.mgroupOp = mgroupOp;
 	}
 
-	public List<queryParam> getMrules() {
+	public List<QueryParam> getMrules() {
 		return mrules;
 	}
 
-	public void setMrules(List<queryParam> mrules) {
+	public void setMrules(List<QueryParam> mrules) {
 		this.mrules = mrules;
 	}
 	

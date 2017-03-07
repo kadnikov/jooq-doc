@@ -47,6 +47,8 @@ public class DocumentDTO {
     private String filePath;
     
     private String fileMimeType;
+
+    private String fileName;
     
     private Long fileLength;
 
@@ -79,11 +81,12 @@ public class DocumentDTO {
 	public String getType() {
 		return type;
 	}
-	
 
+    public String getFileName() {
+        return fileName;
+    }
 
-
-	public JsonNode getData() {
+    public JsonNode getData() {
 		return data;
 	}
 
@@ -118,18 +121,24 @@ public class DocumentDTO {
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
-                .append("id", id)
-                .append("creationTime", creationTime)
-                .append("description", description)
-                .append("modificationTime", modificationTime)
-                .append("title", title)
-                .append("data", data)
-                .build();
-
+        return "DocumentDTO{" +
+                "id=" + id +
+                ", creationTime=" + creationTime +
+                ", author='" + author + '\'' +
+                ", description='" + description + '\'' +
+                ", modificationTime=" + modificationTime +
+                ", modifier='" + modifier + '\'' +
+                ", title='" + title + '\'' +
+                ", type='" + type + '\'' +
+                ", filePath='" + filePath + '\'' +
+                ", fileMimeType='" + fileMimeType + '\'' +
+                ", fileName='" + fileName + '\'' +
+                ", fileLength=" + fileLength +
+                ", data=" + data +
+                '}';
     }
 
-	public String getFilePath() {
+    public String getFilePath() {
 		return filePath;
 	}
 
@@ -145,7 +154,11 @@ public class DocumentDTO {
 		this.fileMimeType = fileMimeType;
 	}
 
-	public Long getFileLength() {
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public Long getFileLength() {
 		return fileLength;
 	}
 

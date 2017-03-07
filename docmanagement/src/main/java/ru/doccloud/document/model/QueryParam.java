@@ -4,18 +4,18 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class queryParam {
+public class QueryParam {
 	@JsonProperty("field")
-	public String mfield;
+	private String mfield;
 	@JsonProperty("op")
-	public String moperand;
+	private String moperand;
 	@JsonProperty("data")
-	public String mvalue;
+	private String mvalue;
 	
-	public queryParam(){
+	public QueryParam(){
 		super();
 	}
-	public queryParam(String field, String operand, String value) {
+	public QueryParam(String field, String operand, String value) {
 		super();
 		this.mfield = field;
 		this.moperand = operand;

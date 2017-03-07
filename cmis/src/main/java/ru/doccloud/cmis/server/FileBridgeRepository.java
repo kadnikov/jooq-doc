@@ -466,7 +466,7 @@ public class FileBridgeRepository {
         // check properties
         checkNewProperties(properties, BaseTypeId.CMIS_DOCUMENT);
 
-        String name = FileBridgeUtils.getStringProperty(properties, PropertyIds.NAME);
+        final String name = FileBridgeUtils.getStringProperty(properties, PropertyIds.NAME);
         
     	Document documentEntry = Document.getBuilder(name)
                 .type("document").author(context.getUsername()).build();
@@ -478,7 +478,7 @@ public class FileBridgeRepository {
         // write content, if available
         if (contentStream != null && contentStream.getStream() != null) {
         	
-            String filePath = writeContent(doc, contentStream.getStream());
+            final String filePath = writeContent(doc, contentStream.getStream());
             if (filePath!=null){
 	            BigInteger fileLength = FileBridgeUtils.getIntegerProperty(properties, PropertyIds.CONTENT_STREAM_LENGTH);
 	            String mimeType = FileBridgeUtils.getStringProperty(properties, PropertyIds.CONTENT_STREAM_LENGTH);
@@ -488,10 +488,8 @@ public class FileBridgeRepository {
 	            }else{
 	            	doc.setFileLength(fileLength.longValue());
 	            }
-	            if (filePath!=null){
-	            	doc.setFilePath(filePath);
-	            }
-	            doc.setFileMimeType(mimeType);
+                doc.setFilePath(filePath);
+                doc.setFileMimeType(mimeType);
 	            Document document = Document.getBuilder(doc.getTitle())
 	            .fileLength(doc.getFileLength())
 	            .fileMimeType(doc.getFileMimeType())
@@ -509,8 +507,8 @@ public class FileBridgeRepository {
     /**
      * CMIS createDocumentFromSource.
      */
-    public String createDocumentFromSource(CallContext context, String sourceId, Properties properties,
-            String folderId, VersioningState versioningState) {
+    String createDocumentFromSource(CallContext context, String sourceId, Properties properties,
+                                    String folderId, VersioningState versioningState) {
         checkUser(context, true);
 
         // check versioning state
@@ -587,7 +585,7 @@ public class FileBridgeRepository {
     /**
      * CMIS createFolder.
      */
-    public String createFolder(CallContext context, Properties properties, String folderId) {
+    String createFolder(CallContext context, Properties properties, String folderId) {
         checkUser(context, true);
 
         // check properties
@@ -614,8 +612,8 @@ public class FileBridgeRepository {
     /**
      * CMIS moveObject.
      */
-    public ObjectData moveObject(CallContext context, Holder<String> objectId, String targetFolderId,
-            ObjectInfoHandler objectInfos) {
+    ObjectData moveObject(CallContext context, Holder<String> objectId, String targetFolderId,
+                          ObjectInfoHandler objectInfos) {
         boolean userReadOnly = checkUser(context, true);
 
         if (objectId == null) {
@@ -635,8 +633,8 @@ public class FileBridgeRepository {
     /**
      * CMIS setContentStream, deleteContentStream, and appendContentStream.
      */
-    public void changeContentStream(CallContext context, Holder<String> objectId, Boolean overwriteFlag,
-            ContentStream contentStream, boolean append) {
+    void changeContentStream(CallContext context, Holder<String> objectId, Boolean overwriteFlag,
+                             ContentStream contentStream, boolean append) {
         checkUser(context, true);
 
         if (objectId == null) {
@@ -684,7 +682,7 @@ public class FileBridgeRepository {
     /**
      * CMIS deleteObject.
      */
-    public void deleteObject(CallContext context, String objectId) {
+    void deleteObject(CallContext context, String objectId) {
         checkUser(context, true);
 
         DocumentDTO doc = getDocument(objectId);
@@ -705,7 +703,7 @@ public class FileBridgeRepository {
     /**
      * CMIS deleteTree.
      */
-    public FailedToDeleteData deleteTree(CallContext context, String folderId, Boolean continueOnFailure) {
+    FailedToDeleteData deleteTree(CallContext context, String folderId, Boolean continueOnFailure) {
         checkUser(context, true);
 
         boolean cof = FileBridgeUtils.getBooleanParameter(continueOnFailure, false);

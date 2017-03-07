@@ -19,13 +19,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
-import ru.doccloud.document.model.UploadedFile;
-
 @Controller
 @RequestMapping("/api/file")
 public class FileUploadController {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileUploadController.class);
-	  UploadedFile ufile;
+	  private UploadedFile ufile;
 	  public FileUploadController(){
 		LOGGER.info("init FileUploadController");
 	    ufile = new UploadedFile();
@@ -34,10 +32,11 @@ public class FileUploadController {
 	  @RequestMapping(value = "/get/{value}", method = RequestMethod.GET)
 	  public void get(HttpServletResponse response,@PathVariable String value){
 	        try {
-	 
-	            response.setContentType(ufile.type);
-	            response.setContentLength(ufile.length);
-	            FileCopyUtils.copy(ufile.bytes, response.getOutputStream());
+//	            todo return file from FS
+	            LOGGER.info("FileUploadController method get/value " + value);
+	            response.setContentType(ufile.getType());
+	            response.setContentLength(ufile.getLength());
+	            FileCopyUtils.copy(ufile.getBytes(), response.getOutputStream());
 	 
 	        } catch (IOException e) {
 	            // TODO Auto-generated catch block
@@ -49,19 +48,21 @@ public class FileUploadController {
 	   public @ResponseBody JSONObject upload(MultipartHttpServletRequest request, HttpServletResponse response) {                 
 	 
 	     //0. notice, we have used MultipartHttpServletRequest
-	 
+		   LOGGER.info("FileUploadController method upload ");
 	     //1. get the files from the request object
+
 	     Iterator<String> itr =  request.getFileNames();
-	 
+
 	     MultipartFile mpf = request.getFile(itr.next());
+
 	     LOGGER.info(mpf.getOriginalFilename() +" uploaded!");
 	 
 	     try {
 	                //just temporary save file info into ufile
-	        ufile.length = mpf.getBytes().length;
-	        ufile.bytes= mpf.getBytes();
-	        ufile.type = mpf.getContentType();
-	        ufile.name = mpf.getOriginalFilename();
+	        ufile.setLength(mpf.getBytes().length);
+	        ufile.setBytes(mpf.getBytes());;
+	        ufile.setType( mpf.getContentType());
+	        ufile.setName(mpf.getOriginalFilename());
 	 
 	    } catch (IOException e) {
 	        // TODO Auto-generated catch block
@@ -74,15 +75,59 @@ public class FileUploadController {
 	     file.put("deleteUrl", "/api/file/get/"+Calendar.getInstance().getTimeInMillis());
 	     file.put("deleteType", "DELETE");
 	     
-	     file.put("size", ufile.length);
-	     file.put("type", ufile.type);
-	     file.put("name", ufile.name);
+	     file.put("size", ufile.getLength());
+	     file.put("type", ufile.getType());
+	     file.put("name", ufile.getName());
 	     JSONArray ar = new JSONArray();
 	     ar.add(file);
 	     JSONObject resultJson = new JSONObject();
 	     resultJson.put("files", ar);
+		if(LOGGER.isTraceEnabled())
+			LOGGER.trace(resultJson.toString());
 	     return resultJson;
 	 
 	  }
-	 
+
+
+    /**
+     * Created by ilya on 3/4/17.
+     */
+    public static class UploadedFile {
+        private int length;
+        private byte[] bytes;
+        private String name;
+        private String type;
+
+        public int getLength() {
+            return length;
+        }
+
+        public byte[] getBytes() {
+            return bytes;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public void setLength(int length) {
+            this.length = length;
+        }
+
+        public void setBytes(byte[] bytes) {
+            this.bytes = bytes;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+    }
 }

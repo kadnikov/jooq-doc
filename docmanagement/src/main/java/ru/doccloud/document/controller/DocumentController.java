@@ -1,8 +1,9 @@
 package ru.doccloud.document.controller;
 
-import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.slf4j.Logger;
@@ -11,18 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+import ru.doccloud.document.controller.util.FileHelper;
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.service.DocumentCrudService;
 import ru.doccloud.document.service.DocumentSearchService;
@@ -51,11 +45,79 @@ public class DocumentController {
     public DocumentDTO add(@RequestBody @Valid DocumentDTO dto) {
         LOGGER.debug("Adding new Document entry with information: {}", dto);
 
-        DocumentDTO added = crudService.add(dto);
+        DocumentDTO added = addDoc(dto);
 
         LOGGER.info("Added Document entry: {}", added);
 
         return added;
+    }
+
+
+    @RequestMapping(value="/addcontent",headers="content-type=multipart/*",method=RequestMethod.POST)
+    public DocumentDTO addContent(MultipartHttpServletRequest request, HttpServletResponse response, @RequestBody @Valid DocumentDTO dto) throws Exception {
+
+
+        LOGGER.info("add new document with content ");
+        LOGGER.debug("start adding new Document to database: {} ", dto);
+
+        Iterator<String> itr =  request.getFileNames();
+//todo expand on few files in one request
+        if(!itr.hasNext())
+            return addDoc(dto);
+        MultipartFile mpf = request.getFile(itr.next());
+        initFileParamsFromRequest(dto, mpf);
+        DocumentDTO added = addDoc(dto);
+
+       return writeContent(added, mpf);
+    }
+
+//todo may be combine this method with addContent when last param is null
+    @RequestMapping(value="/createdoc",headers="content-type=multipart/*",method=RequestMethod.POST)
+    public DocumentDTO addContent(MultipartHttpServletRequest request, HttpServletResponse response) throws Exception {
+
+
+        LOGGER.info("add new document with content ");
+        LOGGER.debug("start adding new Document to database:  ");
+
+        DocumentDTO dto = new DocumentDTO();
+
+
+        Iterator<String> itr =  request.getFileNames();
+//todo expand on few files in one request
+        if(!itr.hasNext())
+            return addDoc(dto);
+//todo remove document from database if file hasn't been saved
+        MultipartFile mpf = request.getFile(itr.next());
+        initFileParamsFromRequest(dto, mpf);
+        DocumentDTO added = addDoc(dto);
+        LOGGER.debug("the document: {} has been added", added);
+
+        return writeContent(added, mpf);
+    }
+
+
+    @RequestMapping(value="/updatecontent/{id}",headers="content-type=multipart/*",method=RequestMethod.POST)
+    public DocumentDTO updateContent(MultipartHttpServletRequest request, HttpServletResponse response, @PathVariable("id") Long id) throws Exception {
+
+
+        LOGGER.info("add update document with content ");
+
+
+        LOGGER.debug("find the document with id : {} ", id);
+
+        DocumentDTO dto = crudService.findById(id);
+
+        LOGGER.debug("Found Document entry: {}", dto);
+
+        if(dto == null)
+            throw new Exception("The document with such id " + id + " was not found in database ");
+
+        Iterator<String> itr =  request.getFileNames();
+//todo expand on few files in one request
+
+        MultipartFile mpf = request.getFile(itr.next());
+
+        return writeContent(dto, mpf);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
@@ -118,7 +180,7 @@ public class DocumentController {
 
         return documentEntries;
     }
-    
+
     @RequestMapping(value = "/parent/{parentid}", method = RequestMethod.GET)
     public List<DocumentDTO> findByParent(@PathVariable("parentid") Long parentid) {
         LOGGER.info("Finding all Documents by parent");
@@ -170,5 +232,41 @@ public class DocumentController {
         LOGGER.info("Updated Document entry: {}", updated);
 
         return updated;
+    }
+
+    private DocumentDTO addDoc(DocumentDTO dto) {
+        return crudService.add(dto);
+    }
+
+    private void initFileParamsFromRequest(DocumentDTO dto, MultipartFile mpf) throws Exception {
+        dto.setFileLength((long) mpf.getBytes().length);
+        dto.setFileMimeType(mpf.getContentType());
+        dto.setFileName(mpf.getOriginalFilename());
+    }
+
+    private String writeFile(String fileName, byte[] bytes) throws Exception {
+        FileHelper helper = new FileHelper();
+        return helper.writeFile(fileName, bytes);
+    }
+
+
+    private DocumentDTO writeContent(DocumentDTO dto, MultipartFile mpf) throws Exception {
+        try {
+
+            LOGGER.debug("the document: {} has been added", dto);
+            LOGGER.debug("start adding file to FS");
+            dto.setFilePath(writeFile(dto.getFileName(), mpf.getBytes()));
+            DocumentDTO updated = crudService.update(dto);
+            LOGGER.debug("Dto object has been updated: {}", updated);
+            return updated;
+        }
+        catch (Exception e) {
+
+//            todo add custom Exception
+            LOGGER.error("The exception has been occured while addContent method is executing " + e.getMessage());
+            crudService.delete(dto.getId());
+            e.printStackTrace();
+            throw new Exception("Error has been occured " + e.getMessage());
+        }
     }
 }

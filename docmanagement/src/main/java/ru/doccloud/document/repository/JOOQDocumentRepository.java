@@ -24,7 +24,6 @@ import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -48,8 +47,9 @@ import ru.doccloud.common.service.DateTimeService;
 import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
-import ru.doccloud.document.model.filterBean;
-import ru.doccloud.document.model.queryParam;
+import ru.doccloud.document.model.FilterBean;
+import ru.doccloud.document.model.QueryParam;
+
 /**
  * @author Andrey Kadnikov
  */
@@ -494,23 +494,23 @@ public class JOOQDocumentRepository implements DocumentRepository {
         	selectedFields.add(jsonObject(DOCUMENTS.DATA, field).as(field));
 		}
         }
-        filterBean filter = null;
-        List<queryParam> queryParams = null;
+        FilterBean filter = null;
+        List<QueryParam> QueryParams = null;
         LOGGER.info("Query for search - "+query);
         ObjectMapper mapper = new ObjectMapper();
         if (query!=null){
         	try {
-        		filter = mapper.readValue(query, new TypeReference<filterBean>(){});
-        		queryParams = filter.getMrules();
-				LOGGER.info("List of params - {} {}",queryParams.toString(),queryParams.size());
+        		filter = mapper.readValue(query, new TypeReference<FilterBean>(){});
+        		QueryParams = filter.getMrules();
+				LOGGER.info("List of params - {} {}", QueryParams.toString(), QueryParams.size());
 			} catch (IOException e) {
 				LOGGER.error("Error parsing JSON "+ e.getLocalizedMessage());
 				e.printStackTrace();
 			}
         }
         Condition cond = DOCUMENTS.SYS_TYPE.equal(type);
-        if (queryParams!=null)
-        for (queryParam param : queryParams) {
+        if (QueryParams !=null)
+        for (QueryParam param : QueryParams) {
         	LOGGER.info("Param {} {} {} ",param.getField(),param.getOperand(),param.getValue());
         	if (param.getOperand()!=null){
         		if ("eq".equals(param.getOperand().toLowerCase()))
