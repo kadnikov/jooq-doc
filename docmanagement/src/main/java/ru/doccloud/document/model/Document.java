@@ -111,6 +111,10 @@ public class Document {
         return data;
     }
 
+    public String getFileName() {
+        return fileName;
+    }
+
     @Override
     public String toString() {
         return "Document{" +

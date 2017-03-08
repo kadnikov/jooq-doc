@@ -1,11 +1,16 @@
 package ru.doccloud.document.controller;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+import org.apache.commons.fileupload.disk.DiskFileItem;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import ru.doccloud.document.controller.util.FileHelper;
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.service.DocumentCrudService;
@@ -45,8 +51,15 @@ public class DocumentController {
     public DocumentDTO add(@RequestBody @Valid DocumentDTO dto) {
         LOGGER.debug("Adding new Document entry with information: {}", dto);
 
-        DocumentDTO added = addDoc(dto);
+//        this uncomment after test after test only for test
 
+//        DocumentDTO added = addDoc(dto);
+        DocumentDTO added = null;
+        try {
+            added = addContent(null, dto);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         LOGGER.info("Added Document entry: {}", added);
 
         return added;
@@ -54,26 +67,33 @@ public class DocumentController {
 
 
     @RequestMapping(value="/addcontent",headers="content-type=multipart/*",method=RequestMethod.POST)
-    public DocumentDTO addContent(MultipartHttpServletRequest request, HttpServletResponse response, @RequestBody @Valid DocumentDTO dto) throws Exception {
+    public DocumentDTO addContent(MultipartHttpServletRequest request,  @RequestBody @Valid DocumentDTO dto) throws Exception {
 
 
-        LOGGER.info("add new document with content ");
+        LOGGER.info("addContent method ");
         LOGGER.debug("start adding new Document to database: {} ", dto);
+//todo uncomment after test
+//        Iterator<String> itr =  request.getFileNames();
+//        if(!itr.hasNext())
+//            return addDoc(dto);
+//        MultipartFile mpf = request.getFile(itr.next());
 
-        Iterator<String> itr =  request.getFileNames();
-//todo expand on few files in one request
-        if(!itr.hasNext())
-            return addDoc(dto);
-        MultipartFile mpf = request.getFile(itr.next());
-        initFileParamsFromRequest(dto, mpf);
+
+
+        //initFileParamsFromRequest(dto, mpf);
+        byte[] fileArr = getFileAsByteArr("/home/ilya/filenet_workspace/tasks.txt");
+        LOGGER.info("The file war red from FS its size: {}", fileArr.length);
+initFileParamsFromRequest(dto, fileArr);
+        //end todo
+        LOGGER.info("DTO Obj after init fileParams: {}", dto);
         DocumentDTO added = addDoc(dto);
-
-       return writeContent(added, mpf);
+        return writeContent(added, fileArr);
+//       return writeContent(added, mpf);
     }
 
 //todo may be combine this method with addContent when last param is null
     @RequestMapping(value="/createdoc",headers="content-type=multipart/*",method=RequestMethod.POST)
-    public DocumentDTO addContent(MultipartHttpServletRequest request, HttpServletResponse response) throws Exception {
+    public DocumentDTO addContent(MultipartHttpServletRequest request) throws Exception {
 
 
         LOGGER.info("add new document with content ");
@@ -97,12 +117,7 @@ public class DocumentController {
 
 
     @RequestMapping(value="/updatecontent/{id}",headers="content-type=multipart/*",method=RequestMethod.POST)
-    public DocumentDTO updateContent(MultipartHttpServletRequest request, HttpServletResponse response, @PathVariable("id") Long id) throws Exception {
-
-
-        LOGGER.info("add update document with content ");
-
-
+    public DocumentDTO updateContent(MultipartHttpServletRequest request,  @PathVariable("id") Long id) throws Exception {
         LOGGER.debug("find the document with id : {} ", id);
 
         DocumentDTO dto = crudService.findById(id);
@@ -239,6 +254,7 @@ public class DocumentController {
     }
 
     private void initFileParamsFromRequest(DocumentDTO dto, MultipartFile mpf) throws Exception {
+        LOGGER.debug("file lenght " + mpf.getBytes().length + " fileContentType " + mpf.getContentType() + " orig fileNmae " + mpf.getOriginalFilename());
         dto.setFileLength((long) mpf.getBytes().length);
         dto.setFileMimeType(mpf.getContentType());
         dto.setFileName(mpf.getOriginalFilename());
@@ -269,4 +285,42 @@ public class DocumentController {
             throw new Exception("Error has been occured " + e.getMessage());
         }
     }
+
+    //these methods were added only for tests
+
+
+    private DocumentDTO writeContent(DocumentDTO dto, byte[] fileArr) throws Exception {
+        try {
+
+            LOGGER.debug("the document: {} has been added", dto);
+            LOGGER.debug("start adding file to FS");
+            dto.setFilePath(writeFile(dto.getFileName(), fileArr));
+            DocumentDTO updated = crudService.update(dto);
+            LOGGER.debug("Dto object has been updated: {}", updated);
+            return updated;
+        }
+        catch (Exception e) {
+
+//            todo add custom Exception
+            LOGGER.error("The exception has been occured while addContent method is executing " + e.getMessage());
+            crudService.delete(dto.getId());
+            e.printStackTrace();
+            throw new Exception("Error has been occured " + e.getMessage());
+        }
+    }
+
+
+    private byte[] getFileAsByteArr(String filePath) throws Exception {
+        return new FileHelper().readFile(filePath);
+    }
+
+
+
+    private void initFileParamsFromRequest(DocumentDTO dto, byte[] fileArr) throws Exception {
+
+        dto.setFileLength((long) fileArr.length);
+        dto.setFileMimeType("plain/text");
+        dto.setFileName("testFileName");
+    }
+
 }

@@ -158,6 +158,10 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
                 .id(dto.getId())
                 .author(dto.getAuthor())
                 .modifier(dto.getModifier())
+                .fileLength(dto.getFileLength())
+                .fileMimeType(dto.getFileMimeType())
+                .fileName(dto.getFileName())
+                .filePath(dto.getFilePath())
                 .build();
     }
 
