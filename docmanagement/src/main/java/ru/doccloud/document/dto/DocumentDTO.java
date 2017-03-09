@@ -41,7 +41,9 @@ public class DocumentDTO {
     @NotEmpty
     @Length(max = 100)
     private String title;
-    
+
+    private String docVersion;
+
     private String type;
     
     private String filePath;
@@ -90,7 +92,16 @@ public class DocumentDTO {
 		return data;
 	}
 
-	public void setId(Long id) {
+
+    public String getDocVersion() {
+        return docVersion;
+    }
+
+    public void setDocVersion(String docVersion) {
+        this.docVersion = docVersion;
+    }
+
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -119,24 +130,7 @@ public class DocumentDTO {
 		this.data = data;
 	}
 
-    @Override
-    public String toString() {
-        return "DocumentDTO{" +
-                "id=" + id +
-                ", creationTime=" + creationTime +
-                ", author='" + author + '\'' +
-                ", description='" + description + '\'' +
-                ", modificationTime=" + modificationTime +
-                ", modifier='" + modifier + '\'' +
-                ", title='" + title + '\'' +
-                ", type='" + type + '\'' +
-                ", filePath='" + filePath + '\'' +
-                ", fileMimeType='" + fileMimeType + '\'' +
-                ", fileName='" + fileName + '\'' +
-                ", fileLength=" + fileLength +
-                ", data=" + data +
-                '}';
-    }
+
 
     public String getFilePath() {
 		return filePath;
@@ -182,4 +176,23 @@ public class DocumentDTO {
 		this.author = author;
 	}
 
+    @Override
+    public String toString() {
+        return "DocumentDTO{" +
+                "id=" + id +
+                ", creationTime=" + creationTime +
+                ", author='" + author + '\'' +
+                ", description='" + description + '\'' +
+                ", modificationTime=" + modificationTime +
+                ", modifier='" + modifier + '\'' +
+                ", title='" + title + '\'' +
+                ", docVersion='" + docVersion + '\'' +
+                ", type='" + type + '\'' +
+                ", filePath='" + filePath + '\'' +
+                ", fileMimeType='" + fileMimeType + '\'' +
+                ", fileName='" + fileName + '\'' +
+                ", fileLength=" + fileLength +
+                ", data=" + data +
+                '}';
+    }
 }

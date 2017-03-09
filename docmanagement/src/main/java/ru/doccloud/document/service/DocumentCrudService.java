@@ -12,21 +12,21 @@ import ru.doccloud.document.dto.DocumentDTO;
  */
 public interface DocumentCrudService {
 
-    public DocumentDTO add(DocumentDTO todo);
+    public DocumentDTO add(final DocumentDTO todo);
     
-    public DocumentDTO addToFolder(DocumentDTO todo, Long id);
+    public DocumentDTO addToFolder(final DocumentDTO todo, Long id);
 
-    public DocumentDTO delete(Long id);
+    public DocumentDTO delete(final Long id);
 
     public List<DocumentDTO> findAll();
 
-    public DocumentDTO findById(Long id);
+    public DocumentDTO findById(final Long id);
 
-    public DocumentDTO update(DocumentDTO updated);
+    public DocumentDTO update(final DocumentDTO updated);
 	
-	public List<DocumentDTO> findAllByParent(Long parentid);
+	public List<DocumentDTO> findAllByParent(final Long parentid);
 
-	public Page<DocumentDTO> findAll(Pageable pageable);
+	public Page<DocumentDTO> findAll(final Pageable pageable);
 
-	public Page<DocumentDTO> findAllByType(String type, String[] fields, Pageable pageable, String query);
+	public Page<DocumentDTO> findAllByType(final String type, final String[] fields, final Pageable pageable, final String query);
 }

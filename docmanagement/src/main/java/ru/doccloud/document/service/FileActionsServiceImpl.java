@@ -19,23 +19,14 @@ public class FileActionsServiceImpl implements FileActionsService {
     }
 
     @Override
-    public String writeFile(String fileName, byte[] fileArr) throws Exception {
-        return fileHelper.writeFile(fileName, fileArr);
+    public String writeFile(final String fileName, final Long docId, final String docVersion, final byte[] fileArr) throws Exception {
+        return fileHelper.writeFile(fileName, docId, docVersion, fileArr);
     }
 
     @Override
-    public byte[] readFile(String filePath) throws Exception {
+    public byte[] readFile(final String filePath) throws Exception {
         return fileHelper.readFile(filePath);
     }
 
-//    private FileHelper getFileHelper(){
-//        if(fileHelper == null) {
-//
-//            LOGGER.info("fileService wasn't being autowired, default constructor will be user for inintialistation");
-//            fileHelper = new FileHelper();
-//        }
-//
-//        return fileHelper;
-//    }
 }
 

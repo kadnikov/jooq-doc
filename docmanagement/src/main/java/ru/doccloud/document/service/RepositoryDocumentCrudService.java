@@ -47,7 +47,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 
     @Transactional
     @Override
-    public DocumentDTO add(DocumentDTO dto) {
+    public DocumentDTO add(final DocumentDTO dto) {
         LOGGER.info("Adding Document entry with information: {}", dto);
         if (dto.getId()==null){
         	//dto.setId(DEFAULT);
@@ -65,12 +65,11 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     
     @Transactional
     @Override
-    public DocumentDTO addToFolder(DocumentDTO dto, Long folderId) {
+    public DocumentDTO addToFolder(final DocumentDTO dto, Long folderId) {
         LOGGER.info("Adding Document entry with information: {}", dto);
         if (dto.getId()==null){
         	//dto.setId(DEFAULT);
         }
-//        Document added = createModel(dto);
         Document persisted = repository.add(createModel(dto));
         
         Link parentLink = repository.addLink(folderId, persisted.getId());
@@ -82,7 +81,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 
     @Transactional
     @Override
-    public DocumentDTO delete(Long id) {
+    public DocumentDTO delete(final Long id) {
         LOGGER.info("Deleting Document entry with id: {}", id);
 
         Document deleted = repository.delete(id);
@@ -106,7 +105,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 
     @Transactional(readOnly = true)
     @Override
-    public Page<DocumentDTO> findAll(Pageable pageable) {
+    public Page<DocumentDTO> findAll(final Pageable pageable) {
         LOGGER.info("Finding all Document entries.", 
                 pageable.getPageSize(),
                 pageable.getPageNumber());
@@ -125,7 +124,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 
     @Transactional(readOnly = true)
     @Override
-    public DocumentDTO findById(Long id) {
+    public DocumentDTO findById(final Long id) {
         LOGGER.info("Finding Document entry with id: {}", id);
         
         Document found = repository.findById(id);
@@ -137,7 +136,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 
     @Transactional
     @Override
-    public DocumentDTO update(DocumentDTO dto) {
+    public DocumentDTO update(final DocumentDTO dto) {
         LOGGER.info("Updating the information of a Document entry: {}", dto);
         
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
@@ -162,11 +161,12 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
                 .fileMimeType(dto.getFileMimeType())
                 .fileName(dto.getFileName())
                 .filePath(dto.getFilePath())
+                .docVersion(dto.getDocVersion())
                 .build();
     }
 
 	@Override
-	public Page<DocumentDTO> findAllByType(String type, String[] fields, Pageable pageable, String query) {
+	public Page<DocumentDTO> findAllByType(final String type, final String[] fields, final Pageable pageable, final String query) {
 		LOGGER.info("Finding Documents by Type.");
 		
         Page<Document> searchResults = repository.findAllByType(type, fields, pageable, query);
@@ -182,7 +182,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 	}
 
 	@Override
-	public List<DocumentDTO> findAllByParent(Long parentid) {
+	public List<DocumentDTO> findAllByParent(final Long parentid) {
 		LOGGER.info("Finding Documents by Type.");
 		
         List<Document> docEntries = repository.findAllByParent(parentid);

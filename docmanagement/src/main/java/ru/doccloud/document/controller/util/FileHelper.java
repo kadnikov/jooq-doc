@@ -24,7 +24,7 @@ public class FileHelper {
     private static final String CONFIG_FILENAME = "/repository.properties";
     private static final String FILE_PATH_PROPERTY = "repository.test";
 
-    public String writeFile(final String fileName, final byte[] fileArr) throws Exception {
+    public String writeFile(final String fileName, final Long docId, final String docVersion, final byte[] fileArr) throws Exception {
         LOGGER.info("writing file " + fileName + " to filesystem");
         try {
 //            todo expand functionality to write to remote server
@@ -57,14 +57,13 @@ public class FileHelper {
             }
 
 
-            LOGGER.debug("The filePath for file  " + filePath );
-            File file = new File(filePath + "/" + fileName);
+            filePath = filePath + "/" + generateFileName(fileName, docId, docVersion);
 
+            LOGGER.debug("The filePath for file  " + filePath );
+            File file = new File(filePath);
             Files.write(file.toPath(), fileArr);
 
             LOGGER.debug("The file was written to path obj  ");
-//            path = Files.createFile(path);
-//            FileUtils.writeByteArrayToFile(file, fileArr);
             LOGGER.info("the file " + fileName + " was written to " + file.getAbsolutePath());
             return file.getAbsolutePath();
         } catch (IOException e) {
@@ -85,12 +84,14 @@ public class FileHelper {
         return new String[]{fileName.substring(0, mid),fileName.substring(mid)};
     }
 
-    private boolean checkWritableDirectory(Path path) throws Exception {
-        if(Files.isWritable(path))
-            return true;
-        else {
-            LOGGER.error("The directory: {} is not writable, please check user rights for writing", path.getFileName());
-            throw new Exception("The directory " + path.getFileName() + "is not writable please check user rigths");
-        }
+
+    private String generateFileName(final String fileNameWithExtension, final Long docId, final String docVersion) {
+        String basename = FilenameUtils.getBaseName(fileNameWithExtension);
+        String extension = FilenameUtils.getExtension(fileNameWithExtension);
+
+        LOGGER.debug("base filename " + basename + "\n extension " + extension);
+
+        return docVersion + "_" + docId + "." + extension;
     }
+
 }
