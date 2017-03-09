@@ -1,4 +1,4 @@
-package ru.doccloud.document.mockdocumentcontroller;
+package ru.doccloud.document.mockdocumentcontroller.mock;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;

@@ -2,9 +2,11 @@ package ru.doccloud.document.controller.util;
 
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import ru.doccloud.common.util.PropertyReader;
 
 import java.io.BufferedWriter;
@@ -16,6 +18,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+@Component("fileHelper")
 public class FileHelper {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileHelper.class);
     private static final String CONFIG_FILENAME = "/repository.properties";
@@ -29,10 +32,12 @@ public class FileHelper {
             if(StringUtils.isBlank(directoryPath) )
                 throw new Exception("property file " + CONFIG_FILENAME + " or such property " + FILE_PATH_PROPERTY + " does not exist");
 
-            final String[] folders = getFolderNames(fileName);
+            String fileNameWithoutExt = FilenameUtils.removeExtension(fileName);
+            LOGGER.debug("THe file name without extenssion " + fileNameWithoutExt + " will be split into two parts");
+            final String[] folders = getFolderNames(fileNameWithoutExt);
 
-            String folderLvl1 = folders[0];
-            String folderLvl2 = folders[1];
+            final String folderLvl1 = folders[0];
+            final String folderLvl2 = folders[1];
 
             String filePath = directoryPath +  "/" + folderLvl1;
 
@@ -40,8 +45,7 @@ public class FileHelper {
             if(Files.notExists(Paths.get(filePath), LinkOption.NOFOLLOW_LINKS)) {
 //                todo add recursion to for creating and checking file
                 LOGGER.debug("The folder " + filePath + " does not exist. Folder will be created");
-//                if(checkWritableDirectory(path))
-                    Files.createDirectories(path);
+                Files.createDirectories(path);
             }
 
             filePath = filePath + "/" + folderLvl2;
@@ -49,15 +53,18 @@ public class FileHelper {
             if(Files.notExists(Paths.get(filePath), LinkOption.NOFOLLOW_LINKS)) {
 //                todo add recursion to for creating and checking file
                 LOGGER.debug("The folder " + filePath + " does not exist. Folder will be created");
-//                if(checkWritableDirectory(path))
-                    Files.createDirectories(path);
+                Files.createDirectories(path);
             }
-            filePath = filePath + "/" + fileName;
+
+
             LOGGER.debug("The filePath for file  " + filePath );
-            File file = new File(filePath);
+            File file = new File(filePath + "/" + fileName);
 
+            Files.write(file.toPath(), fileArr);
 
-            FileUtils.writeByteArrayToFile(file, fileArr);
+            LOGGER.debug("The file was written to path obj  ");
+//            path = Files.createFile(path);
+//            FileUtils.writeByteArrayToFile(file, fileArr);
             LOGGER.info("the file " + fileName + " was written to " + file.getAbsolutePath());
             return file.getAbsolutePath();
         } catch (IOException e) {
@@ -70,9 +77,6 @@ public class FileHelper {
     }
 
     public byte[] readFile(final String filePath) throws Exception {
-
-
-
         return FileUtils.readFileToByteArray(new File(filePath));
     }
 

@@ -1,6 +1,6 @@
-drop table todos;
-DROP table links;
-DROP TABLE documents;
+-- drop table todos;
+-- DROP table links;
+-- DROP TABLE documents;
 
 create table if not exists todos (
   id serial primary key NOT NULL,
