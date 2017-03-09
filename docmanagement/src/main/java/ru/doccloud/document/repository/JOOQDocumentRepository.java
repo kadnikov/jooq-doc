@@ -73,8 +73,14 @@ public class JOOQDocumentRepository implements DocumentRepository {
     public Document add(Document documentEntry) {
         LOGGER.info("Adding new Document entry with information: {}", documentEntry);
         String[] readers = {documentEntry.getAuthor(), "admins"};
-        DocumentsRecord persisted = jooq.insertInto(DOCUMENTS,DOCUMENTS.SYS_DESC,DOCUMENTS.SYS_TITLE,DOCUMENTS.SYS_TYPE,DOCUMENTS.SYS_AUTHOR,DOCUMENTS.SYS_READERS,DOCUMENTS.DATA)
-                .values(documentEntry.getDescription(),documentEntry.getTitle(),documentEntry.getType(),documentEntry.getAuthor(),readers,documentEntry.getData())
+        DocumentsRecord persisted = jooq.insertInto(
+                DOCUMENTS, DOCUMENTS.SYS_DESC, DOCUMENTS.SYS_TITLE, DOCUMENTS.SYS_TYPE, DOCUMENTS.SYS_AUTHOR,
+                DOCUMENTS.SYS_READERS, DOCUMENTS.DATA, DOCUMENTS.SYS_FILE_LENGTH, DOCUMENTS.SYS_FILE_MIME_TYPE,
+                DOCUMENTS.SYS_FILE_NAME, DOCUMENTS.SYS_FILE_PATH, DOCUMENTS.SYS_VERSION)
+                .values(
+                        documentEntry.getDescription(), documentEntry.getTitle(), documentEntry.getType(), documentEntry.getAuthor(),
+                        readers, documentEntry.getData(), documentEntry.getFileLength(), documentEntry.getFileMimeType(),
+                        documentEntry.getFileName(), documentEntry.getFilePath(), documentEntry.getDocVersion())
                 .returning()
                 .fetchOne();
 
@@ -344,18 +350,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
         List<Document> documentEntries = new ArrayList<>();
 
         for (DocumentsRecord queryResult : queryResults) {
-        	Document documentEntry = Document.getBuilder(queryResult.getSysTitle())
-                    .description(queryResult.getSysDesc())
-                    .type(queryResult.getSysType())
-                    .id(queryResult.getId().longValue())
-                    .creationTime(queryResult.getSysDateCr())
-                    .modificationTime(queryResult.getSysDateMod())
-                    .author(queryResult.getSysAuthor())
-                    .modifier(queryResult.getSysModifier())
-                    .filePath(queryResult.getSysFilePath())
-                    .fileMimeType(queryResult.getSysFileMimeType())
-                    .fileLength(queryResult.getSysFileLength())
-                    .build();
+        	Document documentEntry = convertQueryResultToModelObject(queryResult);
         	documentEntries.add(documentEntry);
         }
 
@@ -374,26 +369,13 @@ public class JOOQDocumentRepository implements DocumentRepository {
         		if (queryResult.getValue(field)!=null){
             	try {
 					data.put(field,mapper.readTree(queryResult.getValue(field).toString()));
-				} catch (JsonProcessingException e) {
-					e.printStackTrace();
-				} catch (IllegalArgumentException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
+				} catch (IllegalArgumentException | IOException e) {
 					e.printStackTrace();
 				}
-        		}
+                }
     		}
         	}
-			Document documentEntry = Document.getBuilder(queryResult.getValue(DOCUMENTS.SYS_TITLE))
-                    .description(queryResult.getValue(DOCUMENTS.SYS_DESC))
-                    .type(queryResult.getValue(DOCUMENTS.SYS_TYPE))
-                    .id(queryResult.getValue(DOCUMENTS.ID).longValue())
-                    .creationTime(queryResult.getValue(DOCUMENTS.SYS_DATE_CR))
-                    .modificationTime(queryResult.getValue(DOCUMENTS.SYS_DATE_MOD))
-                    .author(queryResult.getValue(DOCUMENTS.SYS_AUTHOR))
-                    .modifier(queryResult.getValue(DOCUMENTS.SYS_MODIFIER))
-                    .data(data)
-                    .build();
+			Document documentEntry = convertQueryResultToModelObject((DocumentsRecord) queryResult);
         	documentEntries.add(documentEntry);
         }
 
@@ -412,6 +394,8 @@ public class JOOQDocumentRepository implements DocumentRepository {
                 .filePath(queryResult.getSysFilePath())
                 .fileMimeType(queryResult.getSysFileMimeType())
                 .fileLength(queryResult.getSysFileLength())
+                .fileName(queryResult.getSysFileName())
+                .docVersion(queryResult.getSysVersion())
                 .build();
     }
 
@@ -429,6 +413,11 @@ public class JOOQDocumentRepository implements DocumentRepository {
                 .set(DOCUMENTS.SYS_TITLE, documentEntry.getTitle())
                 .set(DOCUMENTS.SYS_MODIFIER, documentEntry.getModifier())
                 .set(DOCUMENTS.DATA, documentEntry.getData())
+                .set(DOCUMENTS.SYS_FILE_PATH, documentEntry.getFilePath())
+                .set(DOCUMENTS.SYS_FILE_LENGTH, documentEntry.getFileLength())
+                .set(DOCUMENTS.SYS_FILE_MIME_TYPE, documentEntry.getFileMimeType())
+                .set(DOCUMENTS.SYS_FILE_NAME, documentEntry.getFileName())
+                .set(DOCUMENTS.SYS_VERSION, documentEntry.getDocVersion())
                 .where(DOCUMENTS.ID.equal(documentEntry.getId().intValue()))
                 .execute();
 
@@ -454,6 +443,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
                 .set(DOCUMENTS.SYS_MODIFIER, documentEntry.getModifier())
                 .set(DOCUMENTS.SYS_FILE_LENGTH, documentEntry.getFileLength())
                 .set(DOCUMENTS.SYS_FILE_MIME_TYPE, documentEntry.getFileMimeType())
+                .set(DOCUMENTS.SYS_FILE_NAME, documentEntry.getFileName())
                 .where(DOCUMENTS.ID.equal(documentEntry.getId().intValue()))
                 .execute();
 
@@ -489,6 +479,8 @@ public class JOOQDocumentRepository implements DocumentRepository {
         selectedFields.add(DOCUMENTS.SYS_MODIFIER);
         selectedFields.add(DOCUMENTS.SYS_FILE_PATH);
         selectedFields.add(DOCUMENTS.SYS_TYPE);
+        selectedFields.add(DOCUMENTS.SYS_FILE_NAME);
+        selectedFields.add(DOCUMENTS.SYS_VERSION);
         if (fields!=null){
         for (String field : fields) {
         	selectedFields.add(jsonObject(DOCUMENTS.DATA, field).as(field));
@@ -513,6 +505,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
         for (QueryParam param : QueryParams) {
         	LOGGER.info("Param {} {} {} ",param.getField(),param.getOperand(),param.getValue());
         	if (param.getOperand()!=null){
+//        	    todo add enum for this
         		if ("eq".equals(param.getOperand().toLowerCase()))
 	        		cond = cond.and(getTableField(param.getField()).equal(param.getValue()));
 	        	if ("cn".equals(param.getOperand().toLowerCase()))
@@ -541,6 +534,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
 	}
 
+//	todo return all params that requested from ui
 	@Override
 	public List<Document> findAllByParent(Long parent) {
 		LOGGER.info("Finding all Documents by parent.");
@@ -608,4 +602,22 @@ public class JOOQDocumentRepository implements DocumentRepository {
 		
 		
 	}
+
+
+//	private Document buildDocumentFromQueryResult(DocumentsRecord queryResult){
+//        return Document.getBuilder(queryResult.getSysTitle())
+//                .creationTime(queryResult.getSysDateCr())
+//                .description(queryResult.getSysDesc())
+//                .type(queryResult.getSysType())
+//                .data(queryResult.getData())
+//                .id(queryResult.getId().longValue())
+//                .modificationTime(queryResult.getSysDateMod())
+//                .author(queryResult.getSysAuthor())
+//                .modifier(queryResult.getSysModifier())
+//                .filePath(queryResult.getSysFilePath())
+//                .fileMimeType(queryResult.getSysFileMimeType())
+//                .fileLength(queryResult.getSysFileLength())
+//                .fileName(queryResult.getSysFileName())
+//                .build();
+//    }
 }

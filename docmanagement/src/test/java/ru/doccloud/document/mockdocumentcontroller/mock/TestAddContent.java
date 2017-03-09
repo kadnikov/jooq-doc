@@ -1,4 +1,4 @@
-package ru.doccloud.document.mockdocumentcontroller;
+package ru.doccloud.document.mockdocumentcontroller.mock;
 
 import org.junit.Before;
 import org.junit.Test;

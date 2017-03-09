@@ -36,6 +36,8 @@ public class Document {
     private final Long fileLength;
     
     private final String type;
+
+    private final String docVersion;
     
     private final JsonNode data;
 
@@ -73,6 +75,7 @@ public class Document {
         this.type = builder.type;
         
         this.data = builder.data;
+        this.docVersion = builder.docVersion;
     }
 
     public static Builder getBuilder(String title) {
@@ -111,6 +114,10 @@ public class Document {
         return data;
     }
 
+    public String getFileName() {
+        return fileName;
+    }
+
     @Override
     public String toString() {
         return "Document{" +
@@ -126,6 +133,7 @@ public class Document {
                 ", fileMimeType='" + fileMimeType + '\'' +
                 ", fileLength=" + fileLength +
                 ", type='" + type + '\'' +
+                ", docVersion='" + docVersion + '\'' +
                 ", data=" + data +
                 '}';
     }
@@ -146,7 +154,11 @@ public class Document {
 		return modifier;
 	}
 
-	public static class Builder {
+    public String getDocVersion() {
+        return docVersion;
+    }
+
+    public static class Builder {
 
 		private Long id;
 
@@ -173,6 +185,8 @@ public class Document {
         private String modifier;
         
         private JsonNode data;
+
+        private String docVersion;
 
         public Builder(String title) {
             this.title = title;
@@ -241,7 +255,10 @@ public class Document {
             return this;
         }
         
-        
+        public Builder docVersion(String docVersion){
+            this.docVersion = docVersion;
+            return this;
+        }
 
         public Document build() {
             Document created = new Document(this);

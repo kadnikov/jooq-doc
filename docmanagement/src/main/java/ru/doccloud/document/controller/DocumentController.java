@@ -1,11 +1,18 @@
 package ru.doccloud.document.controller;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+import org.apache.commons.fileupload.disk.DiskFileItem;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +23,13 @@ import org.springframework.web.bind.annotation.*;
 
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
+import ru.doccloud.common.util.VersionHelper;
 import ru.doccloud.document.controller.util.FileHelper;
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.service.DocumentCrudService;
 import ru.doccloud.document.service.DocumentSearchService;
+import ru.doccloud.document.service.FileActionsService;
 
 /**
  * @author Andrey Kadnikov
@@ -34,10 +44,13 @@ public class DocumentController {
 
     private final DocumentSearchService searchService;
 
+    private final FileActionsService fileActionsService;
+
     @Autowired
-    public DocumentController(DocumentCrudService crudService, DocumentSearchService searchService) {
+    public DocumentController(DocumentCrudService crudService, DocumentSearchService searchService, FileActionsService fileActionsService) {
         this.crudService = crudService;
         this.searchService = searchService;
+        this.fileActionsService = fileActionsService;
     }
 
     @RequestMapping(method = RequestMethod.POST)
@@ -46,47 +59,37 @@ public class DocumentController {
         LOGGER.debug("Adding new Document entry with information: {}", dto);
 
         DocumentDTO added = addDoc(dto);
-
-        LOGGER.info("Added Document entry: {}", added);
+        LOGGER.debug("Added Document entry: {}", added);
 
         return added;
     }
 
 
     @RequestMapping(value="/addcontent",headers="content-type=multipart/*",method=RequestMethod.POST)
-    public DocumentDTO addContent(MultipartHttpServletRequest request, HttpServletResponse response, @RequestBody @Valid DocumentDTO dto) throws Exception {
+    public DocumentDTO addContent(MultipartHttpServletRequest request,  @RequestBody @Valid DocumentDTO dto) throws Exception {
 
-
-        LOGGER.info("add new document with content ");
         LOGGER.debug("start adding new Document to database: {} ", dto);
-
         Iterator<String> itr =  request.getFileNames();
-//todo expand on few files in one request
         if(!itr.hasNext())
             return addDoc(dto);
         MultipartFile mpf = request.getFile(itr.next());
         initFileParamsFromRequest(dto, mpf);
+
         DocumentDTO added = addDoc(dto);
 
+        LOGGER.info("DTO Obj after save: {}", added);
        return writeContent(added, mpf);
     }
 
-//todo may be combine this method with addContent when last param is null
     @RequestMapping(value="/createdoc",headers="content-type=multipart/*",method=RequestMethod.POST)
-    public DocumentDTO addContent(MultipartHttpServletRequest request, HttpServletResponse response) throws Exception {
-
-
+    public DocumentDTO addContent(MultipartHttpServletRequest request) throws Exception {
         LOGGER.info("add new document with content ");
-        LOGGER.debug("start adding new Document to database:  ");
 
         DocumentDTO dto = new DocumentDTO();
 
-
         Iterator<String> itr =  request.getFileNames();
-//todo expand on few files in one request
         if(!itr.hasNext())
             return addDoc(dto);
-//todo remove document from database if file hasn't been saved
         MultipartFile mpf = request.getFile(itr.next());
         initFileParamsFromRequest(dto, mpf);
         DocumentDTO added = addDoc(dto);
@@ -96,13 +99,8 @@ public class DocumentController {
     }
 
 
-    @RequestMapping(value="/updatecontent/{id}",headers="content-type=multipart/*",method=RequestMethod.POST)
-    public DocumentDTO updateContent(MultipartHttpServletRequest request, HttpServletResponse response, @PathVariable("id") Long id) throws Exception {
-
-
-        LOGGER.info("add update document with content ");
-
-
+    @RequestMapping(value="/updatecontent/{id}",headers="content-type=multipart/*",method=RequestMethod.PUT)
+    public DocumentDTO updateContent(MultipartHttpServletRequest request,  @PathVariable("id") Long id) throws Exception {
         LOGGER.debug("find the document with id : {} ", id);
 
         DocumentDTO dto = crudService.findById(id);
@@ -113,7 +111,6 @@ public class DocumentController {
             throw new Exception("The document with such id " + id + " was not found in database ");
 
         Iterator<String> itr =  request.getFileNames();
-//todo expand on few files in one request
 
         MultipartFile mpf = request.getFile(itr.next());
 
@@ -226,36 +223,38 @@ public class DocumentController {
         dto.setId(id);
 
         LOGGER.info("Updating Document entry with information: {}", dto);
-
+        dto.setDocVersion(VersionHelper.generateMinorDocVersion(dto.getDocVersion()));
         DocumentDTO updated = crudService.update(dto);
-
         LOGGER.info("Updated Document entry: {}", updated);
 
         return updated;
     }
 
     private DocumentDTO addDoc(DocumentDTO dto) {
+        dto.setDocVersion(VersionHelper.generateMinorDocVersion(dto.getDocVersion()));
         return crudService.add(dto);
     }
 
     private void initFileParamsFromRequest(DocumentDTO dto, MultipartFile mpf) throws Exception {
+        LOGGER.debug("file lenght " + mpf.getBytes().length + " fileContentType " + mpf.getContentType() + " orig fileNmae " + mpf.getOriginalFilename());
         dto.setFileLength((long) mpf.getBytes().length);
         dto.setFileMimeType(mpf.getContentType());
         dto.setFileName(mpf.getOriginalFilename());
     }
 
-    private String writeFile(String fileName, byte[] bytes) throws Exception {
-        FileHelper helper = new FileHelper();
-        return helper.writeFile(fileName, bytes);
+    private String writeFile(String fileName, Long docId, String docVersion, byte[] bytes) throws Exception {
+            return fileActionsService.writeFile(fileName, docId, docVersion, bytes);
     }
 
 
     private DocumentDTO writeContent(DocumentDTO dto, MultipartFile mpf) throws Exception {
         try {
-
+            if(!checkMultipartFile(mpf))
+                throw new Exception("The multipart file contains either empty content type or empty filename or does not contain data");
             LOGGER.debug("the document: {} has been added", dto);
             LOGGER.debug("start adding file to FS");
-            dto.setFilePath(writeFile(dto.getFileName(), mpf.getBytes()));
+
+            dto.setFilePath(writeFile(dto.getFileName(), dto.getId(), dto.getDocVersion(),  mpf.getBytes()));
             DocumentDTO updated = crudService.update(dto);
             LOGGER.debug("Dto object has been updated: {}", updated);
             return updated;
@@ -269,4 +268,11 @@ public class DocumentController {
             throw new Exception("Error has been occured " + e.getMessage());
         }
     }
+
+    private boolean checkMultipartFile(MultipartFile mpf ) throws IOException {
+        return !StringUtils.isBlank(mpf.getOriginalFilename()) &&
+                !StringUtils.isBlank(mpf.getContentType()) &&
+                mpf.getBytes().length > 0;
+    }
+
 }

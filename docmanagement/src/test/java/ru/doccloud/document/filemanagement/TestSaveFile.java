@@ -8,17 +8,17 @@ import ru.doccloud.document.controller.util.FileHelper;
 public class TestSaveFile {
 
     private FileHelper fileHelper;
-    private final String filePath = "/home/ilya/filenet_workspace/tasks.txt";
+    private final String filePath = "/home/ilya/Pictures/Screenshot from 2017-01-18 22-40-24.png";
     @Before
     public void init(){
         fileHelper = new FileHelper();
     }
 
-//    @Test
+    @Test
     public void writeFile(){
 
         try {
-            String fileName1 = fileHelper.writeFile("testFileNama", getFileAsByteArr(filePath));
+            String fileName1 = fileHelper.writeFile("testFileNama", 1l, "0.1", getFileAsByteArr(filePath));
             System.out.println("fileName1 " + fileName1);
         } catch (Exception e) {
             e.printStackTrace();
@@ -31,7 +31,7 @@ public class TestSaveFile {
         for(int i=0; i <15; i++){
             fileName = fileName + i;
             try {
-                String fileName1 = fileHelper.writeFile(fileName, getFileAsByteArr(filePath));
+                String fileName1 = fileHelper.writeFile("testFileNama", 1l, "0.1", getFileAsByteArr(filePath));
                 System.out.println("fileName1 " + fileName1);
             } catch (Exception e) {
                 e.printStackTrace();
