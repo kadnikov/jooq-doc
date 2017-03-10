@@ -83,7 +83,7 @@
         <servlet-class>org.apache.chemistry.opencmis.server.impl.atompub.CmisAtomPubServlet</servlet-class>
         <init-param>
             <param-name>callContextHandler</param-name>
-            <param-value>org.apache.chemistry.opencmis.server.shared.BasicAuthCallContextHandler</param-value>
+            <param-value>org.apache.chemistry.opencmis.server.impl.browser.token.TokenCallContextHandler</param-value>
         </init-param>
         <init-param>
             <param-name>cmisVersion</param-name>
@@ -96,7 +96,7 @@
         <servlet-class>org.apache.chemistry.opencmis.server.impl.atompub.CmisAtomPubServlet</servlet-class>
         <init-param>
             <param-name>callContextHandler</param-name>
-            <param-value>org.apache.chemistry.opencmis.server.shared.BasicAuthCallContextHandler</param-value>
+            <param-value>org.apache.chemistry.opencmis.server.impl.browser.token.TokenCallContextHandler</param-value>
         </init-param>
         <init-param>
             <param-name>cmisVersion</param-name>
@@ -107,9 +107,10 @@
     <servlet>
         <servlet-name>cmisbrowser</servlet-name>
         <servlet-class>org.apache.chemistry.opencmis.server.impl.browser.CmisBrowserBindingServlet</servlet-class>
+        <!--  servlet-class>ru.doccloud.cmis.server.MyCmisBrowserBindingServlet</servlet-class-->
         <init-param>
             <param-name>callContextHandler</param-name>
-            <param-value>org.apache.chemistry.opencmis.server.shared.BasicAuthCallContextHandler</param-value>
+            <param-value>org.apache.chemistry.opencmis.server.impl.browser.token.TokenCallContextHandler</param-value>
         </init-param>
         <load-on-startup>2</load-on-startup>
     </servlet>

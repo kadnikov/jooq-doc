@@ -33,6 +33,18 @@ public class SwaggerConfig {
                     .paths(PathSelectors.regex("/api/.*"))
                     .build();
     }
+    
+    @Bean
+    public Docket cmisApi() {
+    	System.out.println("Init Swagger2 for CMIS");
+        return new Docket(DocumentationType.SWAGGER_2)
+        		.groupName("CMIS")
+                    .apiInfo(apiInfo())
+                    .select()
+                    .apis(RequestHandlerSelectors.any())
+                    .paths(PathSelectors.regex("/browser/.*"))
+                    .build();
+    }
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()

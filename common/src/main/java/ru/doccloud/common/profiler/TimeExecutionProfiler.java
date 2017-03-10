@@ -23,7 +23,7 @@ public class TimeExecutionProfiler {
 		long start = System.currentTimeMillis();
 	    logger.debug("ServicesProfiler.profile(): Going to call the method: {}", pjp.getSignature().getName());
 	    Object output = pjp.proceed();
-	    logger.info("ServicesProfiler.profile(): Method execution completed.");
+	    logger.debug("ServicesProfiler.profile(): Method execution completed.");
 	    long elapsedTime = System.currentTimeMillis() - start;
 	    logger.debug("ServicesProfiler.profile(): Method execution time: " + elapsedTime + " milliseconds.");
 	

@@ -22,12 +22,12 @@ public class AuthorizationPlugin {
 	@Around("businessMethods() && target(crud)")
 	public Object profile(ProceedingJoinPoint pjp, RepositoryDocumentCrudService crud) throws Throwable {
 		long start = System.currentTimeMillis();
-	    logger.info("AuthorizationPlugin: Going to call the method: {}", pjp.getSignature().getName());
+	    logger.debug("AuthorizationPlugin: Going to call the method: {}", pjp.getSignature().getName());
 	    crud.getRepository().setUser();
 	    Object output = pjp.proceed();
-	    logger.info("AuthorizationPlugin: Method execution completed.");
+	    logger.debug("AuthorizationPlugin: Method execution completed.");
 	    long elapsedTime = System.currentTimeMillis() - start;
-	    logger.info("AuthorizationPlugin: Method execution time: " + elapsedTime + " milliseconds.");
+	    logger.debug("AuthorizationPlugin: Method execution time: " + elapsedTime + " milliseconds.");
 	
 	    return output;
 	}
