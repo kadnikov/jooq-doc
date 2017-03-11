@@ -44,9 +44,9 @@
     <profiles>
         <profile>
             <id>dev</id>
-            <!--<activation>-->
-                <!--<activeByDefault>true</activeByDefault>-->
-            <!--</activation>-->
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
 
             <build>
                 <plugins>
@@ -106,9 +106,9 @@
         <profile>
             <id>doccloud</id>
             <!--todo change active by default-->
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
+            <!--<activation>-->
+                <!--<activeByDefault>true</activeByDefault>-->
+            <!--</activation>-->
             <build>
                 <plugins>
                     <plugin>
@@ -405,7 +405,7 @@
                                 <records>true</records>
                             </generate>
                             <target>
-                                <packageName>net.petrikainulainen.spring.jooq.todo.db</packageName>
+                                <packageName>ru.doccloud.document.jooq.db</packageName>
                                 <directory>target/generated-sources/jooq</directory>
                             </target>
                         </generator>

@@ -1,8 +1,8 @@
 package ru.doccloud.document.repository;
 
 
-import static net.petrikainulainen.spring.jooq.todo.db.tables.Documents.DOCUMENTS;
-import static net.petrikainulainen.spring.jooq.todo.db.tables.Links.LINKS;
+import static ru.doccloud.document.jooq.db.tables.Documents.DOCUMENTS;
+import static ru.doccloud.document.jooq.db.tables.Links.LINKS;
 
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -39,12 +39,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import net.petrikainulainen.spring.jooq.todo.db.tables.Documents;
-import net.petrikainulainen.spring.jooq.todo.db.tables.Links;
-import net.petrikainulainen.spring.jooq.todo.db.tables.records.DocumentsRecord;
-import net.petrikainulainen.spring.jooq.todo.db.tables.records.LinksRecord;
 import ru.doccloud.common.service.DateTimeService;
 import ru.doccloud.common.exception.DocumentNotFoundException;
+import ru.doccloud.document.jooq.db.tables.Documents;
+import ru.doccloud.document.jooq.db.tables.Links;
+import ru.doccloud.document.jooq.db.tables.records.DocumentsRecord;
+import ru.doccloud.document.jooq.db.tables.records.LinksRecord;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
 import ru.doccloud.document.model.FilterBean;
