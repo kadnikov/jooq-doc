@@ -44,9 +44,9 @@
     <profiles>
         <profile>
             <id>dev</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
+            <!--<activation>-->
+                <!--<activeByDefault>true</activeByDefault>-->
+            <!--</activation>-->
 
             <build>
                 <plugins>
@@ -106,9 +106,9 @@
         <profile>
             <id>doccloud</id>
             <!--todo change active by default-->
-            <!--<activation>-->
-                <!--<activeByDefault>true</activeByDefault>-->
-            <!--</activation>-->
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <build>
                 <plugins>
                     <plugin>
