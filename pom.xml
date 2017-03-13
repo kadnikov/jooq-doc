@@ -105,10 +105,6 @@
         </profile>
         <profile>
             <id>doccloud</id>
-            <!--todo change active by default-->
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
             <build>
                 <plugins>
                     <plugin>
