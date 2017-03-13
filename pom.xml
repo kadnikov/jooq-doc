@@ -107,9 +107,6 @@
         </profile>
         <profile>
             <id>doccloud</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
             <build>
                 <plugins>
                     <plugin>
