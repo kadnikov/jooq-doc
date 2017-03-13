@@ -244,36 +244,52 @@ public class JOOQDocumentRepository implements DocumentRepository {
                 LOGGER.info("Param {} {} {} ",param.getField(),param.getOperand(),param.getValue());
                 if (param.getOperand()!=null){
                 	DataType<Object> JSONB = new DefaultDataType<Object>(SQLDialect.POSTGRES, SQLDataType.OTHER, "jsonb");
-//        	    todo add enum for this ['eq','ne','lt','le','gt','ge','bw','bn','in','ni','ew','en','cn','nc']
-                    if ("eq".equals(param.getOperand().toLowerCase()))
-                        cond = cond.and(getTableField(param.getField()).equal(param.getValue()));
-                    if ("ne".equals(param.getOperand().toLowerCase()))
-                        cond = cond.and(getTableField(param.getField()).notEqual(param.getValue()));
-                    if ("lt".equals(param.getOperand().toLowerCase()))
+//        	    // ['eq','ne','lt','le','gt','ge','bw','bn','in','ni','ew','en','cn','nc']
+                	switch (param.getOperand().toLowerCase())
+                    {
+                    case "eq": 
+                    	cond = cond.and(getTableField(param.getField()).equal(param.getValue()));
+                    	break;
+                    case "ne":
+                    	cond = cond.and(getTableField(param.getField()).notEqual(param.getValue()));
+                    	break;
+                    case "lt":
                         cond = cond.and(getTableField(param.getField()).lessThan(DSL.val(param.getValue()).cast(JSONB)));
-                    if ("le".equals(param.getOperand().toLowerCase()))
+                        break;
+                    case "le":
                         cond = cond.and(getTableField(param.getField()).lessOrEqual(param.getValue()));
-                    if ("gt".equals(param.getOperand().toLowerCase()))
+                        break;
+                    case "gt":
                         cond = cond.and(getTableField(param.getField()).greaterThan(DSL.val(param.getValue()).cast(JSONB)));
-                    if ("ge".equals(param.getOperand().toLowerCase()))
+                        break;
+                    case "ge":
                         cond = cond.and(getTableField(param.getField()).greaterOrEqual(param.getValue()));
-                    if ("bw".equals(param.getOperand().toLowerCase()))
+                        break;
+                    case "bw":
                         cond = cond.and(getTableField(param.getField()).like(param.getValue()+"%"));
-                    if ("bn".equals(param.getOperand().toLowerCase()))
+                        break;
+                    case "bn":
                         cond = cond.and(getTableField(param.getField()).notLike(param.getValue()+"%"));
-                    if ("in".equals(param.getOperand().toLowerCase()))
+                        break;
+                    case "in":
                         cond = cond.and(getTableField(param.getField()).in(param.getValue()));
-                    if ("ni".equals(param.getOperand().toLowerCase()))
+                        break;
+                    case "ni":
                         cond = cond.and(getTableField(param.getField()).notIn(param.getValue()));
-                    if ("ew".equals(param.getOperand().toLowerCase()))
+                        break;
+                    case "ew":
                         cond = cond.and(getTableField(param.getField()).like("%"+param.getValue()));
-                    if ("en".equals(param.getOperand().toLowerCase()))
+                        break;
+                    case "en":
                         cond = cond.and(getTableField(param.getField()).notLike("%"+param.getValue()));
-                    if ("cn".equals(param.getOperand().toLowerCase()))
+                        break;
+                    case "cn":
                         cond = cond.and(getTableField(param.getField()).like("%"+param.getValue()+"%"));
-                    if ("nc".equals(param.getOperand().toLowerCase()))
+                        break;
+                    case "nc":
                         cond = cond.and(getTableField(param.getField()).notLike("%"+param.getValue()+"%"));
-                    
+                        break;
+                    }
                 }
             }
         List<Record> queryResults = jooq.select(selectedFields).from(DOCUMENTS)
