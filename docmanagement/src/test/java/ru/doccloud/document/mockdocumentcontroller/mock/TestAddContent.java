@@ -35,7 +35,7 @@ public class TestAddContent {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
-    @Test
+//    @Test
     public void test() throws Exception {
 
         MockMultipartFile firstFile = new MockMultipartFile("data", "tasks.txt", "text/plain", getFileAsByteArr(filePath));

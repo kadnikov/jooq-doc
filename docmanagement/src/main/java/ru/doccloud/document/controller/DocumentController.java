@@ -117,6 +117,24 @@ public class DocumentController {
         return writeContent(dto, mpf);
     }
 
+    @RequestMapping(value="/getcontent/{id}",headers="content-type=multipart/*",method=RequestMethod.GET)
+    public byte[] getContent( @PathVariable("id") Long id) throws Exception {
+        DocumentDTO dto = crudService.findById(id);
+
+        LOGGER.debug("Found Document entry: {}", dto);
+
+        if(dto == null)
+            throw new Exception("The document with such id " + id + " was not found in database ");
+
+        final String filePath = dto.getFilePath();
+        if(StringUtils.isBlank(filePath)) {
+            LOGGER.error("Filepath is empty. Content for document {} does not exist", dto);
+            throw new Exception("Filepath is empty, conteny for document " + dto + "does not exist");
+        }
+
+        return fileActionsService.readFile(filePath);
+    }
+
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     public DocumentDTO delete(@PathVariable("id") Long id) {
         LOGGER.info("Deleting Document entry with id: {}", id);

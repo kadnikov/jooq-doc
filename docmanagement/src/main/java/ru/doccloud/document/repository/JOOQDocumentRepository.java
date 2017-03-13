@@ -1,8 +1,8 @@
 package ru.doccloud.document.repository;
 
 
-import static net.petrikainulainen.spring.jooq.todo.db.tables.Documents.DOCUMENTS;
-import static net.petrikainulainen.spring.jooq.todo.db.tables.Links.LINKS;
+import static ru.doccloud.document.jooq.db.tables.Documents.DOCUMENTS;
+import static ru.doccloud.document.jooq.db.tables.Links.LINKS;
 
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -39,12 +39,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import net.petrikainulainen.spring.jooq.todo.db.tables.Documents;
-import net.petrikainulainen.spring.jooq.todo.db.tables.Links;
-import net.petrikainulainen.spring.jooq.todo.db.tables.records.DocumentsRecord;
-import net.petrikainulainen.spring.jooq.todo.db.tables.records.LinksRecord;
 import ru.doccloud.common.service.DateTimeService;
 import ru.doccloud.common.exception.DocumentNotFoundException;
+import ru.doccloud.document.jooq.db.tables.Documents;
+import ru.doccloud.document.jooq.db.tables.Links;
+import ru.doccloud.document.jooq.db.tables.records.DocumentsRecord;
+import ru.doccloud.document.jooq.db.tables.records.LinksRecord;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
 import ru.doccloud.document.model.FilterBean;
@@ -84,7 +84,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
                 .returning()
                 .fetchOne();
 
-        Document returned = convertQueryResultToModelObject(persisted);
+        Document returned = DocumentConverter.convertQueryResultToModelObject(persisted);
 
         LOGGER.info("Added {} todo entry", returned);
 
@@ -163,7 +163,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
         List<DocumentsRecord> queryResults = jooq.selectFrom(DOCUMENTS).fetchInto(DocumentsRecord.class);
         
-        List<Document> documentEntries = convertQueryResultsToModelObjects(queryResults);
+        List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
 
         LOGGER.info("Found {} Document entries", documentEntries.size());
 
@@ -183,7 +183,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
                 .limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .fetchInto(DocumentsRecord.class);
 
-        List<Document> documentEntries = convertQueryResultsToModelObjects(queryResults);
+        List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
 
         LOGGER.info("Found {} document entries for page: {}",
         		documentEntries.size(),
@@ -198,6 +198,78 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
         return new PageImpl<>(documentEntries, pageable, totalCount);
     }
+
+
+    @Override
+    public Page<Document> findAllByType(String type, String[] fields, Pageable pageable, String query) {
+        LOGGER.info("Finding all Documents by type.");
+
+        ArrayList<SelectField<?>> selectedFields = new ArrayList<SelectField<?>>();
+        selectedFields.add(DOCUMENTS.ID);
+        selectedFields.add(DOCUMENTS.SYS_TITLE);
+        selectedFields.add(DOCUMENTS.SYS_AUTHOR);
+        selectedFields.add(DOCUMENTS.SYS_DATE_CR);
+        selectedFields.add(DOCUMENTS.SYS_DATE_MOD);
+        selectedFields.add(DOCUMENTS.SYS_DESC);
+        selectedFields.add(DOCUMENTS.SYS_MODIFIER);
+        selectedFields.add(DOCUMENTS.SYS_FILE_PATH);
+        selectedFields.add(DOCUMENTS.SYS_TYPE);
+        selectedFields.add(DOCUMENTS.SYS_FILE_NAME);
+        selectedFields.add(DOCUMENTS.SYS_VERSION);
+        if (fields!=null){
+            for (String field : fields) {
+                selectedFields.add(jsonObject(DOCUMENTS.DATA, field).as(field));
+            }
+        }
+        FilterBean filter = null;
+        List<QueryParam> QueryParams = null;
+        LOGGER.info("Query for search - "+query);
+        ObjectMapper mapper = new ObjectMapper();
+        if (query!=null){
+            try {
+                filter = mapper.readValue(query, new TypeReference<FilterBean>(){});
+                QueryParams = filter.getMrules();
+                LOGGER.info("List of params - {} {}", QueryParams.toString(), QueryParams.size());
+            } catch (IOException e) {
+                LOGGER.error("Error parsing JSON "+ e.getLocalizedMessage());
+                e.printStackTrace();
+            }
+        }
+        Condition cond = DOCUMENTS.SYS_TYPE.equal(type);
+        if (QueryParams !=null)
+            for (QueryParam param : QueryParams) {
+                LOGGER.info("Param {} {} {} ",param.getField(),param.getOperand(),param.getValue());
+                if (param.getOperand()!=null){
+//        	    todo add enum for this
+                    if ("eq".equals(param.getOperand().toLowerCase()))
+                        cond = cond.and(getTableField(param.getField()).equal(param.getValue()));
+                    if ("cn".equals(param.getOperand().toLowerCase()))
+                        cond = cond.and(getTableField(param.getField()).like("%"+param.getValue()+"%"));
+                    if ("ge".equals(param.getOperand().toLowerCase()))
+                        cond = cond.and(getTableField(param.getField()).greaterOrEqual(param.getValue()));
+                    if ("le".equals(param.getOperand().toLowerCase()))
+                        cond = cond.and(getTableField(param.getField()).lessOrEqual(param.getValue()));
+                }
+            }
+        List<Record> queryResults = jooq.select(selectedFields).from(DOCUMENTS)
+                .where(cond)
+                .orderBy(getSortFields(pageable.getSort()))
+                .limit(pageable.getPageSize()).offset(pageable.getOffset())
+                .fetch();//Into(DocumentsRecord.class);
+
+        List<Document> documentEntries = DocumentConverter.convertQueryResults(queryResults, fields);
+
+        long totalCount = findTotalCountByType(cond);
+
+        LOGGER.info("{} document entries matches with the like expression: {}",
+                totalCount
+        );
+
+        return new PageImpl<>(documentEntries, pageable, totalCount);
+
+    }
+
+
 
     @Transactional(readOnly = true)
     @Override
@@ -214,7 +286,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
             throw new DocumentNotFoundException("No Document entry found with id: " + id);
         }
 
-        return convertQueryResultToModelObject(queryResult);
+        return DocumentConverter.convertQueryResultToModelObject(queryResult);
     }
 
     @Transactional(readOnly = true)
@@ -234,7 +306,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
                 .limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .fetchInto(DocumentsRecord.class);
 
-        List<Document> documentEntries = convertQueryResultsToModelObjects(queryResults);
+        List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
 
         LOGGER.info("Found {} document entries for page: {}",
         		documentEntries.size(),
@@ -251,153 +323,11 @@ public class JOOQDocumentRepository implements DocumentRepository {
         return new PageImpl<>(documentEntries, pageable, totalCount);
     }
 
-    private long findCountByLikeExpression(String likeExpression) {
-        LOGGER.debug("Finding search result count by using like expression: {}", likeExpression);
 
-        long resultCount = jooq.fetchCount(
-                jooq.select()
-                        .from(DOCUMENTS)
-                        .where(createWhereConditions(likeExpression))
-        );
 
-        LOGGER.debug("Found search result count: {}", resultCount);
 
-        return resultCount;
-    }
-    
-    private long findTotalCount() {
-        LOGGER.debug("Finding search result count by using like expression: {}");
 
-        long resultCount = jooq.fetchCount(
-                jooq.selectFrom(DOCUMENTS)
-        );
 
-        LOGGER.debug("Found search result count: {}", resultCount);
-
-        return resultCount;
-    }
-    
-    private long findTotalCountByType(Condition cond) {
-        LOGGER.debug("Finding search result count by using like expression: {}");
-
-        long resultCount = jooq.fetchCount(
-                jooq.selectFrom(DOCUMENTS)
-                .where(cond)
-        );
-
-        LOGGER.debug("Found search result count: {}", resultCount);
-
-        return resultCount;
-    }
-    
-
-    private Condition createWhereConditions(String likeExpression) {
-        return DOCUMENTS.SYS_DESC.likeIgnoreCase(likeExpression)
-                .or(DOCUMENTS.SYS_TITLE.likeIgnoreCase(likeExpression));
-    }
-
-    private Collection<SortField<?>> getSortFields(Sort sortSpecification) {
-        LOGGER.debug("Getting sort fields from sort specification: {}", sortSpecification);
-        Collection<SortField<?>> querySortFields = new ArrayList<>();
-
-        if (sortSpecification == null) {
-            LOGGER.debug("No sort specification found. Returning empty collection -> no sorting is done.");
-            return querySortFields;
-        }
-
-        Iterator<Sort.Order> specifiedFields = sortSpecification.iterator();
-
-        while (specifiedFields.hasNext()) {
-            Sort.Order specifiedField = specifiedFields.next();
-
-            String sortFieldName = specifiedField.getProperty();
-            Sort.Direction sortDirection = specifiedField.getDirection();
-            LOGGER.debug("Getting sort field with name: {} and direction: {}", sortFieldName, sortDirection);
-
-            Field<String> tableField = getTableField(sortFieldName);
-            SortField<?> querySortField = convertTableFieldToSortField(tableField, sortDirection);
-            querySortFields.add(querySortField);
-        }
-
-        return querySortFields;
-    }
-
-    private Field<String> getTableField(String sortFieldName) {
-        Field<String> sortField = null;
-        try {
-            java.lang.reflect.Field tableField = DOCUMENTS.getClass().getField(sortFieldName.toUpperCase());
-            sortField = (TableField) tableField.get(DOCUMENTS);
-            LOGGER.info("sortField - "+sortField);
-        } catch (NoSuchFieldException | IllegalAccessException ex) {
-        	LOGGER.info("Could not find table field: {}, Try to search in JSON data", sortFieldName);
-        	sortField = jsonText(DOCUMENTS.DATA, sortFieldName);
-            
-        }
-
-        return sortField;
-    }
-
-    private SortField<?> convertTableFieldToSortField(Field<String> tableField, Sort.Direction sortDirection) {
-        if (sortDirection == Sort.Direction.ASC) {
-            return tableField.asc();
-        }
-        else {
-            return tableField.desc();
-        }
-    }
-
-    private List<Document> convertQueryResultsToModelObjects(List<DocumentsRecord> queryResults) {
-        List<Document> documentEntries = new ArrayList<>();
-
-        for (DocumentsRecord queryResult : queryResults) {
-        	Document documentEntry = convertQueryResultToModelObject(queryResult);
-        	documentEntries.add(documentEntry);
-        }
-
-        return documentEntries;
-    }
-
-    private List<Document> convertQueryResults(List<Record> queryResults, String[] fields) {
-        List<Document> documentEntries = new ArrayList<>();
-
-        for (Record queryResult : queryResults) {
-        	
-        	ObjectNode data = JsonNodeFactory.instance.objectNode();
-        	ObjectMapper mapper = new ObjectMapper();
-        	if (fields!=null){
-        	for (String field : fields) {
-        		if (queryResult.getValue(field)!=null){
-            	try {
-					data.put(field,mapper.readTree(queryResult.getValue(field).toString()));
-				} catch (IllegalArgumentException | IOException e) {
-					e.printStackTrace();
-				}
-                }
-    		}
-        	}
-			Document documentEntry = convertQueryResultToModelObject((DocumentsRecord) queryResult);
-        	documentEntries.add(documentEntry);
-        }
-
-        return documentEntries;
-    }
-    private Document convertQueryResultToModelObject(DocumentsRecord queryResult) {
-        return Document.getBuilder(queryResult.getSysTitle())
-                .creationTime(queryResult.getSysDateCr())
-                .description(queryResult.getSysDesc())
-                .type(queryResult.getSysType())
-                .data(queryResult.getData())
-                .id(queryResult.getId().longValue())
-                .modificationTime(queryResult.getSysDateMod())
-                .author(queryResult.getSysAuthor())
-                .modifier(queryResult.getSysModifier())
-                .filePath(queryResult.getSysFilePath())
-                .fileMimeType(queryResult.getSysFileMimeType())
-                .fileLength(queryResult.getSysFileLength())
-                .fileName(queryResult.getSysFileName())
-                .docVersion(queryResult.getSysVersion())
-                .build();
-    }
 
     @Transactional
     @Override
@@ -418,6 +348,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
                 .set(DOCUMENTS.SYS_FILE_MIME_TYPE, documentEntry.getFileMimeType())
                 .set(DOCUMENTS.SYS_FILE_NAME, documentEntry.getFileName())
                 .set(DOCUMENTS.SYS_VERSION, documentEntry.getDocVersion())
+                .set(DOCUMENTS.SYS_TYPE, documentEntry.getType())
                 .where(DOCUMENTS.ID.equal(documentEntry.getId().intValue()))
                 .execute();
 
@@ -465,74 +396,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
         return DSL.field("{0}->>{1}", String.class, field, DSL.inline(name));
     }
     
-	@Override
-	public Page<Document> findAllByType(String type, String[] fields, Pageable pageable, String query) { 
-        LOGGER.info("Finding all Documents by type.");
 
-        ArrayList<SelectField<?>> selectedFields = new ArrayList<SelectField<?>>();
-        selectedFields.add(DOCUMENTS.ID);
-        selectedFields.add(DOCUMENTS.SYS_TITLE);
-        selectedFields.add(DOCUMENTS.SYS_AUTHOR);
-        selectedFields.add(DOCUMENTS.SYS_DATE_CR);
-        selectedFields.add(DOCUMENTS.SYS_DATE_MOD);
-        selectedFields.add(DOCUMENTS.SYS_DESC);
-        selectedFields.add(DOCUMENTS.SYS_MODIFIER);
-        selectedFields.add(DOCUMENTS.SYS_FILE_PATH);
-        selectedFields.add(DOCUMENTS.SYS_TYPE);
-        selectedFields.add(DOCUMENTS.SYS_FILE_NAME);
-        selectedFields.add(DOCUMENTS.SYS_VERSION);
-        if (fields!=null){
-        for (String field : fields) {
-        	selectedFields.add(jsonObject(DOCUMENTS.DATA, field).as(field));
-		}
-        }
-        FilterBean filter = null;
-        List<QueryParam> QueryParams = null;
-        LOGGER.info("Query for search - "+query);
-        ObjectMapper mapper = new ObjectMapper();
-        if (query!=null){
-        	try {
-        		filter = mapper.readValue(query, new TypeReference<FilterBean>(){});
-        		QueryParams = filter.getMrules();
-				LOGGER.info("List of params - {} {}", QueryParams.toString(), QueryParams.size());
-			} catch (IOException e) {
-				LOGGER.error("Error parsing JSON "+ e.getLocalizedMessage());
-				e.printStackTrace();
-			}
-        }
-        Condition cond = DOCUMENTS.SYS_TYPE.equal(type);
-        if (QueryParams !=null)
-        for (QueryParam param : QueryParams) {
-        	LOGGER.info("Param {} {} {} ",param.getField(),param.getOperand(),param.getValue());
-        	if (param.getOperand()!=null){
-//        	    todo add enum for this
-        		if ("eq".equals(param.getOperand().toLowerCase()))
-	        		cond = cond.and(getTableField(param.getField()).equal(param.getValue()));
-	        	if ("cn".equals(param.getOperand().toLowerCase()))
-	        		cond = cond.and(getTableField(param.getField()).like("%"+param.getValue()+"%"));
-	        	if ("ge".equals(param.getOperand().toLowerCase()))
-	        		cond = cond.and(getTableField(param.getField()).greaterOrEqual(param.getValue()));
-	        	if ("le".equals(param.getOperand().toLowerCase()))
-	        		cond = cond.and(getTableField(param.getField()).lessOrEqual(param.getValue()));
-        	}
-        }
-        List<Record> queryResults = jooq.select(selectedFields).from(DOCUMENTS)
-        		.where(cond)
-        		.orderBy(getSortFields(pageable.getSort()))
-                .limit(pageable.getPageSize()).offset(pageable.getOffset())
-        		.fetch();//Into(DocumentsRecord.class);
-
-        List<Document> documentEntries = convertQueryResults(queryResults, fields);
-
-        long totalCount = findTotalCountByType(cond);
-
-        LOGGER.info("{} document entries matches with the like expression: {}",
-                totalCount
-        );
-
-        return new PageImpl<>(documentEntries, pageable, totalCount);
-
-	}
 
 //	todo return all params that requested from ui
 	@Override
@@ -543,7 +407,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
 		Links l = LINKS.as("l");
 		Documents t = DOCUMENTS.as("t");
 		
-        List<DocumentsRecord> queryResults = jooq.select(d.ID, d.SYS_TITLE, d.SYS_AUTHOR, d.SYS_DATE_CR, d.SYS_DATE_MOD, d.SYS_DESC, d.SYS_MODIFIER, d.SYS_FILE_PATH, d.SYS_TYPE)
+        List<DocumentsRecord> queryResults = jooq.select(d.ID, d.SYS_TITLE, d.SYS_AUTHOR, d.SYS_DATE_CR, d.SYS_DATE_MOD, d.SYS_DESC, d.SYS_MODIFIER, d.SYS_FILE_PATH, d.SYS_TYPE, d.SYS_FILE_NAME)
         		.from(d
         		.join(l
         				.join(t)
@@ -552,7 +416,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
         		.where(t.ID.equal(parent.intValue()))
         		.fetchInto(DocumentsRecord.class);
 
-        List<Document> documentEntries = convertQueryResultsToModelObjects(queryResults);
+        List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
 
         LOGGER.info("Found {} Document entries", documentEntries.size());
 
@@ -567,7 +431,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
 		Links l = LINKS.as("l");
 		Documents t = DOCUMENTS.as("t");
 		
-        List<DocumentsRecord> queryResults = jooq.select(d.ID, d.SYS_TITLE, d.SYS_AUTHOR, d.SYS_DATE_CR, d.SYS_DATE_MOD, d.SYS_DESC, d.SYS_MODIFIER, d.SYS_FILE_PATH, d.SYS_TYPE)
+        List<DocumentsRecord> queryResults = jooq.select(d.ID, d.SYS_TITLE, d.SYS_AUTHOR, d.SYS_DATE_CR, d.SYS_DATE_MOD, d.SYS_DESC, d.SYS_MODIFIER, d.SYS_FILE_PATH, d.SYS_TYPE, d.SYS_FILE_NAME)
         		.from(d
         		.join(l
         				.join(t)
@@ -576,7 +440,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
         		.where(t.ID.equal(docId.intValue()))
         		.fetchInto(DocumentsRecord.class);
 
-        List<Document> documentEntries = convertQueryResultsToModelObjects(queryResults);
+        List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
 
         LOGGER.info("Found {} Document entries", documentEntries.size());
 
@@ -604,20 +468,169 @@ public class JOOQDocumentRepository implements DocumentRepository {
 	}
 
 
-//	private Document buildDocumentFromQueryResult(DocumentsRecord queryResult){
-//        return Document.getBuilder(queryResult.getSysTitle())
-//                .creationTime(queryResult.getSysDateCr())
-//                .description(queryResult.getSysDesc())
-//                .type(queryResult.getSysType())
-//                .data(queryResult.getData())
-//                .id(queryResult.getId().longValue())
-//                .modificationTime(queryResult.getSysDateMod())
-//                .author(queryResult.getSysAuthor())
-//                .modifier(queryResult.getSysModifier())
-//                .filePath(queryResult.getSysFilePath())
-//                .fileMimeType(queryResult.getSysFileMimeType())
-//                .fileLength(queryResult.getSysFileLength())
-//                .fileName(queryResult.getSysFileName())
-//                .build();
-//    }
+
+    private long findCountByLikeExpression(String likeExpression) {
+        LOGGER.debug("Finding search result count by using like expression: {}", likeExpression);
+
+        long resultCount = jooq.fetchCount(
+                jooq.select()
+                        .from(DOCUMENTS)
+                        .where(createWhereConditions(likeExpression))
+        );
+
+        LOGGER.debug("Found search result count: {}", resultCount);
+
+        return resultCount;
+    }
+
+    private long findTotalCount() {
+        LOGGER.debug("Finding search result count by using like expression: {}");
+
+        long resultCount = jooq.fetchCount(
+                jooq.selectFrom(DOCUMENTS)
+        );
+
+        LOGGER.debug("Found search result count: {}", resultCount);
+
+        return resultCount;
+    }
+
+    private long findTotalCountByType(Condition cond) {
+        LOGGER.debug("Finding search result count by using like expression: {}");
+
+        long resultCount = jooq.fetchCount(
+                jooq.selectFrom(DOCUMENTS)
+                        .where(cond)
+        );
+
+        LOGGER.debug("Found search result count: {}", resultCount);
+
+        return resultCount;
+    }
+
+
+    private Condition createWhereConditions(String likeExpression) {
+        return DOCUMENTS.SYS_DESC.likeIgnoreCase(likeExpression)
+                .or(DOCUMENTS.SYS_TITLE.likeIgnoreCase(likeExpression));
+    }
+
+    private Collection<SortField<?>> getSortFields(Sort sortSpecification) {
+        LOGGER.debug("Getting sort fields from sort specification: {}", sortSpecification);
+        Collection<SortField<?>> querySortFields = new ArrayList<>();
+
+        if (sortSpecification == null) {
+            LOGGER.debug("No sort specification found. Returning empty collection -> no sorting is done.");
+            return querySortFields;
+        }
+
+        for (Sort.Order specifiedField : sortSpecification) {
+            String sortFieldName = specifiedField.getProperty();
+            Sort.Direction sortDirection = specifiedField.getDirection();
+            LOGGER.debug("Getting sort field with name: {} and direction: {}", sortFieldName, sortDirection);
+
+            Field<String> tableField = getTableField(sortFieldName);
+            SortField<?> querySortField = convertTableFieldToSortField(tableField, sortDirection);
+            querySortFields.add(querySortField);
+        }
+
+        return querySortFields;
+    }
+
+    private Field<String> getTableField(String sortFieldName) {
+        Field<String> sortField = null;
+        try {
+            java.lang.reflect.Field tableField = DOCUMENTS.getClass().getField(sortFieldName.toUpperCase());
+            sortField = (TableField) tableField.get(DOCUMENTS);
+            LOGGER.info("sortField - "+sortField);
+        } catch (NoSuchFieldException | IllegalAccessException ex) {
+            LOGGER.info("Could not find table field: {}, Try to search in JSON data", sortFieldName);
+            sortField = jsonText(DOCUMENTS.DATA, sortFieldName);
+
+        }
+
+        return sortField;
+    }
+
+    private SortField<?> convertTableFieldToSortField(Field<String> tableField, Sort.Direction sortDirection) {
+        if (sortDirection == Sort.Direction.ASC) {
+            return tableField.asc();
+        }
+        else {
+            return tableField.desc();
+        }
+    }
+
+
+
+
+	private static class DocumentConverter{
+        private static Document convertQueryResultToModelObject(Record queryResult, String[] fields) {
+            ObjectNode data = JsonNodeFactory.instance.objectNode();
+            ObjectMapper mapper = new ObjectMapper();
+            if (fields!=null){
+                for (String field : fields) {
+                    if (queryResult.getValue(field)!=null){
+                        try {
+                            data.put(field,mapper.readTree(queryResult.getValue(field).toString()));
+                        } catch (IllegalArgumentException | IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            return  Document.getBuilder(queryResult.getValue(DOCUMENTS.SYS_TITLE))
+                    .description(queryResult.getValue(DOCUMENTS.SYS_DESC))
+                    .type(queryResult.getValue(DOCUMENTS.SYS_TYPE))
+                    .id(queryResult.getValue(DOCUMENTS.ID).longValue())
+                    .creationTime(queryResult.getValue(DOCUMENTS.SYS_DATE_CR))
+                    .modificationTime(queryResult.getValue(DOCUMENTS.SYS_DATE_MOD))
+                    .author(queryResult.getValue(DOCUMENTS.SYS_AUTHOR))
+                    .modifier(queryResult.getValue(DOCUMENTS.SYS_MODIFIER))
+                    .filePath(queryResult.getValue(DOCUMENTS.SYS_FILE_PATH))
+                    .fileName(queryResult.getValue(DOCUMENTS.SYS_FILE_NAME))
+                    .data(data)
+                    .build();
+        }
+
+
+        private static Document convertQueryResultToModelObject(DocumentsRecord queryResult) {
+            return Document.getBuilder(queryResult.getSysTitle())
+                    .creationTime(queryResult.getSysDateCr())
+                    .description(queryResult.getSysDesc())
+                    .type(queryResult.getSysType())
+                    .data(queryResult.getData())
+                    .id(queryResult.getId().longValue())
+                    .modificationTime(queryResult.getSysDateMod())
+                    .author(queryResult.getSysAuthor())
+                    .modifier(queryResult.getSysModifier())
+                    .filePath(queryResult.getSysFilePath())
+                    .fileMimeType(queryResult.getSysFileMimeType())
+                    .fileLength(queryResult.getSysFileLength())
+                    .fileName(queryResult.getSysFileName())
+                    .docVersion(queryResult.getSysVersion())
+                    .build();
+        }
+
+        private static List<Document> convertQueryResultsToModelObjects(List<DocumentsRecord> queryResults) {
+            List<Document> documentEntries = new ArrayList<>();
+
+            for (DocumentsRecord queryResult : queryResults) {
+                Document documentEntry = DocumentConverter.convertQueryResultToModelObject(queryResult);
+                documentEntries.add(documentEntry);
+            }
+
+            return documentEntries;
+        }
+
+        private static List<Document> convertQueryResults(List<Record> queryResults, String[] fields) {
+            List<Document> documentEntries = new ArrayList<>();
+
+            for (Record queryResult : queryResults) {
+                documentEntries.add(DocumentConverter.convertQueryResultToModelObject(queryResult, fields));
+            }
+
+            return documentEntries;
+        }
+    }
+
 }
