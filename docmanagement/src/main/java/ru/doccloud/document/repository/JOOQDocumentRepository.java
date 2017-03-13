@@ -8,19 +8,23 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.DataType;
 import org.jooq.Field;
 import org.jooq.Record;
+import org.jooq.SQLDialect;
 import org.jooq.SelectField;
 import org.jooq.SortField;
 import org.jooq.TableField;
 import org.jooq.impl.DSL;
+import org.jooq.impl.DefaultDataType;
+import org.jooq.impl.SQLDataType;
+import org.jooq.util.postgres.PostgresDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,21 +37,20 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import ru.doccloud.common.service.DateTimeService;
 import ru.doccloud.common.exception.DocumentNotFoundException;
+import ru.doccloud.common.service.DateTimeService;
 import ru.doccloud.document.jooq.db.tables.Documents;
 import ru.doccloud.document.jooq.db.tables.Links;
 import ru.doccloud.document.jooq.db.tables.records.DocumentsRecord;
 import ru.doccloud.document.jooq.db.tables.records.LinksRecord;
 import ru.doccloud.document.model.Document;
-import ru.doccloud.document.model.Link;
 import ru.doccloud.document.model.FilterBean;
+import ru.doccloud.document.model.Link;
 import ru.doccloud.document.model.QueryParam;
 
 /**
@@ -240,15 +243,37 @@ public class JOOQDocumentRepository implements DocumentRepository {
             for (QueryParam param : QueryParams) {
                 LOGGER.info("Param {} {} {} ",param.getField(),param.getOperand(),param.getValue());
                 if (param.getOperand()!=null){
-//        	    todo add enum for this
+                	DataType<Object> JSONB = new DefaultDataType<Object>(SQLDialect.POSTGRES, SQLDataType.OTHER, "jsonb");
+//        	    todo add enum for this ['eq','ne','lt','le','gt','ge','bw','bn','in','ni','ew','en','cn','nc']
                     if ("eq".equals(param.getOperand().toLowerCase()))
                         cond = cond.and(getTableField(param.getField()).equal(param.getValue()));
-                    if ("cn".equals(param.getOperand().toLowerCase()))
-                        cond = cond.and(getTableField(param.getField()).like("%"+param.getValue()+"%"));
-                    if ("ge".equals(param.getOperand().toLowerCase()))
-                        cond = cond.and(getTableField(param.getField()).greaterOrEqual(param.getValue()));
+                    if ("ne".equals(param.getOperand().toLowerCase()))
+                        cond = cond.and(getTableField(param.getField()).notEqual(param.getValue()));
+                    if ("lt".equals(param.getOperand().toLowerCase()))
+                        cond = cond.and(getTableField(param.getField()).lessThan(DSL.val(param.getValue()).cast(JSONB)));
                     if ("le".equals(param.getOperand().toLowerCase()))
                         cond = cond.and(getTableField(param.getField()).lessOrEqual(param.getValue()));
+                    if ("gt".equals(param.getOperand().toLowerCase()))
+                        cond = cond.and(getTableField(param.getField()).greaterThan(DSL.val(param.getValue()).cast(JSONB)));
+                    if ("ge".equals(param.getOperand().toLowerCase()))
+                        cond = cond.and(getTableField(param.getField()).greaterOrEqual(param.getValue()));
+                    if ("bw".equals(param.getOperand().toLowerCase()))
+                        cond = cond.and(getTableField(param.getField()).like(param.getValue()+"%"));
+                    if ("bn".equals(param.getOperand().toLowerCase()))
+                        cond = cond.and(getTableField(param.getField()).notLike(param.getValue()+"%"));
+                    if ("in".equals(param.getOperand().toLowerCase()))
+                        cond = cond.and(getTableField(param.getField()).in(param.getValue()));
+                    if ("ni".equals(param.getOperand().toLowerCase()))
+                        cond = cond.and(getTableField(param.getField()).notIn(param.getValue()));
+                    if ("ew".equals(param.getOperand().toLowerCase()))
+                        cond = cond.and(getTableField(param.getField()).like("%"+param.getValue()));
+                    if ("en".equals(param.getOperand().toLowerCase()))
+                        cond = cond.and(getTableField(param.getField()).notLike("%"+param.getValue()));
+                    if ("cn".equals(param.getOperand().toLowerCase()))
+                        cond = cond.and(getTableField(param.getField()).like("%"+param.getValue()+"%"));
+                    if ("nc".equals(param.getOperand().toLowerCase()))
+                        cond = cond.and(getTableField(param.getField()).notLike("%"+param.getValue()+"%"));
+                    
                 }
             }
         List<Record> queryResults = jooq.select(selectedFields).from(DOCUMENTS)
@@ -528,7 +553,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
             Sort.Direction sortDirection = specifiedField.getDirection();
             LOGGER.debug("Getting sort field with name: {} and direction: {}", sortFieldName, sortDirection);
 
-            Field<String> tableField = getTableField(sortFieldName);
+            Field<Object> tableField = getTableField(sortFieldName);
             SortField<?> querySortField = convertTableFieldToSortField(tableField, sortDirection);
             querySortFields.add(querySortField);
         }
@@ -536,22 +561,22 @@ public class JOOQDocumentRepository implements DocumentRepository {
         return querySortFields;
     }
 
-    private Field<String> getTableField(String sortFieldName) {
-        Field<String> sortField = null;
+    private Field<Object> getTableField(String sortFieldName) {
+        Field<Object> sortField = null;
         try {
             java.lang.reflect.Field tableField = DOCUMENTS.getClass().getField(sortFieldName.toUpperCase());
             sortField = (TableField) tableField.get(DOCUMENTS);
             LOGGER.info("sortField - "+sortField);
         } catch (NoSuchFieldException | IllegalAccessException ex) {
             LOGGER.info("Could not find table field: {}, Try to search in JSON data", sortFieldName);
-            sortField = jsonText(DOCUMENTS.DATA, sortFieldName);
+            sortField = jsonObject(DOCUMENTS.DATA, sortFieldName);
 
         }
 
         return sortField;
     }
 
-    private SortField<?> convertTableFieldToSortField(Field<String> tableField, Sort.Direction sortDirection) {
+    private SortField<?> convertTableFieldToSortField(Field<Object> tableField, Sort.Direction sortDirection) {
         if (sortDirection == Sort.Direction.ASC) {
             return tableField.asc();
         }
