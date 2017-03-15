@@ -25,6 +25,7 @@ package ru.doccloud.cmis.server;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
@@ -37,7 +38,7 @@ public class FileBridgeUserManager {
     private final Map<String, String> logins;
 
     FileBridgeUserManager() {
-        logins = new HashMap<>();
+        logins = new ConcurrentHashMap<>();
     }
 
     /**

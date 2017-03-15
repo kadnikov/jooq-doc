@@ -245,6 +245,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
                 if (param.getOperand()!=null){
                 	DataType<Object> JSONB = new DefaultDataType<Object>(SQLDialect.POSTGRES, SQLDataType.OTHER, "jsonb");
 //        	    // ['eq','ne','lt','le','gt','ge','bw','bn','in','ni','ew','en','cn','nc']
+//                    todo rewrite using enum implementation
                 	switch (param.getOperand().toLowerCase())
                     {
                     case "eq": 
@@ -504,11 +505,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
         jooq.execute("SET my.username = '"+userName+"'");
         
         //jooq.execute("SELECT current_setting('my.username') FROM documents LIMIT 1;");
-		
-		
 	}
-
-
 
     private long findCountByLikeExpression(String likeExpression) {
         LOGGER.debug("Finding search result count by using like expression: {}", likeExpression);

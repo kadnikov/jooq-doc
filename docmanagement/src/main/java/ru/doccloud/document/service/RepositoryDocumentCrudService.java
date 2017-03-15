@@ -52,9 +52,10 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         if (dto.getId()==null){
         	//dto.setId(DEFAULT);
         }
-        repository.setUser();
-        
+
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+
+        repository.setUser(request.getRemoteUser());
         dto.setAuthor(request.getRemoteUser());
         Document persisted = repository.add(createModel(dto));
 

@@ -169,6 +169,7 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
         Collections.sort(keys);
 
         for (String key : keys) {
+//            todo rewrite using enum
             if (key.startsWith(PREFIX_LOGIN)) {
                 // get logins
                 String usernameAndPassword = parameters.get(key);
