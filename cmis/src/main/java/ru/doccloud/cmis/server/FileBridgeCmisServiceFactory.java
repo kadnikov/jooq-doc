@@ -96,26 +96,29 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
     @Override
     public void init(Map<String, String> parameters) {
         LOGGER.info("[FileBridgeCmisServiceFactory] init");
+        try {
+            // New for Chameleon **
+            wrapperManager = new CmisServiceWrapperManager();
+            wrapperManager.addWrappersFromServiceFactoryParameters(parameters);
+            wrapperManager.addOuterWrapper(ConformanceCmisServiceWrapper.class, DEFAULT_MAX_ITEMS_TYPES,
+                    DEFAULT_DEPTH_TYPES, DEFAULT_MAX_ITEMS_OBJECTS, DEFAULT_DEPTH_OBJECTS);
 
-        // New for Chameleon **
-        wrapperManager = new CmisServiceWrapperManager();
-        wrapperManager.addWrappersFromServiceFactoryParameters(parameters);
-        wrapperManager.addOuterWrapper(ConformanceCmisServiceWrapper.class, DEFAULT_MAX_ITEMS_TYPES,
-                DEFAULT_DEPTH_TYPES, DEFAULT_MAX_ITEMS_OBJECTS, DEFAULT_DEPTH_OBJECTS);
+            // *******
+            // lets print out the parameters for debugging purposes so we can see
+            // what happens to our
+            // custom parameters
+            for (String currentKey : parameters.keySet()) {
+                LOGGER.info("[FileBridgeCmisServiceFactory]Key: " + currentKey + " ->Value:" + parameters.get(currentKey));
+            }
 
-        // *******
-        // lets print out the parameters for debugging purposes so we can see
-        // what happens to our
-        // custom parameters
-        for (String currentKey : parameters.keySet()) {
-            LOGGER.info("[FileBridgeCmisServiceFactory]Key: " + currentKey + " ->Value:" + parameters.get(currentKey));
+            repositoryManager = new FileBridgeRepositoryManager();
+            userManager = new FileBridgeUserManager();
+            typeManager = new FileBridgeTypeManager();
+
+            readConfiguration(parameters);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        repositoryManager = new FileBridgeRepositoryManager();
-        userManager = new FileBridgeUserManager();
-        typeManager = new FileBridgeTypeManager();
-
-        readConfiguration(parameters);
     }
 
     @Override
@@ -160,7 +163,7 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
      * Reads the configuration and sets up the repositories, logins, and type
      * definitions.
      */
-    private void readConfiguration(Map<String, String> parameters) {
+    private void readConfiguration(Map<String, String> parameters) throws Exception {
     	LOGGER.info("[FileBridgeCmisServiceFactory] readConfiguration");
         List<String> keys = new ArrayList<String>(parameters.keySet());
         Collections.sort(keys);

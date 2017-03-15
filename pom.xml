@@ -44,9 +44,6 @@
     <profiles>
         <profile>
             <id>dev</id>
-            <!--<activation>-->
-                <!--<activeByDefault>true</activeByDefault>-->
-            <!--</activation>-->
 
             <build>
                 <plugins>
@@ -795,6 +792,7 @@
         	<groupId>org.postgresql</groupId>
         	<artifactId>postgresql</artifactId>
         	<version>${postgresql.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Logging -->
