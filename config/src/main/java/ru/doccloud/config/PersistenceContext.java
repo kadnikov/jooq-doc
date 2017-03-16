@@ -50,7 +50,7 @@ public class PersistenceContext {
     private static final String PROPERTY_NAME_DB_USERNAME = "db.username";
     private static final String PROPERTY_NAME_JOOQ_SQL_DIALECT = "jooq.sql.dialect";
 
-    private static final String DATASOURCE_JNDI_NAME = "jdbc/DOCLOUDDB";
+    private static final String DATASOURCE_JNDI_NAME = "jdbc/DOCCLOUDDB";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PersistenceContext.class);
 
