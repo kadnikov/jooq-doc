@@ -146,7 +146,7 @@ import ru.doccloud.document.service.FileActionsService;
 /**
  * Implements all repository operations.
  */
-//@Repository
+@Repository
 public class FileBridgeRepository {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileBridgeRepository.class);
@@ -2013,6 +2013,8 @@ public class FileBridgeRepository {
      * if the user has the required permissions.
      */
     private boolean checkUser(CallContext context, boolean writeRequired) {
+
+        LOGGER.debug("params  call context {} and write required {}", context, writeRequired);
         if (context == null) {
             throw new CmisPermissionDeniedException("No user context!");
         }
@@ -2026,6 +2028,8 @@ public class FileBridgeRepository {
             throw new CmisPermissionDeniedException("No write permission!");
         }
 
+        LOGGER.debug("crud service {} ", crudService);
+        LOGGER.debug("username from context {} ", context.getUsername());
         crudService.setUser(context.getUsername());
         
         return readOnly;
