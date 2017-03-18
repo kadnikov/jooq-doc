@@ -101,7 +101,7 @@ public class RepositoryDocsCrudServiceTest {
 
     @Test
     public void delete_TodoEntryNotFound_ShouldThrowException() {
-        when(repositoryMock.delete(ID)).thenThrow(new DocumentNotFoundException("", found));
+        when(repositoryMock.delete(ID)).thenThrow(new DocumentNotFoundException(""));
 
         catchException(service).delete(ID);
         //assertThat(caughtException()).isExactlyInstanceOf(TodoNotFoundException.class);
@@ -163,7 +163,7 @@ public class RepositoryDocsCrudServiceTest {
 
     @Test
     public void findById_TodoEntryNotFound_ShouldThrowException() {
-        when(repositoryMock.findById(ID)).thenThrow(new DocumentNotFoundException("", found));
+        when(repositoryMock.findById(ID)).thenThrow(new DocumentNotFoundException(""));
 
         catchException(service).findById(ID);
         //assertThat(caughtException()).isExactlyInstanceOf(TodoNotFoundException.class);
@@ -204,7 +204,7 @@ public class RepositoryDocsCrudServiceTest {
                 .title(TITLE)
                 .build();
 
-        when(repositoryMock.update(isA(Document.class))).thenThrow(new DocumentNotFoundException("", found));
+        when(repositoryMock.update(isA(Document.class))).thenThrow(new DocumentNotFoundException(""));
 
         catchException(service).update(updatedTodoEntry);
         //assertThat(caughtException()).isExactlyInstanceOf(DocumentNotFoundException.class);
