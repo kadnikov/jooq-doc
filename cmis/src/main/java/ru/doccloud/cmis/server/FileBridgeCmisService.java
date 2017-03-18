@@ -194,17 +194,28 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
     @Override
     public String create(String repositoryId, Properties properties, String folderId, ContentStream contentStream,
             VersioningState versioningState, List<String> policies, ExtensionsData extension) {
-        ObjectData object = getRepository().create(getCallContext(), properties, folderId, contentStream,
-                versioningState, this);
+        ObjectData object = null;
+        try {
+            object = getRepository().create(getCallContext(), properties, folderId, contentStream,
+                    versioningState, this);
+            return object.getId();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        return object.getId();
+        return null;
     }
 
     @Override
     public String createDocument(String repositoryId, Properties properties, String folderId,
             ContentStream contentStream, VersioningState versioningState, List<String> policies, Acl addAces,
             Acl removeAces, ExtensionsData extension) {
-        return getRepository().createDocument(getCallContext(), properties, folderId, contentStream, versioningState);
+        try {
+            return getRepository().createDocument(getCallContext(), properties, folderId, contentStream, versioningState);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
@@ -241,7 +252,12 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
     @Override
     public ContentStream getContentStream(String repositoryId, String objectId, String streamId, BigInteger offset,
             BigInteger length, ExtensionsData extension) {
-        return getRepository().getContentStream(getCallContext(), objectId, offset, length);
+        try {
+            return getRepository().getContentStream(getCallContext(), objectId, offset, length);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
