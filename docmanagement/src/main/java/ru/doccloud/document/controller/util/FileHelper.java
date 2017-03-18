@@ -24,6 +24,11 @@ public class FileHelper {
     private static final String CONFIG_FILENAME = "/repository.properties";
     private static final String FILE_PATH_PROPERTY = "repository.test";
 
+
+//    todo remove after finish cmis intergration
+    public FileHelper() {
+    }
+
     public String writeFile(final String fileName, final Long docId, final String docVersion, final byte[] fileArr) throws Exception {
         LOGGER.info("writing file " + fileName + " to filesystem");
         try {
