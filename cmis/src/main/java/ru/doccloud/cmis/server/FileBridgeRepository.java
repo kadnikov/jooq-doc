@@ -931,7 +931,7 @@ public class FileBridgeRepository {
         final DocumentDTO doc = getDocument(objectId);
 
 
-        if (doc.getFilePath() == "") {
+        if (StringUtils.isBlank(doc.getFilePath())) {
             throw new CmisConstraintException("Document has no content!");
         }
         File file = new File(root, doc.getTitle());
