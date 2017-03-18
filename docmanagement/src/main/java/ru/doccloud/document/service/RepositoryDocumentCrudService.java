@@ -66,12 +66,20 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     
     @Transactional
     @Override
-    public DocumentDTO addToFolder(final DocumentDTO dto, Long folderId) {
+    public DocumentDTO addToFolder(final DocumentDTO dto, final Long folderId) {
         LOGGER.info("Adding Document entry with information: {}", dto);
         if (dto.getId()==null){
         	//dto.setId(DEFAULT);
         }
-        Document persisted = repository.add(createModel(dto));
+
+        Document persisted = null;
+//        try to find document in database
+        if(dto.getId() != null) {
+            persisted = repository.findById(dto.getId());
+        }
+
+        if(persisted == null)
+            persisted = repository.add(createModel(dto));
         
         Link parentLink = repository.addLink(folderId, persisted.getId());
 
@@ -123,6 +131,19 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         );
     }
 
+    @Override
+    public List<Document> findParents(Long docId){
+        return repository.findParents(docId);
+    }
+
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<DocumentDTO> findBySearchTerm(String searchTerm, Pageable pageable){
+        Page<Document> docPage = repository.findBySearchTerm(searchTerm, pageable);
+        return  transformer.convertList(docPage.getContent(), DocumentDTO.class);
+    }
+
     @Transactional(readOnly = true)
     @Override
     public DocumentDTO findById(final Long id) {
@@ -149,6 +170,52 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 
         return transformer.convert(updated, new DocumentDTO());
     }
+
+    @Transactional
+    @Override
+    public DocumentDTO updateFileInfo(final DocumentDTO dto){
+        final Document updated = repository.updateFileInfo(createModel(dto));
+
+        LOGGER.debug("Updated file information of a Document entry: {}", updated);
+
+        return transformer.convert(updated, new DocumentDTO());
+    }
+
+
+    @Transactional
+    @Override
+    public Link addLink(Long headId, Long tailId) {
+        LOGGER.info("Adding new Link: ");
+
+        return repository.addLink(headId, tailId);
+    }
+
+    @Transactional
+    @Override
+    public Link deleteLink(Long headId, Long tailId) {
+
+        return repository.deleteLink(headId, tailId);
+    }
+
+
+    @Transactional
+    @Override
+    public void setUser() {
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        LOGGER.info("Current Remote User - "+request.getRemoteUser());
+        repository.setUser(request.getRemoteUser());
+
+    }
+
+    @Transactional
+    @Override
+    public void setUser(String userName) {
+        LOGGER.info("Current User - "+userName);
+        repository.setUser(userName);
+
+        //jooq.execute("SELECT current_setting('my.username') FROM documents LIMIT 1;");
+    }
+
 
     private Document createModel(DocumentDTO dto) {
         return Document.getBuilder(dto.getTitle())

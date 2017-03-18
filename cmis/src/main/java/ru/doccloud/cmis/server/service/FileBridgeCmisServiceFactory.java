@@ -20,7 +20,7 @@
  * It is part of a training exercise and not intended for production use!
  *
  */
-package ru.doccloud.cmis.server;
+package ru.doccloud.cmis.server.service;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -43,6 +43,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
+import ru.doccloud.cmis.server.FileBridgeCallContext;
+import ru.doccloud.cmis.server.FileBridgeTypeManager;
+import ru.doccloud.cmis.server.FileBridgeUserManager;
+import ru.doccloud.cmis.server.repository.FileBridgeRepository;
+import ru.doccloud.cmis.server.repository.FileBridgeRepositoryManager;
 import ru.doccloud.config.PersistenceContext;
 
 /**

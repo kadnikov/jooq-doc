@@ -20,7 +20,7 @@
  * It is part of a training exercise and not intended for production use!
  *
  */
-package ru.doccloud.cmis.server;
+package ru.doccloud.cmis.server.util;
 
 import java.math.BigInteger;
 import java.util.GregorianCalendar;
@@ -46,7 +46,7 @@ public final class FileBridgeUtils {
      * Returns the boolean value of the given value or the default value if the
      * given value is <code>null</code>.
      */
-    static boolean getBooleanParameter(Boolean value, boolean def) {
+    public static boolean getBooleanParameter(Boolean value, boolean def) {
 
         return value == null ? def : value;
     }
@@ -55,7 +55,7 @@ public final class FileBridgeUtils {
      * Converts milliseconds into a {@link GregorianCalendar} object, setting
      * the timezone to GMT and cutting milliseconds off.
      */
-    static GregorianCalendar millisToCalendar(long millis) {
+    public static GregorianCalendar millisToCalendar(long millis) {
         GregorianCalendar result = new GregorianCalendar();
         result.setTimeZone(TimeZone.getTimeZone("GMT"));
         result.setTimeInMillis((long) (Math.ceil((double) millis / 1000) * 1000));
@@ -68,7 +68,7 @@ public final class FileBridgeUtils {
      * <code>filter</code> is <code>null</code>, empty or one of the properties
      * is '*' , an empty collection will be returned.
      */
-    static Set<String> splitFilter(String filter) {
+    public static Set<String> splitFilter(String filter) {
         if (filter == null) {
             return null;
         }
@@ -99,7 +99,7 @@ public final class FileBridgeUtils {
     /**
      * Gets the type id from a set of properties.
      */
-    static String getObjectTypeId(Properties properties) {
+    public static String getObjectTypeId(Properties properties) {
         PropertyData<?> typeProperty = properties.getProperties().get(PropertyIds.OBJECT_TYPE_ID);
         if (!(typeProperty instanceof PropertyId)) {
             throw new CmisInvalidArgumentException("Type Id must be set!");
@@ -128,7 +128,7 @@ public final class FileBridgeUtils {
     /**
      * Returns the first value of a string property.
      */
-    static String getStringProperty(Properties properties, String name) {
+    public static String getStringProperty(Properties properties, String name) {
         PropertyData<?> property = properties.getProperties().get(name);
         if (!(property instanceof PropertyString)) {
             return null;
@@ -140,7 +140,7 @@ public final class FileBridgeUtils {
     /**
      * Returns the first value of a int property.
      */
-    static BigInteger getIntegerProperty(Properties properties, String name) {
+    public static BigInteger getIntegerProperty(Properties properties, String name) {
         PropertyData<?> property = properties.getProperties().get(name);
         if (!(property instanceof PropertyInteger)) {
             return null;

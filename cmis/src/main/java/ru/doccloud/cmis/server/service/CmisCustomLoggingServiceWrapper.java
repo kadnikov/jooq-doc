@@ -1,4 +1,4 @@
-package ru.doccloud.cmis.server;
+package ru.doccloud.cmis.server.service;
 
 import java.math.BigInteger;
 

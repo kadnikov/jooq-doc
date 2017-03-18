@@ -60,6 +60,12 @@ public class DocumentDTO {
 
     }
 
+    public DocumentDTO(String title, String type, String author) {
+        this.author = author;
+        this.title = title;
+        this.type = type;
+    }
+
     public Long getId() {
         return id;
     }

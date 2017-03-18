@@ -20,7 +20,7 @@
  * It is part of a training exercise and not intended for production use!
  *
  */
-package ru.doccloud.cmis.server;
+package ru.doccloud.cmis.server.service;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -53,6 +53,8 @@ import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.chemistry.opencmis.server.support.wrapper.CallContextAwareCmisService;
 import org.springframework.beans.factory.annotation.Autowired;
+import ru.doccloud.cmis.server.repository.FileBridgeRepository;
+import ru.doccloud.cmis.server.repository.FileBridgeRepositoryManager;
 
 /**
  * FileShare Service implementation.
