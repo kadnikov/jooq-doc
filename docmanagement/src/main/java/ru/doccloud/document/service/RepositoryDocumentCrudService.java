@@ -21,6 +21,7 @@ import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
 import ru.doccloud.document.repository.DocumentRepository;
+import ru.doccloud.document.service.util.DocumentServiceHelper;
 
 /**
  * @author Andrey Kadnikov
@@ -57,7 +58,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 
         repository.setUser(request.getRemoteUser());
         dto.setAuthor(request.getRemoteUser());
-        Document persisted = repository.add(createModel(dto));
+        Document persisted = repository.add(DocumentServiceHelper.createModel(dto));
 
         LOGGER.info("Added Document entry with information: {}", persisted);
 
@@ -71,7 +72,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         if (dto.getId()==null){
         	//dto.setId(DEFAULT);
         }
-        Document persisted = repository.add(createModel(dto));
+        Document persisted = repository.add(DocumentServiceHelper.createModel(dto));
         
         Link parentLink = repository.addLink(folderId, persisted.getId());
 
@@ -142,7 +143,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         dto.setModifier(request.getRemoteUser());
-        Document newInformation = createModel(dto);
+        Document newInformation = DocumentServiceHelper.createModel(dto);
         Document updated = repository.update(newInformation);
 
         LOGGER.debug("Updated the information of a Document entry: {}", updated);
@@ -150,21 +151,6 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         return transformer.convert(updated, new DocumentDTO());
     }
 
-    private Document createModel(DocumentDTO dto) {
-        return Document.getBuilder(dto.getTitle())
-                .description(dto.getDescription())
-                .type(dto.getType())
-                .data(dto.getData())
-                .id(dto.getId())
-                .author(dto.getAuthor())
-                .modifier(dto.getModifier())
-                .fileLength(dto.getFileLength())
-                .fileMimeType(dto.getFileMimeType())
-                .fileName(dto.getFileName())
-                .filePath(dto.getFilePath())
-                .docVersion(dto.getDocVersion())
-                .build();
-    }
 
 	@Override
 	public Page<DocumentDTO> findAllByType(final String type, final String[] fields, final Pageable pageable, final String query) {

@@ -22,21 +22,12 @@
  */
 package ru.doccloud.cmis.server;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -94,7 +85,6 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedExce
 import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisStorageException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisStreamNotSupportedException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisUpdateConflictException;
 import org.apache.chemistry.opencmis.commons.impl.Base64;
 import org.apache.chemistry.opencmis.commons.impl.IOUtils;
 import org.apache.chemistry.opencmis.commons.impl.MimeTypes;
@@ -139,11 +129,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import ru.doccloud.common.service.CurrentTimeDateTimeService;
+import ru.doccloud.document.controller.util.FileHelper;
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
 import ru.doccloud.document.repository.DocumentRepository;
 import ru.doccloud.document.repository.JOOQDocumentRepository;
+import ru.doccloud.document.service.util.DocumentServiceHelper;
 
 /**
  * Implements all repository operations.
@@ -176,7 +168,9 @@ public class FileBridgeRepository {
     private final JTransfo transformer;
     
     private DocumentRepository repository;
-    
+
+    private FileHelper fileHelper;
+
     /** CMIS 1.0 repository info. */
     private final RepositoryInfo repositoryInfo10;
     /** CMIS 1.1 repository info. */
@@ -195,6 +189,7 @@ public class FileBridgeRepository {
         LOGGER.info("jooq: {}", jooq);   
         
         this.repository = new JOOQDocumentRepository(new CurrentTimeDateTimeService(), jooq);
+        this.fileHelper = new FileHelper();
         
         // check root folder
         if (rootPath == null || rootPath.trim().length() == 0) {
@@ -424,7 +419,7 @@ public class FileBridgeRepository {
      * Create* dispatch for AtomPub.
      */
     public ObjectData create(CallContext context, Properties properties, String folderId, ContentStream contentStream,
-            VersioningState versioningState, ObjectInfoHandler objectInfos) {
+            VersioningState versioningState, ObjectInfoHandler objectInfos) throws Exception {
         boolean userReadOnly = checkUser(context, true);
 
         String typeId = FileBridgeUtils.getObjectTypeId(properties);
@@ -449,7 +444,7 @@ public class FileBridgeRepository {
      * CMIS createDocument.
      */
     String createDocument(CallContext context, Properties properties, String folderId,
-                          ContentStream contentStream, VersioningState versioningState) {
+                          ContentStream contentStream, VersioningState versioningState) throws Exception {
         checkUser(context, true);
 
         // check versioning state
@@ -548,39 +543,60 @@ public class FileBridgeRepository {
             writeContent(doc, new FileInputStream(source.getFilePath()));
         } catch (IOException e) {
             throw new CmisStorageException("Could not roead or write content: " + e.getMessage(), e);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return getId(doc);
     }
 
+//    /**
+//     * Writes the content to disc.
+//     */
+//    private String writeContent(DocumentDTO doc, InputStream stream) {
+//        OutputStream out = null;
+//        InputStream in = null;
+//        String res = null;
+//        try {
+//        	File newFile = new File(root, doc.getTitle());
+//        	newFile.createNewFile();
+//            out = new BufferedOutputStream(new FileOutputStream(newFile), BUFFER_SIZE);
+//            in = new BufferedInputStream(stream, BUFFER_SIZE);
+//
+//            byte[] buffer = new byte[BUFFER_SIZE];
+//            int b;
+//            while ((b = in.read(buffer)) > -1) {
+//                out.write(buffer, 0, b);
+//            }
+//
+//            out.flush();
+//            res = doc.getTitle();
+//        } catch (IOException e) {
+//            throw new CmisStorageException("Could not write content: " + e.getMessage(), e);
+//        } finally {
+//            IOUtils.closeQuietly(out);
+//            IOUtils.closeQuietly(in);
+//        }
+//        return res;
+//    }
+
     /**
      * Writes the content to disc.
      */
-    private String writeContent(DocumentDTO doc, InputStream stream) {
-        OutputStream out = null;
-        InputStream in = null;
-        String res = null;
+    private String writeContent(DocumentDTO doc, InputStream stream) throws Exception {
         try {
-        	File newFile = new File(root, doc.getTitle());
-        	newFile.createNewFile();
-            out = new BufferedOutputStream(new FileOutputStream(newFile), BUFFER_SIZE);
-            in = new BufferedInputStream(stream, BUFFER_SIZE);
+            final String filePath = fileHelper.writeFile(doc.getTitle(), doc.getId(), doc.getDocVersion(), org.apache.commons.io.IOUtils.toByteArray(stream));
+            LOGGER.debug("File has been saved int the disc, path to file {}", filePath);
+            doc.setFilePath(filePath);
 
-            byte[] buffer = new byte[BUFFER_SIZE];
-            int b;
-            while ((b = in.read(buffer)) > -1) {
-                out.write(buffer, 0, b);
-            }
-
-            out.flush();
-            res = doc.getTitle();
+            Document updated = repository.update(DocumentServiceHelper.createModel(doc));
+            LOGGER.debug("document has been updated {}", updated);
+            return updated.getTitle();
         } catch (IOException e) {
+
             throw new CmisStorageException("Could not write content: " + e.getMessage(), e);
-        } finally {
-            IOUtils.closeQuietly(out);
-            IOUtils.closeQuietly(in);
         }
-        return res;
+
     }
 
     /**
@@ -921,10 +937,11 @@ public class FileBridgeRepository {
         return compileAcl(file);
     }
 
+
     /**
      * CMIS getContentStream.
      */
-    public ContentStream getContentStream(CallContext context, String objectId, BigInteger offset, BigInteger length) {
+    public ContentStream getContentStream(CallContext context, String objectId, BigInteger offset, BigInteger length) throws Exception {
         checkUser(context, false);
 
         // get the file
@@ -934,17 +951,8 @@ public class FileBridgeRepository {
         if (StringUtils.isBlank(doc.getFilePath())) {
             throw new CmisConstraintException("Document has no content!");
         }
-        File file = new File(root, doc.getTitle());
-        
-        InputStream stream = null;
-        try {
-            stream = new BufferedInputStream(new FileInputStream(file), 64 * 1024);
-            if (offset != null || length != null) {
-                stream = new ContentRangeInputStream(stream, offset, length);
-            }
-        } catch (FileNotFoundException e) {
-            throw new CmisObjectNotFoundException(e.getMessage(), e);
-        }
+
+        byte[] contentByteArr = fileHelper.readFile(doc.getFilePath());
 
         // compile data
         ContentStreamImpl result;
@@ -954,13 +962,14 @@ public class FileBridgeRepository {
             result = new ContentStreamImpl();
         }
 
-        result.setFileName(file.getName());
-        result.setLength(BigInteger.valueOf(file.length()));
-        result.setMimeType(MimeTypes.getMIMEType(file));
-        result.setStream(stream);
+        result.setFileName(doc.getFileName());
+        result.setLength(BigInteger.valueOf(doc.getFileLength()));
+        result.setMimeType(MimeTypes.getMIMEType(doc.getFileMimeType()));
+        result.setStream(new ByteArrayInputStream(contentByteArr));
 
         return result;
     }
+
 
 	/**
      * CMIS getChildren.
