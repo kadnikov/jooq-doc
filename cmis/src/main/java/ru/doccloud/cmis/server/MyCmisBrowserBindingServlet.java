@@ -29,7 +29,7 @@ public class MyCmisBrowserBindingServlet extends CmisBrowserBindingServlet {
 	            IOException {
 			 LOG.debug("LOGIN CALLED");
 
-		 request.setAttribute(Dispatcher.BASE_URL_ATTRIBUTE, "http://localhost/jooq/browser");
+		 request.setAttribute(Dispatcher.BASE_URL_ATTRIBUTE, "http://doccloud.ru/jooq/browser");
 		 super.service(request, response);
 	 
 	 }
