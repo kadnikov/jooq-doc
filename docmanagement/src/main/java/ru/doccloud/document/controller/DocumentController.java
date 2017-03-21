@@ -58,9 +58,10 @@ public class DocumentController {
 
     @RequestMapping(method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
-    public DocumentDTO add(@RequestBody @Valid DocumentDTO dto) {
+    public DocumentDTO add(HttpServletRequest request, @RequestBody @Valid DocumentDTO dto) {
         LOGGER.debug("Adding new Document entry with information: {}", dto);
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+//        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        LOGGER.debug("http servlet request from param {}", request);
         DocumentDTO added = addDoc(dto, request.getRemoteUser());
         LOGGER.debug("Added Document entry: {}", added);
 
@@ -251,13 +252,23 @@ public class DocumentController {
         return updated;
     }
 
+    void setUser(){
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        LOGGER.info("httpservlet request from setUser {} ", request);
+        if(request == null)
+            crudService.setUser();
+        else
+            crudService.setUser(request.getRemoteUser());
+    }
+
+
     private DocumentDTO addDoc(DocumentDTO dto, String user) {
         dto.setDocVersion(VersionHelper.generateMinorDocVersion(dto.getDocVersion()));
         return crudService.add(dto, user);
     }
 
     private void initFileParamsFromRequest(DocumentDTO dto, MultipartFile mpf) throws Exception {
-        LOGGER.debug("file lenght " + mpf.getBytes().length + " fileContentType " + mpf.getContentType() + " orig fileNmae " + mpf.getOriginalFilename());
+        LOGGER.debug("file length " + mpf.getBytes().length + " fileContentType " + mpf.getContentType() + " orig fileNmae " + mpf.getOriginalFilename());
         dto.setFileLength((long) mpf.getBytes().length);
         dto.setFileMimeType(mpf.getContentType());
         dto.setFileName(mpf.getOriginalFilename());
