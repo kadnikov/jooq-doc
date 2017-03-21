@@ -60,8 +60,6 @@ public class DocumentController {
     @ResponseStatus(HttpStatus.CREATED)
     public DocumentDTO add(HttpServletRequest request, @RequestBody @Valid DocumentDTO dto) {
         LOGGER.debug("Adding new Document entry with information: {}", dto);
-//        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        LOGGER.debug("http servlet request from param {}", request);
         DocumentDTO added = addDoc(dto, request.getRemoteUser());
         LOGGER.debug("Added Document entry: {}", added);
 
@@ -82,7 +80,7 @@ public class DocumentController {
         DocumentDTO added = addDoc(dto, request.getRemoteUser());
 
         LOGGER.info("DTO Obj after save: {}", added);
-       return writeContent(added, mpf);
+       return writeContent(added, mpf, request.getRemoteUser());
     }
 
     @RequestMapping(value="/createdoc",headers="content-type=multipart/*",method=RequestMethod.POST)
@@ -99,7 +97,7 @@ public class DocumentController {
         DocumentDTO added = addDoc(dto, request.getRemoteUser());
         LOGGER.debug("the document: {} has been added", added);
 
-        return writeContent(added, mpf);
+        return writeContent(added, mpf, request.getRemoteUser());
     }
 
 
@@ -118,7 +116,7 @@ public class DocumentController {
 
         MultipartFile mpf = request.getFile(itr.next());
 
-        return writeContent(dto, mpf);
+        return writeContent(dto, mpf, request.getRemoteUser());
     }
 
     @RequestMapping(value="/getcontent/{id}",headers="content-type=multipart/*",method=RequestMethod.GET)
@@ -241,9 +239,8 @@ public class DocumentController {
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-    public DocumentDTO update(@PathVariable("id") Long id, @RequestBody @Valid DocumentDTO dto) {
+    public DocumentDTO update(HttpServletRequest request, @PathVariable("id") Long id, @RequestBody @Valid DocumentDTO dto) {
         dto.setId(id);
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         LOGGER.info("Updating Document entry with information: {}", dto);
         dto.setDocVersion(VersionHelper.generateMinorDocVersion(dto.getDocVersion()));
         DocumentDTO updated = crudService.update(dto, request.getRemoteUser());
@@ -275,19 +272,18 @@ public class DocumentController {
     }
 
     private String writeFile(String fileName, Long docId, String docVersion, byte[] bytes) throws Exception {
-            return fileActionsService.writeFile(fileName, docId, docVersion, bytes);
+        return fileActionsService.writeFile(fileName, docId, docVersion, bytes);
     }
 
 
-    private DocumentDTO writeContent(DocumentDTO dto, MultipartFile mpf) throws Exception {
+    private DocumentDTO writeContent(DocumentDTO dto, MultipartFile mpf, String user) throws Exception {
         try {
             if(!checkMultipartFile(mpf))
                 throw new Exception("The multipart file contains either empty content type or empty filename or does not contain data");
             LOGGER.debug("the document: {} has been added", dto);
             LOGGER.debug("start adding file to FS");
-            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
             dto.setFilePath(writeFile(dto.getFileName(), dto.getId(), dto.getDocVersion(),  mpf.getBytes()));
-            DocumentDTO updated = crudService.update(dto, request.getRemoteUser());
+            DocumentDTO updated = crudService.update(dto, user);
             LOGGER.debug("Dto object has been updated: {}", updated);
             return updated;
         }

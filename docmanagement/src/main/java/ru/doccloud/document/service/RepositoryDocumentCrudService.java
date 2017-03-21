@@ -52,8 +52,6 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         if (dto.getId()==null){
         	//dto.setId(DEFAULT);
         }
-//RequestContextHolder.getRequestAttributes() returns null it need to solve
-//        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
 
         repository.setUser(user);
         dto.setAuthor(user);
@@ -78,10 +76,11 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
             persisted = repository.findById(dto.getId());
         }
 
+
         if(persisted == null)
             persisted = repository.add(createModel(dto));
         
-        Link parentLink = repository.addLink(folderId, persisted.getId());
+        repository.addLink(folderId, persisted.getId());
 
         LOGGER.info("Added Document entry with information: {}", persisted);
 

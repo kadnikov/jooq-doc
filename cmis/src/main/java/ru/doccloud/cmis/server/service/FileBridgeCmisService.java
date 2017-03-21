@@ -233,14 +233,24 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
     public String createDocumentFromSource(String repositoryId, String sourceId, Properties properties,
             String folderId, VersioningState versioningState, List<String> policies, Acl addAces, Acl removeAces,
             ExtensionsData extension) {
-        return getRepository().createDocumentFromSource(getCallContext(), sourceId, properties, folderId,
-                versioningState);
+        try {
+            return getRepository().createDocumentFromSource(getCallContext(), sourceId, properties, folderId,
+                    versioningState);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
     public String createFolder(String repositoryId, Properties properties, String folderId, List<String> policies,
             Acl addAces, Acl removeAces, ExtensionsData extension) {
-        return getRepository().createFolder(getCallContext(), properties, folderId);
+        try {
+            return getRepository().createFolder(getCallContext(), properties, folderId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override

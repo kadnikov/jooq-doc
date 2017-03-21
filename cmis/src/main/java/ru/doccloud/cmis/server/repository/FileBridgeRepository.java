@@ -348,48 +348,56 @@ public class FileBridgeRepository {
         if (!isFolder(parent)) {
             throw new CmisObjectNotFoundException("Parent is not a folder!");
         }
+        DocumentDTO doc = null;
+        try {
+            // check properties
+            checkNewProperties(properties, BaseTypeId.CMIS_DOCUMENT);
 
-        // check properties
-        checkNewProperties(properties, BaseTypeId.CMIS_DOCUMENT);
-
-        final String name = FileBridgeUtils.getStringProperty(properties, PropertyIds.NAME);
-        
-
-        DocumentDTO doc = new DocumentDTO(name, "document", context.getUsername());
-        doc = crudService.add(doc, context.getUsername());
-
-    	LOGGER.debug("Document has been created {}", doc);
-        crudService.addToFolder(doc, parent.getId());
+            final String name = FileBridgeUtils.getStringProperty(properties, PropertyIds.NAME);
 
 
-        // write content, if available
-        if (contentStream != null && contentStream.getStream() != null) {
-        	
-            final String filePath = writeContent(doc, contentStream.getStream(), context.getUsername());
-            if (filePath!=null){
-	            BigInteger fileLength = FileBridgeUtils.getIntegerProperty(properties, PropertyIds.CONTENT_STREAM_LENGTH);
-	            String mimeType = FileBridgeUtils.getStringProperty(properties, PropertyIds.CONTENT_STREAM_LENGTH);
-	            LOGGER.debug("Uploaded file - "+filePath+" - "+fileLength+" - "+mimeType);
-	            if (fileLength==null){
-                    doc.setFileLength(0L);
-	            }else{
-                    doc.setFileLength(fileLength.longValue());
-	            }
-                doc.setFilePath(filePath);
-                doc.setFileMimeType(mimeType);
-                doc.setModifier(context.getUsername());
-                crudService.updateFileInfo(doc);
+            doc = new DocumentDTO(name, "document", context.getUsername());
+            doc = crudService.add(doc, context.getUsername());
+
+            LOGGER.debug("Document has been created {}", doc);
+            crudService.addToFolder(doc, parent.getId());
+
+
+            // write content, if available
+            if (contentStream != null && contentStream.getStream() != null) {
+
+                final String filePath = writeContent(doc, contentStream.getStream(), context.getUsername());
+                if (filePath != null) {
+                    BigInteger fileLength = FileBridgeUtils.getIntegerProperty(properties, PropertyIds.CONTENT_STREAM_LENGTH);
+                    String mimeType = FileBridgeUtils.getStringProperty(properties, PropertyIds.CONTENT_STREAM_LENGTH);
+                    LOGGER.debug("Uploaded file - " + filePath + " - " + fileLength + " - " + mimeType);
+                    if (fileLength == null) {
+                        doc.setFileLength(0L);
+                    } else {
+                        doc.setFileLength(fileLength.longValue());
+                    }
+                    doc.setFilePath(filePath);
+                    doc.setFileMimeType(mimeType);
+                    doc.setModifier(context.getUsername());
+                    crudService.updateFileInfo(doc);
+                }
             }
-        }
 
-        return getId(doc);
+            return getId(doc);
+        } catch (Exception e){
+            if(doc != null && doc.getId() != null) {
+                crudService.deleteLink(parent.getId(), doc.getId());
+                crudService.delete(doc.getId());
+            }
+            throw new Exception(e.getMessage());
+        }
     }
 
     /**
      * CMIS createDocumentFromSource.
      */
     public String createDocumentFromSource(CallContext context, String sourceId, Properties properties,
-                                           String folderId, VersioningState versioningState) {
+                                           String folderId, VersioningState versioningState) throws Exception {
         checkUser(context, true);
 
         // check versioning state
@@ -399,47 +407,51 @@ public class FileBridgeRepository {
 
      // get parent
         DocumentDTO parent = getDocument(folderId);
+        DocumentDTO doc = null;
         if (!isFolder(parent)) {
             throw new CmisObjectNotFoundException("Parent is not a folder!");
         }
-
-        // get source
-        DocumentDTO source = getDocument(sourceId);
-
-        // check properties
-        checkCopyProperties(properties, BaseTypeId.CMIS_DOCUMENT.value());
-
-        // check the name
-        String name = null;
-        if (properties != null && properties.getProperties() != null) {
-            name = FileBridgeUtils.getStringProperty(properties, PropertyIds.NAME);
-        }
-        if (name == null) {
-            name = source.getTitle();
-        }
-
-        DocumentDTO doc = new DocumentDTO(name, "document", context.getUsername());
-        doc = crudService.add(doc, context.getUsername());
-
-        LOGGER.debug("Document has been created {}", doc);
-        crudService.addToFolder(doc, parent.getId());
-
-        // copy content
         try {
-            writeContent(doc, new FileInputStream(source.getFilePath()), context.getUsername());
-        } catch (IOException e) {
-            throw new CmisStorageException("Could not roead or write content: " + e.getMessage(), e);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            // get source
+            DocumentDTO source = getDocument(sourceId);
 
-        return getId(doc);
+            // check properties
+            checkCopyProperties(properties, BaseTypeId.CMIS_DOCUMENT.value());
+
+            // check the name
+            String name = null;
+            if (properties != null && properties.getProperties() != null) {
+                name = FileBridgeUtils.getStringProperty(properties, PropertyIds.NAME);
+            }
+            if (name == null) {
+                name = source.getTitle();
+            }
+
+            doc = new DocumentDTO(name, "document", context.getUsername());
+            doc = crudService.add(doc, context.getUsername());
+
+            LOGGER.debug("Document has been created {}", doc);
+            crudService.addToFolder(doc, parent.getId());
+
+            // copy content
+
+            writeContent(doc, new FileInputStream(source.getFilePath()), context.getUsername());
+
+            return getId(doc);
+
+        } catch (Exception e){
+            if(doc != null && doc.getId() != null) {
+                crudService.deleteLink(parent.getId(), doc.getId());
+                crudService.delete(doc.getId());
+            }
+            throw new Exception(e.getMessage());
+        }
     }
 
     /**
      * CMIS createFolder.
      */
-    public String createFolder(CallContext context, Properties properties, String folderId) {
+    public String createFolder(CallContext context, Properties properties, String folderId) throws Exception {
         checkUser(context, true);
 
         // check properties
@@ -453,12 +465,20 @@ public class FileBridgeRepository {
 
         // create the folder
         String name = FileBridgeUtils.getStringProperty(properties, PropertyIds.NAME);
+        DocumentDTO doc = null;
+        try {
+            doc = crudService.add(new DocumentDTO(name, "folder", context.getUsername()), context.getUsername());
+            LOGGER.debug("Document has been created {}", doc);
+            crudService.addToFolder(doc, parent.getId());
 
-        DocumentDTO doc = crudService.add(new DocumentDTO(name, "folder", context.getUsername()), context.getUsername());
-        LOGGER.debug("Document has been created {}", doc);
-        crudService.addToFolder(doc, parent.getId());
-
-        return getId(doc);
+            return getId(doc);
+        } catch (Exception e){
+            if(doc != null && doc.getId() != null) {
+                crudService.deleteLink(parent.getId(), doc.getId());
+                crudService.delete(doc.getId());
+            }
+            throw new Exception(e.getMessage());
+        }
     }
 
 
