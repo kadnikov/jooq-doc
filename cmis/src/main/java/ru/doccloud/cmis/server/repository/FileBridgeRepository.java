@@ -125,11 +125,15 @@ import org.jtransfo.JTransfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import ru.doccloud.cmis.server.util.ContentRangeInputStream;
 import ru.doccloud.cmis.server.FileBridgeTypeManager;
 import ru.doccloud.cmis.server.util.FileBridgeUtils;
@@ -143,10 +147,12 @@ import ru.doccloud.document.repository.JOOQDocumentRepository;
 import ru.doccloud.document.service.DocumentCrudService;
 import ru.doccloud.document.service.FileActionsService;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * Implements all repository operations.
  */
-@Repository
+//@Bean
 public class FileBridgeRepository {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileBridgeRepository.class);
@@ -171,15 +177,11 @@ public class FileBridgeRepository {
     /** Users. */
     private final Map<String, Boolean> readWriteUserMap;
     
-    private final JTransfo transformer;
+//    private final JTransfo transformer;
     
-//    private DocumentRepository repository;
 
-//    todo add spring autowired
-    @Autowired
-    private DocumentCrudService crudService;
-    @Autowired
-    private FileActionsService fileActionsService;
+    private final DocumentCrudService crudService;
+    private final FileActionsService fileActionsService;
     
     /** CMIS 1.0 repository info. */
     private final RepositoryInfo repositoryInfo10;
@@ -187,20 +189,17 @@ public class FileBridgeRepository {
     private final RepositoryInfo repositoryInfo11;
 
     public FileBridgeRepository(final String repositoryId, final String rootPath,
-                                final FileBridgeTypeManager typeManager, DSLContext jooq, JTransfo transformer) {
+                                final FileBridgeTypeManager typeManager, DSLContext jooq, DocumentCrudService crudService, FileActionsService fileActionsService) {
         // check repository id
         if (repositoryId == null || repositoryId.trim().length() == 0) {
             throw new IllegalArgumentException("Invalid repository id!");
         }
 
         this.repositoryId = repositoryId;
-        this.transformer = transformer;
+//        this.transformer = transformer;
         
         LOGGER.info("jooq: {}", jooq);   
         
-//        this.repository = new JOOQDocumentRepository(new CurrentTimeDateTimeService(), jooq);
-
-
         // check root folder
         if (rootPath == null || rootPath.trim().length() == 0) {
             throw new IllegalArgumentException("Invalid root folder!");
@@ -220,6 +219,8 @@ public class FileBridgeRepository {
         // set up repository infos
         repositoryInfo10 = createRepositoryInfo(CmisVersion.CMIS_1_0);
         repositoryInfo11 = createRepositoryInfo(CmisVersion.CMIS_1_1);
+        this.crudService = crudService;
+        this.fileActionsService = fileActionsService;
     }
 
 
@@ -353,15 +354,9 @@ public class FileBridgeRepository {
 
         final String name = FileBridgeUtils.getStringProperty(properties, PropertyIds.NAME);
         
-//    	Document documentEntry = Document.getBuilder(name)
-//                .type("document").author(context.getUsername()).build();
-//    	Document docRes = repository.add(documentEntry);
-
-        //    	DocumentDTO doc = transformer.convert(docRes, new DocumentDTO());
-//        Link link = repository.addLink(parent.getId(), doc.getId());
 
         DocumentDTO doc = new DocumentDTO(name, "document", context.getUsername());
-        doc = crudService.add(doc);
+        doc = crudService.add(doc, context.getUsername());
 
     	LOGGER.debug("Document has been created {}", doc);
         crudService.addToFolder(doc, parent.getId());
@@ -370,7 +365,7 @@ public class FileBridgeRepository {
         // write content, if available
         if (contentStream != null && contentStream.getStream() != null) {
         	
-            final String filePath = writeContent(doc, contentStream.getStream());
+            final String filePath = writeContent(doc, contentStream.getStream(), context.getUsername());
             if (filePath!=null){
 	            BigInteger fileLength = FileBridgeUtils.getIntegerProperty(properties, PropertyIds.CONTENT_STREAM_LENGTH);
 	            String mimeType = FileBridgeUtils.getStringProperty(properties, PropertyIds.CONTENT_STREAM_LENGTH);
@@ -383,14 +378,6 @@ public class FileBridgeRepository {
                 doc.setFilePath(filePath);
                 doc.setFileMimeType(mimeType);
                 doc.setModifier(context.getUsername());
-//	            Document document = Document.getBuilder(doc.getTitle())
-//	            .fileLength(doc.getFileLength())
-//	            .fileMimeType(doc.getFileMimeType())
-//	            .filePath(doc.getFilePath())
-//	            .modifier(context.getUsername())
-//	            .id(doc.getId())
-//	            .build();
-//	            repository.updateFileInfo(document);
                 crudService.updateFileInfo(doc);
             }
         }
@@ -430,21 +417,16 @@ public class FileBridgeRepository {
         if (name == null) {
             name = source.getTitle();
         }
-//        Document documentEntry = Document.getBuilder(name)
-//                .type("document").build();
-//    	Document docRes = repository.add(documentEntry);
-//    	DocumentDTO doc = transformer.convert(docRes, new DocumentDTO());
-//    	Link link = repository.addLink(parent.getId(), doc.getId());
 
         DocumentDTO doc = new DocumentDTO(name, "document", context.getUsername());
-        doc = crudService.add(doc);
+        doc = crudService.add(doc, context.getUsername());
 
         LOGGER.debug("Document has been created {}", doc);
         crudService.addToFolder(doc, parent.getId());
 
         // copy content
         try {
-            writeContent(doc, new FileInputStream(source.getFilePath()));
+            writeContent(doc, new FileInputStream(source.getFilePath()), context.getUsername());
         } catch (IOException e) {
             throw new CmisStorageException("Could not roead or write content: " + e.getMessage(), e);
         } catch (Exception e) {
@@ -471,15 +453,8 @@ public class FileBridgeRepository {
 
         // create the folder
         String name = FileBridgeUtils.getStringProperty(properties, PropertyIds.NAME);
-//        Document documentEntry = Document.getBuilder(name)
-//                .type("folder").author(context.getUsername()).build();
-//        Document docRes = repository.add(documentEntry);
-//        DocumentDTO doc = transformer.convert(docRes, new DocumentDTO());
-//        Link link = repository.addLink(parent.getId(), doc.getId());
 
-        DocumentDTO doc = new DocumentDTO(name, "folder", context.getUsername());
-        doc = crudService.add(doc);
-
+        DocumentDTO doc = crudService.add(new DocumentDTO(name, "folder", context.getUsername()), context.getUsername());
         LOGGER.debug("Document has been created {}", doc);
         crudService.addToFolder(doc, parent.getId());
 
@@ -505,8 +480,6 @@ public class FileBridgeRepository {
         crudService.deleteLink(parent.getId(), doc.getId());
         Link link = crudService.addLink(Long.parseLong(targetFolderId), doc.getId());
 
-//        repository.deleteLink(parent.getId(), doc.getId());
-//        Link link = repository.addLink(Long.parseLong(targetFolderId), doc.getId());
 
         return compileObjectData(context, doc, null, false, false, userReadOnly, objectInfos);
     }
@@ -573,18 +546,12 @@ public class FileBridgeRepository {
             if (crudService.findAllByParent(doc.getId()).size()>0){
                 throw new CmisConstraintException("Folder is not empty!");
             }
-//        	if (repository.findAllByParent(doc.getId()).size()>0){
-//        		throw new CmisConstraintException("Folder is not empty!");
-//        	}
         }
 
         // delete doc
         if (crudService.delete(doc.getId())==null) {
             throw new CmisStorageException("Deletion failed!");
         }
-//        if (repository.delete(doc.getId())==null) {
-//            throw new CmisStorageException("Deletion failed!");
-//        }
     }
 
     /**
@@ -615,12 +582,12 @@ public class FileBridgeRepository {
     /**
      * Writes the content to disc.
      */
-    private String writeContent(DocumentDTO doc, InputStream stream) throws Exception {
+    private String writeContent(DocumentDTO doc, InputStream stream, String user) throws Exception {
         try {
             final String filePath = fileActionsService.writeFile(doc.getTitle(), doc.getId(), doc.getDocVersion(), org.apache.commons.io.IOUtils.toByteArray(stream));
             LOGGER.debug("File has been saved int the disc, path to file {}", filePath);
             doc.setFilePath(filePath);
-            DocumentDTO updated = crudService.update(doc);
+            DocumentDTO updated = crudService.update(doc, user);
             LOGGER.debug("document has been updated {}", updated);
             return updated.getTitle();
         } catch (IOException e) {
@@ -636,9 +603,6 @@ public class FileBridgeRepository {
     private boolean deleteFolder(DocumentDTO doc, boolean continueOnFailure, FailedToDeleteDataImpl ftd) {
         boolean success = true;
         
-//        List<Document> childDocs = repository.findAllByParent(doc.getId());
-//        List<DocumentDTO> docList = transformer.convertList(childDocs, DocumentDTO.class);
-
         List<DocumentDTO> docList = crudService.findAllByParent(doc.getId());;
         for (DocumentDTO childDoc : docList) {
             if (isFolder(childDoc)) {
@@ -657,13 +621,6 @@ public class FileBridgeRepository {
                     success = false;
                 }
 
-//            	if (repository.delete(childDoc.getId())==null) {
-//                    ftd.getIds().add(getId(childDoc));
-//                    if (!continueOnFailure) {
-//                        return false;
-//                    }
-//                    success = false;
-//                }
             }
         }
 
@@ -671,11 +628,6 @@ public class FileBridgeRepository {
             ftd.getIds().add(getId(doc));
             success = false;
         }
-
-//        if (repository.delete(doc.getId())==null) {
-//            ftd.getIds().add(getId(doc));
-//            success = false;
-//        }
 
         return success;
     }
@@ -743,7 +695,7 @@ public class FileBridgeRepository {
         if (isRename) {
         	doc.setTitle(newName);
 //        	repository.update(Document.getBuilder(doc.getTitle()).modifier(context.getUsername()).id(doc.getId()).build());
-            crudService.update(doc);
+            crudService.update(doc ,context.getUsername());
         }
 
         return compileObjectData(context, doc, null, false, false, userReadOnly, objectInfos);
@@ -857,17 +809,6 @@ public class FileBridgeRepository {
         }
 
         byte[] contentByteArr = fileActionsService.readFile(doc.getFilePath());
-//        File file = new File(root, doc.getTitle());
-//
-//        InputStream stream = null;
-//        try {
-//            stream = new BufferedInputStream(new FileInputStream(file), 64 * 1024);
-//            if (offset != null || length != null) {
-//                stream = new ContentRangeInputStream(stream, offset, length);
-//            }
-//        } catch (FileNotFoundException e) {
-//            throw new CmisObjectNotFoundException(e.getMessage(), e);
-//        }
 
         // compile data
         ContentStreamImpl result;
@@ -882,10 +823,6 @@ public class FileBridgeRepository {
         result.setMimeType(MimeTypes.getMIMEType(doc.getFileMimeType()));
         result.setStream(new ByteArrayInputStream(contentByteArr));
 
-//        result.setFileName(file.getName());
-//        result.setLength(BigInteger.valueOf(file.length()));
-//        result.setMimeType(MimeTypes.getMIMEType(file));
-//        result.setStream(stream);
 
         return result;
     }
@@ -907,13 +844,11 @@ public class FileBridgeRepository {
         
         LOGGER.info("Folder ID: {}", objectId);
         Long parent = Long.parseLong(objectId);
-//        List<Document> docEntries = repository.findAllByParent(parent);
-        List<DocumentDTO> docEntries = crudService.findAllByParent(parent);
+        List<DocumentDTO> docList = crudService.findAllByParent(parent);
         
-        LOGGER.debug("Found {} Document entries.", docEntries.size());
+        LOGGER.debug("Found {} Document entries.", docList != null ? docList.size() : null);
         
-        List<DocumentDTO> docList = transformer.convertList(docEntries, DocumentDTO.class);
-        
+
         // skip and max
         int skip = (skipCount == null ? 0 : skipCount.intValue());
         if (skip < 0) {
@@ -1081,8 +1016,6 @@ public class FileBridgeRepository {
         }
 
         Pageable pageable = new PageRequest(0, 1);
-//        Page<Document> docPage = repository.findBySearchTerm(folderPath.substring(folderPath.lastIndexOf("/")+1, folderPath.length()), pageable);
-//        List<DocumentDTO> dtos = transformer.convertList(docPage.getContent(), DocumentDTO.class);
         List<DocumentDTO> dtos = crudService.findBySearchTerm(folderPath.substring(folderPath.lastIndexOf("/")+1, folderPath.length()), pageable);
         DocumentDTO doc = dtos.iterator().next();
         return compileObjectData(context, doc, filterCollection, includeAllowableActions, includeACL, userReadOnly,
@@ -1464,10 +1397,8 @@ public class FileBridgeRepository {
     }
     
     private DocumentDTO getFirstParent(Long objectId) {
-        List<Document> docEntries = crudService.findParents(objectId);
-//	    List<Document> docEntries = repository.findParents(objectId);
-		List<DocumentDTO> docList = transformer.convertList(docEntries, DocumentDTO.class);
-		return docList.get(0);
+        final List<DocumentDTO> docList = crudService.findParents(objectId);
+		return docList != null && docList.size() > 0 ? docList.get(0) : null;
     }
     
     private String getId(DocumentDTO doc) {
@@ -1487,7 +1418,7 @@ public class FileBridgeRepository {
 
         LOGGER.info("Found Document entry: {}", found);
 
-        return transformer.convert(found, new DocumentDTO());
+        return found;
 	}
     
     private boolean isFolder(DocumentDTO doc) {

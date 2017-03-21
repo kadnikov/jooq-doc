@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
@@ -21,6 +22,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
@@ -57,8 +60,8 @@ public class DocumentController {
     @ResponseStatus(HttpStatus.CREATED)
     public DocumentDTO add(@RequestBody @Valid DocumentDTO dto) {
         LOGGER.debug("Adding new Document entry with information: {}", dto);
-
-        DocumentDTO added = addDoc(dto);
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        DocumentDTO added = addDoc(dto, request.getRemoteUser());
         LOGGER.debug("Added Document entry: {}", added);
 
         return added;
@@ -71,11 +74,11 @@ public class DocumentController {
         LOGGER.debug("start adding new Document to database: {} ", dto);
         Iterator<String> itr =  request.getFileNames();
         if(!itr.hasNext())
-            return addDoc(dto);
+            return addDoc(dto, request.getRemoteUser());
         MultipartFile mpf = request.getFile(itr.next());
         initFileParamsFromRequest(dto, mpf);
 
-        DocumentDTO added = addDoc(dto);
+        DocumentDTO added = addDoc(dto, request.getRemoteUser());
 
         LOGGER.info("DTO Obj after save: {}", added);
        return writeContent(added, mpf);
@@ -89,10 +92,10 @@ public class DocumentController {
 
         Iterator<String> itr =  request.getFileNames();
         if(!itr.hasNext())
-            return addDoc(dto);
+            return addDoc(dto, request.getRemoteUser());
         MultipartFile mpf = request.getFile(itr.next());
         initFileParamsFromRequest(dto, mpf);
-        DocumentDTO added = addDoc(dto);
+        DocumentDTO added = addDoc(dto, request.getRemoteUser());
         LOGGER.debug("the document: {} has been added", added);
 
         return writeContent(added, mpf);
@@ -239,18 +242,18 @@ public class DocumentController {
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
     public DocumentDTO update(@PathVariable("id") Long id, @RequestBody @Valid DocumentDTO dto) {
         dto.setId(id);
-
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         LOGGER.info("Updating Document entry with information: {}", dto);
         dto.setDocVersion(VersionHelper.generateMinorDocVersion(dto.getDocVersion()));
-        DocumentDTO updated = crudService.update(dto);
+        DocumentDTO updated = crudService.update(dto, request.getRemoteUser());
         LOGGER.info("Updated Document entry: {}", updated);
 
         return updated;
     }
 
-    private DocumentDTO addDoc(DocumentDTO dto) {
+    private DocumentDTO addDoc(DocumentDTO dto, String user) {
         dto.setDocVersion(VersionHelper.generateMinorDocVersion(dto.getDocVersion()));
-        return crudService.add(dto);
+        return crudService.add(dto, user);
     }
 
     private void initFileParamsFromRequest(DocumentDTO dto, MultipartFile mpf) throws Exception {
@@ -271,9 +274,9 @@ public class DocumentController {
                 throw new Exception("The multipart file contains either empty content type or empty filename or does not contain data");
             LOGGER.debug("the document: {} has been added", dto);
             LOGGER.debug("start adding file to FS");
-
+            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
             dto.setFilePath(writeFile(dto.getFileName(), dto.getId(), dto.getDocVersion(),  mpf.getBytes()));
-            DocumentDTO updated = crudService.update(dto);
+            DocumentDTO updated = crudService.update(dto, request.getRemoteUser());
             LOGGER.debug("Dto object has been updated: {}", updated);
             return updated;
         }

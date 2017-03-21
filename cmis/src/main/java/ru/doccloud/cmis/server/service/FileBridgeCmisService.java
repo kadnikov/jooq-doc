@@ -52,14 +52,24 @@ import org.apache.chemistry.opencmis.commons.impl.server.AbstractCmisService;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.chemistry.opencmis.server.support.wrapper.CallContextAwareCmisService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import ru.doccloud.cmis.server.repository.FileBridgeRepository;
 import ru.doccloud.cmis.server.repository.FileBridgeRepositoryManager;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * FileShare Service implementation.
  */
+@Component
 public class FileBridgeCmisService extends AbstractCmisService implements CallContextAwareCmisService {
+
 
 	private final FileBridgeRepositoryManager repositoryManager;
     private CallContext context;

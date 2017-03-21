@@ -10,7 +10,7 @@
 
 	<bean id="CmisServiceFactory" class="ru.doccloud.cmis.server.service.FileBridgeCmisServiceFactory">
 	</bean>
-	
+
     <!--<bean id="CmisLifecycleBean" class="org.example.cmis.server.CmisLifecycleBean">-->
     	<!--<property name="CmisServiceFactory" ref="CmisServiceFactory" />-->
 	<!--</bean>-->

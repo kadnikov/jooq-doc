@@ -49,6 +49,8 @@ import ru.doccloud.cmis.server.FileBridgeUserManager;
 import ru.doccloud.cmis.server.repository.FileBridgeRepository;
 import ru.doccloud.cmis.server.repository.FileBridgeRepositoryManager;
 import ru.doccloud.config.PersistenceContext;
+import ru.doccloud.document.service.DocumentCrudService;
+import ru.doccloud.document.service.FileActionsService;
 
 /**
  * FileShare Service Factory.
@@ -78,11 +80,12 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
     /** Default depth value for getDescendants(). */
     private static final BigInteger DEFAULT_DEPTH_OBJECTS = BigInteger.valueOf(10);
     
-    @Autowired
-    private ApplicationContext appContext;
+    private final ApplicationContext appContext;
     
-    @Autowired
-    private JTransfo transformer;
+//    private final JTransfo transformer;
+
+    private final DocumentCrudService crudService;
+    private final FileActionsService fileActionsService;
     
     /** Each thread gets its own {@link FileBridgeCmisService} instance. */
     // old threadLocalService
@@ -97,6 +100,13 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
     private FileBridgeRepositoryManager repositoryManager;
     private FileBridgeUserManager userManager;
     private FileBridgeTypeManager typeManager;
+
+    @Autowired
+    public FileBridgeCmisServiceFactory(ApplicationContext appContext,  DocumentCrudService crudService, FileActionsService fileActionsService) {
+        this.appContext = appContext;
+        this.crudService = crudService;
+        this.fileActionsService = fileActionsService;
+    }
 
     @Override
     public void init(Map<String, String> parameters) {
@@ -222,13 +232,15 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
                     // new repository
                     String root = parameters.get(key);
 
-                    LOGGER.info("Adding repository '{}': {}", repositoryId, root);
-                    LOGGER.info("appContext: {}", appContext);
+                    LOGGER.debug("Adding repository '{}': {}", repositoryId, root);
+                    LOGGER.debug("Documentcrud service {}", crudService);
+                    LOGGER.debug("FileActions service {}", fileActionsService);
+                    LOGGER.debug("appContext: {}", appContext);
                     PersistenceContext pctx = appContext.getBean(PersistenceContext.class);
                     LOGGER.info("pctx: {}", pctx);
                     DSLContext jooq = pctx.dsl();
                     
-                    FileBridgeRepository fsr = new FileBridgeRepository(repositoryId, root, typeManager, jooq, transformer);
+                    FileBridgeRepository fsr = new FileBridgeRepository(repositoryId, root, typeManager, jooq, crudService, fileActionsService);
                     repositoryManager.addRepository(fsr);
                 }
             }

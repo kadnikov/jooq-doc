@@ -153,7 +153,7 @@ public class DocsControllerTest {
                 .title(TITLE)
                 .build();
 
-        when(todoCrudServiceMock.add(isA(DocumentDTO.class))).thenReturn(returnedTodoEntry);
+        when(todoCrudServiceMock.add(isA(DocumentDTO.class), "test")).thenReturn(returnedTodoEntry);
 
         mockMvc.perform(post("/api/docs")
                         .contentType(WebTestConstants.APPLICATION_JSON_UTF8)
@@ -169,7 +169,7 @@ public class DocsControllerTest {
 
         ArgumentCaptor<DocumentDTO> serviceMethodArgument = ArgumentCaptor.forClass(DocumentDTO.class);
 
-        verify(todoCrudServiceMock, times(1)).add(serviceMethodArgument.capture());
+        verify(todoCrudServiceMock, times(1)).add(serviceMethodArgument.capture(), "test");
         verifyNoMoreInteractions(todoCrudServiceMock);
         verifyZeroInteractions(todoSearchServiceMock);
 
@@ -453,7 +453,7 @@ public class DocsControllerTest {
                 .title(TITLE)
                 .build();
 
-        when(todoCrudServiceMock.update(isA(DocumentDTO.class))).thenThrow(new DocumentNotFoundException(""));
+        when(todoCrudServiceMock.update(isA(DocumentDTO.class), "test")).thenThrow(new DocumentNotFoundException(""));
 
         mockMvc.perform(put("/api/docs/{id}", ID)
                 .contentType(WebTestConstants.APPLICATION_JSON_UTF8)
@@ -463,7 +463,7 @@ public class DocsControllerTest {
 
         ArgumentCaptor<DocumentDTO> serviceMethodArgument = ArgumentCaptor.forClass(DocumentDTO.class);
 
-        verify(todoCrudServiceMock, times(1)).update(serviceMethodArgument.capture());
+        verify(todoCrudServiceMock, times(1)).update(serviceMethodArgument.capture(), "test");
         verifyNoMoreInteractions(todoCrudServiceMock);
         verifyZeroInteractions(todoSearchServiceMock);
 
@@ -491,7 +491,7 @@ public class DocsControllerTest {
                 .title(TITLE)
                 .build();
 
-        when(todoCrudServiceMock.update(isA(DocumentDTO.class))).thenReturn(returnedTodoEntry);
+        when(todoCrudServiceMock.update(isA(DocumentDTO.class), "test")).thenReturn(returnedTodoEntry);
 
         mockMvc.perform(put("/api/docs/{id}", ID)
                         .contentType(WebTestConstants.APPLICATION_JSON_UTF8)
@@ -507,7 +507,7 @@ public class DocsControllerTest {
 
         ArgumentCaptor<DocumentDTO> serviceMethodArgument = ArgumentCaptor.forClass(DocumentDTO.class);
 
-        verify(todoCrudServiceMock, times(1)).update(serviceMethodArgument.capture());
+        verify(todoCrudServiceMock, times(1)).update(serviceMethodArgument.capture(), "test");
         verifyNoMoreInteractions(todoCrudServiceMock);
         verifyZeroInteractions(todoSearchServiceMock);
 

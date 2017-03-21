@@ -47,16 +47,16 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 
     @Transactional
     @Override
-    public DocumentDTO add(final DocumentDTO dto) {
+    public DocumentDTO add(final DocumentDTO dto, final String user) {
         LOGGER.info("Adding Document entry with information: {}", dto);
         if (dto.getId()==null){
         	//dto.setId(DEFAULT);
         }
+//RequestContextHolder.getRequestAttributes() returns null it need to solve
+//        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
 
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-
-        repository.setUser(request.getRemoteUser());
-        dto.setAuthor(request.getRemoteUser());
+        repository.setUser(user);
+        dto.setAuthor(user);
         Document persisted = repository.add(createModel(dto));
 
         LOGGER.info("Added Document entry with information: {}", persisted);
@@ -132,8 +132,15 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     }
 
     @Override
-    public List<Document> findParents(Long docId){
-        return repository.findParents(docId);
+    public List<DocumentDTO> findParents(Long docId){
+        final List<Document> docEntries = repository.findParents(docId);
+
+        if(docEntries == null) {
+            LOGGER.info("There are no parents for document with ID {}", docId);
+            return null;
+        }
+
+        return transformer.convertList(docEntries, DocumentDTO.class);
     }
 
 
@@ -158,11 +165,11 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 
     @Transactional
     @Override
-    public DocumentDTO update(final DocumentDTO dto) {
+    public DocumentDTO update(final DocumentDTO dto, final String user) {
         LOGGER.info("Updating the information of a Document entry: {}", dto);
         
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        dto.setModifier(request.getRemoteUser());
+//        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        dto.setModifier(user);
         Document newInformation = createModel(dto);
         Document updated = repository.update(newInformation);
 
@@ -197,12 +204,12 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         return repository.deleteLink(headId, tailId);
     }
 
-
+//todo remove this method
     @Transactional
     @Override
     public void setUser() {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        LOGGER.info("Current Remote User - "+request.getRemoteUser());
+        LOGGER.info("Current Remote User - " + request.getRemoteUser());
         repository.setUser(request.getRemoteUser());
 
     }
