@@ -15,20 +15,20 @@ public class AuthorizationPlugin {
 	
 	private static final Logger logger = LoggerFactory.getLogger(AuthorizationPlugin.class);
 
-    
-	@Pointcut("execution(* ru.doccloud.document.service.RepositoryDocumentCrudService.*(..))")
+
+	@Pointcut("execution(* ru.doccloud.document.controller.DocumentController.*(..))")
 	public void businessMethods() { }
-	
-	@Around("businessMethods() && target(crud)")
-	public Object profile(ProceedingJoinPoint pjp, RepositoryDocumentCrudService crud) throws Throwable {
+
+	@Around("businessMethods() && target(documentController)")
+	public Object profile(ProceedingJoinPoint pjp, DocumentController documentController) throws Throwable {
 		long start = System.currentTimeMillis();
 	    logger.debug("AuthorizationPlugin: Going to call the method: {}", pjp.getSignature().getName());
-	    crud.getRepository().setUser();
+        documentController.setUser();
 	    Object output = pjp.proceed();
 	    logger.debug("AuthorizationPlugin: Method execution completed.");
 	    long elapsedTime = System.currentTimeMillis() - start;
 	    logger.debug("AuthorizationPlugin: Method execution time: " + elapsedTime + " milliseconds.");
-	
+
 	    return output;
 	}
 }

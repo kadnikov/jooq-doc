@@ -75,7 +75,7 @@ public class RepositoryDocsCrudServiceTest {
 
         when(repositoryMock.add(isA(Document.class))).thenReturn(addedTodoEntry);
 
-        DocumentDTO returnedTodoEntry = service.add(newTodoEntry);
+        DocumentDTO returnedTodoEntry = service.add(newTodoEntry, "test");
 
         ArgumentCaptor<Document> repositoryMethodArgument = ArgumentCaptor.forClass(Document.class);
 
@@ -206,7 +206,7 @@ public class RepositoryDocsCrudServiceTest {
 
         when(repositoryMock.update(isA(Document.class))).thenThrow(new DocumentNotFoundException(""));
 
-        catchException(service).update(updatedTodoEntry);
+        catchException(service).update(updatedTodoEntry, "test");
         //assertThat(caughtException()).isExactlyInstanceOf(DocumentNotFoundException.class);
 
         ArgumentCaptor<Document> repositoryMethodArgument = ArgumentCaptor.forClass(Document.class);
@@ -241,7 +241,7 @@ public class RepositoryDocsCrudServiceTest {
 
         when(repositoryMock.update(isA(Document.class))).thenReturn(updatedTodoEntry);
 
-        DocumentDTO returnedTodoEntry = service.update(existingTodoEntry);
+        DocumentDTO returnedTodoEntry = service.update(existingTodoEntry, "test");
 
         ArgumentCaptor<Document> repositoryMethodArgument = ArgumentCaptor.forClass(Document.class);
 

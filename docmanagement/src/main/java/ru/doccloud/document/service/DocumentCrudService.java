@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 
 import org.springframework.transaction.annotation.Transactional;
 import ru.doccloud.document.dto.DocumentDTO;
+import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
 
 /**
@@ -14,12 +15,10 @@ import ru.doccloud.document.model.Link;
  */
 public interface DocumentCrudService {
 
-    public DocumentDTO add(final DocumentDTO todo);
-
     @Transactional
-    DocumentDTO add(DocumentDTO dto, String user);
+    DocumentDTO add(final DocumentDTO dto, final String user);
 
-    public DocumentDTO addToFolder(final DocumentDTO todo, Long id);
+    public DocumentDTO addToFolder(final DocumentDTO todo, final Long id);
 
     public DocumentDTO delete(final Long id);
 
@@ -32,17 +31,15 @@ public interface DocumentCrudService {
 
     public DocumentDTO findById(final Long id);
 
-    public DocumentDTO update(final DocumentDTO updated);
+    public DocumentDTO update(final DocumentDTO updated, final String user);
 	
 	public List<DocumentDTO> findAllByParent(final Long parentid);
 
 	public Page<DocumentDTO> findAll(final Pageable pageable);
 
-    @Transactional
-    DocumentDTO update(DocumentDTO dto, String user);
 
     @Transactional
-    DocumentDTO updateFileInfo(DocumentDTO dto);
+    DocumentDTO updateFileInfo(final DocumentDTO dto);
 
     @Transactional
     Link addLink(Long headId, Long tailId);
@@ -50,7 +47,6 @@ public interface DocumentCrudService {
     @Transactional
     Link deleteLink(Long headId, Long tailId);
 
-    //todo remove this method
     @Transactional
     void setUser();
 
@@ -58,4 +54,6 @@ public interface DocumentCrudService {
     void setUser(String userName);
 
     public Page<DocumentDTO> findAllByType(final String type, final String[] fields, final Pageable pageable, final String query);
+
+
 }

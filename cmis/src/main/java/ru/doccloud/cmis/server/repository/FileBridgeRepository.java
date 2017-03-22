@@ -20,7 +20,7 @@
  * It is part of a training exercise and not intended for production use!
  *
  */
-package ru.doccloud.cmis.server;
+package ru.doccloud.cmis.server.repository;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -134,9 +134,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import ru.doccloud.cmis.server.ContentRangeInputStream;
+import ru.doccloud.cmis.server.util.ContentRangeInputStream;
 import ru.doccloud.cmis.server.FileBridgeTypeManager;
-import ru.doccloud.cmis.server.FileBridgeUtils;
+import ru.doccloud.cmis.server.util.FileBridgeUtils;
 import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.common.service.CurrentTimeDateTimeService;
 import ru.doccloud.document.dto.DocumentDTO;
@@ -152,15 +152,14 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * Implements all repository operations.
  */
-//@Bean
 public class FileBridgeRepository {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileBridgeRepository.class);
-
+	private static final Logger LOGGER = LoggerFactory.getLogger(FileBridgeRepository.class);
+	
     private static final String ROOT_ID = "0";
 
     private static final String ID_PREFIX = "0000000";
-
+    
     private static final String USER_UNKNOWN = "<unknown>";
 
     private static final int BUFFER_SIZE = 64 * 1024;
@@ -176,13 +175,11 @@ public class FileBridgeRepository {
     private final FileBridgeTypeManager typeManager;
     /** Users. */
     private final Map<String, Boolean> readWriteUserMap;
-
-//    private final JTransfo transformer;
-
+    
 
     private final DocumentCrudService crudService;
     private final FileActionsService fileActionsService;
-
+    
     /** CMIS 1.0 repository info. */
     private final RepositoryInfo repositoryInfo10;
     /** CMIS 1.1 repository info. */
@@ -196,10 +193,9 @@ public class FileBridgeRepository {
         }
 
         this.repositoryId = repositoryId;
-//        this.transformer = transformer;
 
-        LOGGER.info("jooq: {}", jooq);
-
+        LOGGER.info("jooq: {}", jooq);   
+        
         // check root folder
         if (rootPath == null || rootPath.trim().length() == 0) {
             throw new IllegalArgumentException("Invalid root folder!");
@@ -290,7 +286,7 @@ public class FileBridgeRepository {
      * CMIS getTypesDescendants.
      */
     public List<TypeDefinitionContainer> getTypeDescendants(CallContext context, String typeId, BigInteger depth,
-                                                            Boolean includePropertyDefinitions) {
+            Boolean includePropertyDefinitions) {
         checkUser(context, false);
 
         return typeManager.getTypeDescendants(context, typeId, depth, includePropertyDefinitions);
@@ -309,7 +305,7 @@ public class FileBridgeRepository {
      * Create* dispatch for AtomPub.
      */
     public ObjectData create(CallContext context, Properties properties, String folderId, ContentStream contentStream,
-                             VersioningState versioningState, ObjectInfoHandler objectInfos) throws Exception {
+            VersioningState versioningState, ObjectInfoHandler objectInfos) throws Exception {
         boolean userReadOnly = checkUser(context, true);
 
         String typeId = FileBridgeUtils.getObjectTypeId(properties);
@@ -320,9 +316,9 @@ public class FileBridgeRepository {
 
         String resDocId = null;
         if (type.getBaseTypeId() == BaseTypeId.CMIS_DOCUMENT) {
-            resDocId = createDocument(context, properties, folderId, contentStream, versioningState);
+        	resDocId = createDocument(context, properties, folderId, contentStream, versioningState);
         } else if (type.getBaseTypeId() == BaseTypeId.CMIS_FOLDER) {
-            resDocId = createFolder(context, properties, folderId);
+        	resDocId = createFolder(context, properties, folderId);
         } else {
             throw new CmisObjectNotFoundException("Cannot create object of type '" + typeId + "'!");
         }
@@ -341,7 +337,7 @@ public class FileBridgeRepository {
         //if (VersioningState.NONE != versioningState) {
         //    throw new CmisConstraintException("Versioning not supported!");
         //}
-
+        
         LOGGER.info("Create document in folder - "+folderId+" by user "+context.getUsername());
         // get parent
         DocumentDTO parent = getDocument(folderId);
@@ -366,11 +362,11 @@ public class FileBridgeRepository {
             // write content, if available
             if (contentStream != null && contentStream.getStream() != null) {
 
-                final String filePath = writeContent(doc, contentStream.getStream(), context.getUsername());
+                final String filePath = writeContent(doc, contentStream.getStream());
                 if (filePath != null) {
                     BigInteger fileLength = FileBridgeUtils.getIntegerProperty(properties, PropertyIds.CONTENT_STREAM_LENGTH);
                     String mimeType = FileBridgeUtils.getStringProperty(properties, PropertyIds.CONTENT_STREAM_LENGTH);
-                    LOGGER.debug("Uploaded file - " + filePath + " - " + fileLength + " - " + mimeType);
+                    LOGGER.debug("Uploaded file - {} - {} - {}",filePath, fileLength, mimeType);
                     if (fileLength == null) {
                         doc.setFileLength(0L);
                     } else {
@@ -405,7 +401,7 @@ public class FileBridgeRepository {
             throw new CmisConstraintException("Versioning not supported!");
         }
 
-        // get parent
+     // get parent
         DocumentDTO parent = getDocument(folderId);
         DocumentDTO doc = null;
         if (!isFolder(parent)) {
@@ -435,7 +431,17 @@ public class FileBridgeRepository {
 
             // copy content
 
-            writeContent(doc, new FileInputStream(source.getFilePath()), context.getUsername());
+            String filePath = writeContent(doc, new FileInputStream(source.getFilePath()));
+            if(filePath != null) {
+                BigInteger fileLength = FileBridgeUtils.getIntegerProperty(properties, PropertyIds.CONTENT_STREAM_LENGTH);
+                String mimeType = FileBridgeUtils.getStringProperty(properties, PropertyIds.CONTENT_STREAM_LENGTH);
+                doc.setFilePath(filePath);
+                doc.setFileMimeType(mimeType);
+                doc.setFileLength(fileLength!= null ? fileLength.longValue() : 0L);
+                doc.setModifier(context.getUsername());
+                doc = crudService.update(doc, context.getUsername());
+            }
+
 
             return getId(doc);
 
@@ -602,14 +608,13 @@ public class FileBridgeRepository {
     /**
      * Writes the content to disc.
      */
-    private String writeContent(DocumentDTO doc, InputStream stream, String user) throws Exception {
+    private String writeContent(DocumentDTO doc, InputStream stream) throws Exception {
         try {
             final String filePath = fileActionsService.writeFile(doc.getTitle(), doc.getId(), doc.getDocVersion(), org.apache.commons.io.IOUtils.toByteArray(stream));
             LOGGER.debug("File has been saved int the disc, path to file {}", filePath);
             doc.setFilePath(filePath);
-            DocumentDTO updated = crudService.update(doc, user);
-            LOGGER.debug("document has been updated {}", updated);
-            return updated.getTitle();
+
+            return filePath;
         } catch (IOException e) {
 
             throw new CmisStorageException("Could not write content: " + e.getMessage(), e);
@@ -622,7 +627,7 @@ public class FileBridgeRepository {
      */
     private boolean deleteFolder(DocumentDTO doc, boolean continueOnFailure, FailedToDeleteDataImpl ftd) {
         boolean success = true;
-
+        
         List<DocumentDTO> docList = crudService.findAllByParent(doc.getId());;
         for (DocumentDTO childDoc : docList) {
             if (isFolder(childDoc)) {
@@ -651,7 +656,7 @@ public class FileBridgeRepository {
 
         return success;
     }
-
+    
     /**
      * Removes a folder and its content.
      */
@@ -689,7 +694,7 @@ public class FileBridgeRepository {
      * CMIS updateProperties.
      */
     public ObjectData updateProperties(CallContext context, Holder<String> objectId, Properties properties,
-                                       ObjectInfoHandler objectInfos) {
+            ObjectInfoHandler objectInfos) {
         boolean userReadOnly = checkUser(context, true);
 
         // check object id
@@ -711,9 +716,9 @@ public class FileBridgeRepository {
             throw new CmisNameConstraintViolationException("Name is not valid!");
         }
 
-
+       
         if (isRename) {
-            doc.setTitle(newName);
+        	doc.setTitle(newName);
 //        	repository.update(Document.getBuilder(doc.getTitle()).modifier(context.getUsername()).id(doc.getId()).build());
             crudService.update(doc ,context.getUsername());
         }
@@ -725,8 +730,8 @@ public class FileBridgeRepository {
      * CMIS bulkUpdateProperties.
      */
     public List<BulkUpdateObjectIdAndChangeToken> bulkUpdateProperties(CallContext context,
-                                                                       List<BulkUpdateObjectIdAndChangeToken> objectIdAndChangeToken, Properties properties,
-                                                                       ObjectInfoHandler objectInfos) {
+            List<BulkUpdateObjectIdAndChangeToken> objectIdAndChangeToken, Properties properties,
+            ObjectInfoHandler objectInfos) {
         checkUser(context, true);
 
         if (objectIdAndChangeToken == null) {
@@ -757,7 +762,7 @@ public class FileBridgeRepository {
      * CMIS getObject.
      */
     public ObjectData getObject(CallContext context, String objectId, String versionServicesId, String filter,
-                                Boolean includeAllowableActions, Boolean includeAcl, ObjectInfoHandler objectInfos) {
+            Boolean includeAllowableActions, Boolean includeAcl, ObjectInfoHandler objectInfos) {
         boolean userReadOnly = checkUser(context, false);
 
         LOGGER.info("getObject ID: {}", objectId);
@@ -772,7 +777,7 @@ public class FileBridgeRepository {
             objectId = versionServicesId;
         }
         DocumentDTO doc = getDocument(objectId);
-
+        
         // set defaults if values not set
         boolean iaa = FileBridgeUtils.getBooleanParameter(includeAllowableActions, false);
         boolean iacl = FileBridgeUtils.getBooleanParameter(includeAcl, false);
@@ -784,7 +789,7 @@ public class FileBridgeRepository {
         return compileObjectData(context, doc, filterCollection, iaa, iacl, userReadOnly, objectInfos);
     }
 
-    /**
+	/**
      * CMIS getAllowableActions.
      */
     public AllowableActions getAllowableActions(CallContext context, String objectId) {
@@ -847,12 +852,12 @@ public class FileBridgeRepository {
         return result;
     }
 
-    /**
+	/**
      * CMIS getChildren.
      */
     public ObjectInFolderList getChildren(CallContext context, String objectId, String filter,
-                                          Boolean includeAllowableActions, Boolean includePathSegment, BigInteger maxItems, BigInteger skipCount,
-                                          ObjectInfoHandler objectInfos) {
+            Boolean includeAllowableActions, Boolean includePathSegment, BigInteger maxItems, BigInteger skipCount,
+            ObjectInfoHandler objectInfos) {
         boolean userReadOnly = checkUser(context, false);
 
         // split filter
@@ -861,13 +866,13 @@ public class FileBridgeRepository {
         // set defaults if values not set
         boolean iaa = FileBridgeUtils.getBooleanParameter(includeAllowableActions, false);
         boolean ips = FileBridgeUtils.getBooleanParameter(includePathSegment, false);
-
+        
         LOGGER.info("Folder ID: {}", objectId);
         Long parent = Long.parseLong(objectId);
         List<DocumentDTO> docList = crudService.findAllByParent(parent);
-
+        
         LOGGER.debug("Found {} Document entries.", docList != null ? docList.size() : null);
-
+        
 
         // skip and max
         int skip = (skipCount == null ? 0 : skipCount.intValue());
@@ -881,7 +886,7 @@ public class FileBridgeRepository {
         }
 
         DocumentDTO curdoc = getDocument(objectId);
-
+        
         if (context.isObjectInfoRequired()) {
             compileObjectData(context, curdoc, null, false, false, userReadOnly, objectInfos);
         }
@@ -893,7 +898,7 @@ public class FileBridgeRepository {
         int count = 0;
 
         for (DocumentDTO doc : docList){
-            count++;
+        	count++;
 
             if (skip > 0) {
                 skip--;
@@ -915,8 +920,8 @@ public class FileBridgeRepository {
 
             result.getObjects().add(objectInFolder);
         }
-
-
+        
+       
         result.setNumItems(BigInteger.valueOf(count));
 
         return result;
@@ -926,8 +931,8 @@ public class FileBridgeRepository {
      * CMIS getDescendants.
      */
     public List<ObjectInFolderContainer> getDescendants(CallContext context, String folderId, BigInteger depth,
-                                                        String filter, Boolean includeAllowableActions, Boolean includePathSegment, ObjectInfoHandler objectInfos,
-                                                        boolean foldersOnly) {
+            String filter, Boolean includeAllowableActions, Boolean includePathSegment, ObjectInfoHandler objectInfos,
+            boolean foldersOnly) {
         boolean userReadOnly = checkUser(context, false);
 
         // check depth
@@ -984,7 +989,7 @@ public class FileBridgeRepository {
      * CMIS getObjectParents.
      */
     public List<ObjectParentData> getObjectParents(CallContext context, String objectId, String filter,
-                                                   Boolean includeAllowableActions, Boolean includeRelativePathSegment, ObjectInfoHandler objectInfos) {
+            Boolean includeAllowableActions, Boolean includeRelativePathSegment, ObjectInfoHandler objectInfos) {
         boolean userReadOnly = checkUser(context, false);
 
         // split filter
@@ -1024,7 +1029,7 @@ public class FileBridgeRepository {
      * CMIS getObjectByPath.
      */
     public ObjectData getObjectByPath(CallContext context, String folderPath, String filter,
-                                      boolean includeAllowableActions, boolean includeACL, ObjectInfoHandler objectInfos) {
+            boolean includeAllowableActions, boolean includeACL, ObjectInfoHandler objectInfos) {
         boolean userReadOnly = checkUser(context, false);
 
         // split filter
@@ -1046,7 +1051,7 @@ public class FileBridgeRepository {
      * CMIS query (simple IN_FOLDER queries only)
      */
     public ObjectList query(CallContext context, String statement, Boolean includeAllowableActions,
-                            BigInteger maxItems, BigInteger skipCount, ObjectInfoHandler objectInfos) {
+            BigInteger maxItems, BigInteger skipCount, ObjectInfoHandler objectInfos) {
         boolean userReadOnly = checkUser(context, false);
 
         Matcher matcher = IN_FOLDER_QUERY_PATTERN.matcher(statement.trim());
@@ -1193,7 +1198,7 @@ public class FileBridgeRepository {
      * Compiles an object type object from a document.
      */
     private ObjectData compileObjectData(CallContext context, DocumentDTO doc, Set<String> filter,
-                                         boolean includeAllowableActions, boolean includeAcl, boolean userReadOnly, ObjectInfoHandler objectInfos) {
+            boolean includeAllowableActions, boolean includeAcl, boolean userReadOnly, ObjectInfoHandler objectInfos) {
         ObjectDataImpl result = new ObjectDataImpl();
         ObjectInfoImpl objectInfo = new ObjectInfoImpl();
 
@@ -1204,8 +1209,8 @@ public class FileBridgeRepository {
         }
 
         if (includeAcl) {
-            // result.setAcl(compileAcl(file));
-            // result.setIsExactAcl(true);
+           // result.setAcl(compileAcl(file));
+           // result.setIsExactAcl(true);
         }
 
         if (context.isObjectInfoRequired()) {
@@ -1215,12 +1220,12 @@ public class FileBridgeRepository {
 
         return result;
     }
-
+    
     /**
      * Compiles an object type object from a file or folder.
      */
     private ObjectData compileObjectData(CallContext context, File file, Set<String> filter,
-                                         boolean includeAllowableActions, boolean includeAcl, boolean userReadOnly, ObjectInfoHandler objectInfos) {
+            boolean includeAllowableActions, boolean includeAcl, boolean userReadOnly, ObjectInfoHandler objectInfos) {
         ObjectDataImpl result = new ObjectDataImpl();
         ObjectInfoImpl objectInfo = new ObjectInfoImpl();
 
@@ -1247,7 +1252,7 @@ public class FileBridgeRepository {
      * Gathers all base properties of a document.
      */
     private Properties compileProperties(CallContext context, DocumentDTO doc, Set<String> orgfilter,
-                                         ObjectInfoImpl objectInfo) {
+            ObjectInfoImpl objectInfo) {
         if (doc == null) {
             throw new IllegalArgumentException("File must not be null!");
         }
@@ -1315,17 +1320,17 @@ public class FileBridgeRepository {
             // created and modified by
             String createdBy = doc.getAuthor();
             if (createdBy==null){
-                createdBy = USER_UNKNOWN;
+            	createdBy = USER_UNKNOWN;
             }
             addPropertyString(result, typeId, filter, PropertyIds.CREATED_BY, createdBy);
-
+            
             String modifiedBy = doc.getModifier();
             if (modifiedBy==null){
-                modifiedBy = USER_UNKNOWN;
+            	modifiedBy = USER_UNKNOWN;
             }
             addPropertyString(result, typeId, filter, PropertyIds.LAST_MODIFIED_BY, modifiedBy);
             objectInfo.setCreatedBy(createdBy);
-
+            
             // creation and modification date
             LOGGER.debug("doc.getCreationTime() - "+doc.getCreationTime());
             GregorianCalendar created = FileBridgeUtils.millisToCalendar(doc.getCreationTime().toDateTime().getMillis());
@@ -1354,7 +1359,7 @@ public class FileBridgeRepository {
 
                 // folder properties
                 if (doc.getId()!=0) {
-                    DocumentDTO firstParentDoc = getFirstParent(doc.getId());
+                	DocumentDTO firstParentDoc = getFirstParent(doc.getId());
                     addPropertyId(result, typeId, filter, PropertyIds.PARENT_ID,getId(firstParentDoc));
                     objectInfo.setHasParent(true);
                 } else {
@@ -1392,11 +1397,11 @@ public class FileBridgeRepository {
                     objectInfo.setContentType(null);
                     objectInfo.setFileName(null);
                 } else {
-                    if (doc.getFileLength()==null){
-                        addPropertyBigInteger(result, typeId, filter, PropertyIds.CONTENT_STREAM_LENGTH, null);
-                    }else{
-                        addPropertyInteger(result, typeId, filter, PropertyIds.CONTENT_STREAM_LENGTH, doc.getFileLength());
-                    }
+                	if (doc.getFileLength()==null){
+                		addPropertyBigInteger(result, typeId, filter, PropertyIds.CONTENT_STREAM_LENGTH, null);
+                	}else{
+                		addPropertyInteger(result, typeId, filter, PropertyIds.CONTENT_STREAM_LENGTH, doc.getFileLength());
+                	}
                     addPropertyString(result, typeId, filter, PropertyIds.CONTENT_STREAM_MIME_TYPE, doc.getFileMimeType());
                     addPropertyString(result, typeId, filter, PropertyIds.CONTENT_STREAM_FILE_NAME, doc.getTitle());
 
@@ -1415,22 +1420,22 @@ public class FileBridgeRepository {
             throw new CmisRuntimeException(e.getMessage(), e);
         }
     }
-
+    
     private DocumentDTO getFirstParent(Long objectId) {
         final List<DocumentDTO> docList = crudService.findParents(objectId);
-        return docList != null && docList.size() > 0 ? docList.get(0) : null;
+		return docList != null && docList.size() > 0 ? docList.get(0) : null;
     }
-
+    
     private String getId(DocumentDTO doc) {
-
-        return ID_PREFIX+doc.getId().toString();
-    }
-
+		
+		return ID_PREFIX+doc.getId().toString();
+	}
+    
 
     private DocumentDTO getDocument(String objectId) {
 
-        Long id = Long.parseLong(objectId);
-
+    	Long id = Long.parseLong(objectId);
+    	
 //    	Document found = repository.findById(id);
         DocumentDTO found = crudService.findById(id);
         if(found == null)
@@ -1439,17 +1444,17 @@ public class FileBridgeRepository {
         LOGGER.info("Found Document entry: {}", found);
 
         return found;
-    }
-
+	}
+    
     private boolean isFolder(DocumentDTO doc) {
-        return "folder".equals(doc.getType());
+    	return "folder".equals(doc.getType());
     }
 
-    /**
+	/**
      * Gathers all base properties of a file or folder.
      */
     private Properties compileProperties(CallContext context, File file, Set<String> orgfilter,
-                                         ObjectInfoImpl objectInfo) {
+            ObjectInfoImpl objectInfo) {
         if (file == null) {
             throw new IllegalArgumentException("File must not be null!");
         }
@@ -1766,7 +1771,7 @@ public class FileBridgeRepository {
     }
 
     private void addPropertyIdList(PropertiesImpl props, String typeId, Set<String> filter, String id,
-                                   List<String> value) {
+            List<String> value) {
         if (!checkAddProperty(props, typeId, filter, id)) {
             return;
         }
@@ -1787,7 +1792,7 @@ public class FileBridgeRepository {
     }
 
     private void addPropertyBigInteger(PropertiesImpl props, String typeId, Set<String> filter, String id,
-                                       BigInteger value) {
+            BigInteger value) {
         if (!checkAddProperty(props, typeId, filter, id)) {
             return;
         }
@@ -1804,7 +1809,7 @@ public class FileBridgeRepository {
     }
 
     private void addPropertyDateTime(PropertiesImpl props, String typeId, Set<String> filter, String id,
-                                     GregorianCalendar value) {
+            GregorianCalendar value) {
         if (!checkAddProperty(props, typeId, filter, id)) {
             return;
         }
@@ -1927,10 +1932,10 @@ public class FileBridgeRepository {
 
     /**
      * Checks if the given name is valid for a file system.
-     *
+     * 
      * @param name
      *            the name to check
-     *
+     * 
      * @return <code>true</code> if the name is valid, <code>false</code>
      *         otherwise
      */
@@ -1942,10 +1947,10 @@ public class FileBridgeRepository {
     /**
      * Checks if a folder is empty. A folder is considered as empty if no files
      * or only the shadow file reside in the folder.
-     *
+     * 
      * @param folder
      *            the folder
-     *
+     * 
      * @return <code>true</code> if the folder is empty.
      */
     private boolean isFolderEmpty(final File folder) {
@@ -1982,7 +1987,7 @@ public class FileBridgeRepository {
         LOGGER.debug("crud service {} ", crudService);
         LOGGER.debug("username from context {} ", context.getUsername());
         crudService.setUser(context.getUsername());
-
+        
         return readOnly;
     }
 

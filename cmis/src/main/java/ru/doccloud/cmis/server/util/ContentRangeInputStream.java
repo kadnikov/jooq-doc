@@ -20,7 +20,7 @@
  * It is part of a training exercise and not intended for production use!
  *
  */
-package ru.doccloud.cmis.server;
+package ru.doccloud.cmis.server.util;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -36,7 +36,7 @@ public class ContentRangeInputStream extends FilterInputStream {
     private long offset;
     private long remaining;
 
-    ContentRangeInputStream(InputStream stream, BigInteger offset, BigInteger length) {
+    public ContentRangeInputStream(InputStream stream, BigInteger offset, BigInteger length) {
         super(stream);
 
         this.offset = offset != null ? offset.longValue() : 0;

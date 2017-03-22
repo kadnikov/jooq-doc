@@ -20,31 +20,33 @@
  * It is part of a training exercise and not intended for production use!
  *
  */
-package ru.doccloud.cmis.server;
+package ru.doccloud.cmis.server.repository;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 /**
  * Manages all repositories.
  */
-@Repository
+@Component
 public class FileBridgeRepositoryManager {
 
     private final Map<String, FileBridgeRepository> repositories;
 
-    FileBridgeRepositoryManager() {
-        repositories = new HashMap<String, FileBridgeRepository>();
+    public FileBridgeRepositoryManager() {
+        repositories = new ConcurrentHashMap<>();
     }
 
     /**
      * Adds a repository object.
      */
-    void addRepository(FileBridgeRepository fsr) {
+    public void addRepository(FileBridgeRepository fsr) {
         if (fsr == null || fsr.getRepositoryId() == null) {
             return;
         }
@@ -55,7 +57,7 @@ public class FileBridgeRepositoryManager {
     /**
      * Gets a repository object by id.
      */
-    FileBridgeRepository getRepository(String repositoryId) {
+    public FileBridgeRepository getRepository(String repositoryId) {
         FileBridgeRepository result = repositories.get(repositoryId);
         if (result == null) {
             throw new CmisObjectNotFoundException("Unknown repository '" + repositoryId + "'!");

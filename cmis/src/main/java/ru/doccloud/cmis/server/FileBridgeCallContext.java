@@ -36,7 +36,7 @@ public class FileBridgeCallContext extends CallContextWrapper {
     private final static String REQUEST_TIMESTAMP_KEY = "request.timestamp";
     private GregorianCalendar requestTimestamp;
 
-    FileBridgeCallContext(CallContext context) {
+    public FileBridgeCallContext(CallContext context) {
         super(context);
     }
 
@@ -57,7 +57,7 @@ public class FileBridgeCallContext extends CallContextWrapper {
      * @param requestTimestamp
      *            the timestamp
      */
-    void setRequestTimestamp(GregorianCalendar requestTimestamp) {
+    public void setRequestTimestamp(GregorianCalendar requestTimestamp) {
         this.requestTimestamp = requestTimestamp;
     }
 
