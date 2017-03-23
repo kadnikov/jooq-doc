@@ -31,6 +31,8 @@ public interface DocumentCrudService {
 
     public DocumentDTO findById(final Long id);
 
+    public DocumentDTO findByUUID(final String uuid);
+
     public DocumentDTO update(final DocumentDTO updated, final String user);
 	
 	public List<DocumentDTO> findAllByParent(final Long parentid);

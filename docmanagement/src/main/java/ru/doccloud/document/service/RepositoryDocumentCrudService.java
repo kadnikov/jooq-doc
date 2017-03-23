@@ -157,10 +157,23 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         
         Document found = repository.findById(id);
 
-        LOGGER.info("Found Document entry: {}", found);
+        LOGGER.debug("Found Document entry: {}", found);
 
         return transformer.convert(found, new DocumentDTO());
     }
+
+    @Transactional(readOnly = true)
+    @Override
+    public DocumentDTO findByUUID(final String uuid) {
+        LOGGER.info("Finding Document entry with id: {}", uuid);
+
+        Document found = repository.findByUUID(uuid);
+
+        LOGGER.debug("Found Document entry: {}", found);
+
+        return transformer.convert(found, new DocumentDTO());
+    }
+
 
     @Transactional
     @Override

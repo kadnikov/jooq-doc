@@ -1438,7 +1438,6 @@ public class FileBridgeRepository {
 
     	Long id = Long.parseLong(objectId);
     	
-//    	Document found = repository.findById(id);
         DocumentDTO found = crudService.findById(id);
         if(found == null)
             throw new DocumentNotFoundException("Document " + found + " was not found in database");

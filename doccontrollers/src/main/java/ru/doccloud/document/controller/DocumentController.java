@@ -213,6 +213,18 @@ public class DocumentController {
         return found;
     }
 
+    @RequestMapping(value = "/{uuid}", method = RequestMethod.GET)
+    public DocumentDTO findByUUID(@PathVariable("id") String uuid) {
+        LOGGER.info("Finding Document entry with id: {}", uuid);
+
+        DocumentDTO found = crudService.findByUUID(uuid);
+
+        LOGGER.info("Found Document entry: {}", found);
+
+        return found;
+    }
+
+
     @RequestMapping(value = "/search", method = RequestMethod.GET)
     public Page<DocumentDTO> findBySearchTerm(@RequestParam("searchTerm") String searchTerm, Pageable pageable) {
         LOGGER.info("Finding {} Document entries for page {} by using search term: {}",

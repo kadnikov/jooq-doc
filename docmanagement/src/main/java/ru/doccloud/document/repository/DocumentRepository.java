@@ -43,6 +43,15 @@ public interface DocumentRepository {
      */
     public Document findById(Long id);
 
+    /**
+     * Finds a Document entry.
+     * @param uuid    The uuid of the requested Document entry.
+     * @return  The found Document entry.
+     * @throws DocumentNotFoundException If Document entry is not found.
+     */
+    public Document findByUUID(String uuid);
+
+
     public Page<Document> findBySearchTerm(String searchTerm, Pageable pageable);
 
     /**

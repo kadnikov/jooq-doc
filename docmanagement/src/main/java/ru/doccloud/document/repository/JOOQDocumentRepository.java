@@ -9,6 +9,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -327,6 +328,24 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
         if (queryResult == null) {
             throw new DocumentNotFoundException("No Document entry found with id: " + id);
+        }
+
+        return DocumentConverter.convertQueryResultToModelObject(queryResult);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Document findByUUID(String uuid) {
+        LOGGER.debug("findByUUID uuid {}", uuid);
+
+        DocumentsRecord queryResult = jooq.selectFrom(DOCUMENTS)
+                .where(DOCUMENTS.SYS_UUID.equal( UUID.fromString(uuid)))
+                .fetchOne();
+
+        LOGGER.debug("Got result: {}", queryResult);
+
+        if (queryResult == null) {
+            throw new DocumentNotFoundException("No Document entry found with uuid: " + uuid);
         }
 
         return DocumentConverter.convertQueryResultToModelObject(queryResult);
