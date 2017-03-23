@@ -1,36 +1,28 @@
-package ru.doccloud.document.controller.util;
+package ru.doccloud.document.repository;
 
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import ru.doccloud.common.util.PropertyReader;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
-@Component("fileHelper")
-public class FileHelper {
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileHelper.class);
+@Component("fileRepository")
+public class FileRepositoryImpl implements FileRepository {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileRepositoryImpl.class);
     private static final String CONFIG_FILENAME = "/repository.properties";
     private static final String FILE_PATH_PROPERTY = "repository.test";
 
 
-//    todo remove after finish cmis intergration
-    public FileHelper() {
-    }
-
-//    todo change id on uuid
     public String writeFile(final UUID uuid, final byte[] fileArr) throws Exception {
         LOGGER.debug("writing file {} to filesystem", uuid);
         try {

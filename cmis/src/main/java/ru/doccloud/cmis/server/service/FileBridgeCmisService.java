@@ -210,11 +210,12 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
         try {
             object = getRepository().create(getCallContext(), properties, folderId, contentStream,
                     versioningState, this);
+            return object.getId();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return object.getId();
+        return null;
     }
 
     @Override

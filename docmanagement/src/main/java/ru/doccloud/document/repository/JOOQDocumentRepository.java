@@ -60,6 +60,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JOOQDocumentRepository.class);
 
+
     private final DateTimeService dateTimeService;
 
     private final DSLContext jooq;

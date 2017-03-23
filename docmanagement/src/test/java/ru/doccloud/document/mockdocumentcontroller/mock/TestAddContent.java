@@ -1,7 +1,6 @@
 package ru.doccloud.document.mockdocumentcontroller.mock;
 
 import org.junit.Before;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
@@ -12,7 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import ru.doccloud.document.controller.util.FileHelper;
+import ru.doccloud.document.repository.FileRepositoryImpl;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -25,11 +24,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringJUnit4ClassRunner.class)
 public class TestAddContent {
 
-    private FileHelper fileHelper;
+    private FileRepositoryImpl fileRepositoryImpl;
     private final String filePath = "/home/ilya/filenet_workspace/tasks.txt";
     @Before
     public void init(){
-        fileHelper = new FileHelper();
+        fileRepositoryImpl = new FileRepositoryImpl();
     }
 
     @Autowired
@@ -53,6 +52,6 @@ public class TestAddContent {
 
 
     private byte[] getFileAsByteArr(String filePath) throws Exception {
-        return fileHelper.readFile(filePath);
+        return fileRepositoryImpl.readFile(filePath);
     }
 }
