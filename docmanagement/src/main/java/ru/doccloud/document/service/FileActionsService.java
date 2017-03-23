@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.doccloud.document.dto.DocumentDTO;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Ilya Ushakov
@@ -13,7 +14,7 @@ import java.util.List;
 
 public interface FileActionsService {
 
-    public String writeFile(final String fileName, final Long docId, final String docVersion, final byte[] fileArr) throws Exception;
+    public String writeFile(final UUID uuid, final byte[] fileArr) throws Exception;
 
     public byte[] readFile(final String filePath) throws Exception;
 

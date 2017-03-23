@@ -376,6 +376,8 @@ public class FileBridgeRepository {
                     doc.setFileMimeType(mimeType);
                     doc.setModifier(context.getUsername());
                     crudService.updateFileInfo(doc);
+
+
                 }
             }
 
@@ -610,7 +612,7 @@ public class FileBridgeRepository {
      */
     private String writeContent(DocumentDTO doc, InputStream stream) throws Exception {
         try {
-            final String filePath = fileActionsService.writeFile(doc.getTitle(), doc.getId(), doc.getDocVersion(), org.apache.commons.io.IOUtils.toByteArray(stream));
+            final String filePath = fileActionsService.writeFile( doc.getUuid(), org.apache.commons.io.IOUtils.toByteArray(stream));
             LOGGER.debug("File has been saved int the disc, path to file {}", filePath);
             doc.setFilePath(filePath);
 

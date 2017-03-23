@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.doccloud.document.controller.util.FileHelper;
 
+import java.util.UUID;
+
 @Service
 public class FileActionsServiceImpl implements FileActionsService {
 
@@ -21,8 +23,8 @@ public class FileActionsServiceImpl implements FileActionsService {
     }
 
     @Override
-    public String writeFile(final String fileName, final Long docId, final String docVersion, final byte[] fileArr) throws Exception {
-        return fileHelper.writeFile(fileName, docId, docVersion, fileArr);
+    public String writeFile(final UUID uuid,  final byte[] fileArr) throws Exception {
+        return fileHelper.writeFile(uuid, fileArr);
     }
 
     @Override

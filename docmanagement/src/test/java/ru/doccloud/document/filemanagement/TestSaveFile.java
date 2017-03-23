@@ -5,6 +5,8 @@ import org.junit.Before;
 import org.junit.Test;
 import ru.doccloud.document.controller.util.FileHelper;
 
+import java.util.UUID;
+
 public class TestSaveFile {
 
     private FileHelper fileHelper;
@@ -18,7 +20,7 @@ public class TestSaveFile {
     public void writeFile(){
 
         try {
-            String fileName1 = fileHelper.writeFile("testFileNama", 1l, "0.1", getFileAsByteArr(filePath));
+            String fileName1 = fileHelper.writeFile( UUID.randomUUID(), getFileAsByteArr(filePath));
             System.out.println("fileName1 " + fileName1);
         } catch (Exception e) {
             e.printStackTrace();
@@ -31,7 +33,7 @@ public class TestSaveFile {
         for(int i=0; i <15; i++){
             fileName = fileName + i;
             try {
-                String fileName1 = fileHelper.writeFile("testFileNama", 1l, "0.1", getFileAsByteArr(filePath));
+                String fileName1 = fileHelper.writeFile(UUID.randomUUID(),  getFileAsByteArr(filePath));
                 System.out.println("fileName1 " + fileName1);
             } catch (Exception e) {
                 e.printStackTrace();

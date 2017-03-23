@@ -1,18 +1,13 @@
 package ru.doccloud.document.controller;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
-import org.apache.commons.fileupload.disk.DiskFileItem;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,9 +21,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import ru.doccloud.common.util.VersionHelper;
-import ru.doccloud.document.controller.util.FileHelper;
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.service.DocumentCrudService;
 import ru.doccloud.document.service.DocumentSearchService;
@@ -265,14 +258,13 @@ public class DocumentController {
     }
 
     private void initFileParamsFromRequest(DocumentDTO dto, MultipartFile mpf) throws Exception {
-        LOGGER.debug("file length " + mpf.getBytes().length + " fileContentType " + mpf.getContentType() + " orig fileNmae " + mpf.getOriginalFilename());
         dto.setFileLength((long) mpf.getBytes().length);
         dto.setFileMimeType(mpf.getContentType());
         dto.setFileName(mpf.getOriginalFilename());
     }
 
-    private String writeFile(String fileName, Long docId, String docVersion, byte[] bytes) throws Exception {
-        return fileActionsService.writeFile(fileName, docId, docVersion, bytes);
+    private String writeContent(UUID uuid, byte[] bytes) throws Exception {
+        return fileActionsService.writeFile(uuid, bytes);
     }
 
 
@@ -282,7 +274,7 @@ public class DocumentController {
                 throw new Exception("The multipart file contains either empty content type or empty filename or does not contain data");
             LOGGER.debug("the document: {} has been added", dto);
             LOGGER.debug("start adding file to FS");
-            dto.setFilePath(writeFile(dto.getFileName(), dto.getId(), dto.getDocVersion(),  mpf.getBytes()));
+            dto.setFilePath(writeContent(dto.getUuid(), mpf.getBytes()));
             DocumentDTO updated = crudService.update(dto, user);
             LOGGER.debug("Dto object has been updated: {}", updated);
             return updated;
@@ -290,9 +282,8 @@ public class DocumentController {
         catch (Exception e) {
 
 //            todo add custom Exception
-            LOGGER.error("The exception has been occured while addContent method is executing " + e.getMessage());
+            LOGGER.error("The exception has been occured while addContent method is executing {} {}", e.getMessage(), e);
             crudService.delete(dto.getId());
-            e.printStackTrace();
             throw new Exception("Error has been occured " + e.getMessage());
         }
     }

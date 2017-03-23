@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.UUID;
 
 @Component("fileHelper")
 public class FileHelper {
@@ -29,17 +30,16 @@ public class FileHelper {
     public FileHelper() {
     }
 
-    public String writeFile(final String fileName, final Long docId, final String docVersion, final byte[] fileArr) throws Exception {
-        LOGGER.info("writing file " + fileName + " to filesystem");
+//    todo change id on uuid
+    public String writeFile(final UUID uuid, final byte[] fileArr) throws Exception {
+        LOGGER.debug("writing file {} to filesystem", uuid);
         try {
 //            todo expand functionality to write to remote server
             final String directoryPath = PropertyReader.getProperty(CONFIG_FILENAME, FILE_PATH_PROPERTY);
             if(StringUtils.isBlank(directoryPath) )
                 throw new Exception("property file " + CONFIG_FILENAME + " or such property " + FILE_PATH_PROPERTY + " does not exist");
 
-            String fileNameWithoutExt = FilenameUtils.removeExtension(fileName);
-            LOGGER.debug("THe file name without extenssion " + fileNameWithoutExt + " will be split into two parts");
-            final String[] folders = getFolderNames(fileNameWithoutExt);
+            final String[] folders = getFolderNames(uuid.toString());
 
             final String folderLvl1 = folders[0];
             final String folderLvl2 = folders[1];
@@ -49,7 +49,7 @@ public class FileHelper {
             Path path = Paths.get(filePath);
             if(Files.notExists(Paths.get(filePath), LinkOption.NOFOLLOW_LINKS)) {
 //                todo add recursion to for creating and checking file
-                LOGGER.debug("The folder " + filePath + " does not exist. Folder will be created");
+
                 Files.createDirectories(path);
             }
 
@@ -57,24 +57,22 @@ public class FileHelper {
             path = Paths.get(filePath);
             if(Files.notExists(Paths.get(filePath), LinkOption.NOFOLLOW_LINKS)) {
 //                todo add recursion to for creating and checking file
-                LOGGER.debug("The folder " + filePath + " does not exist. Folder will be created");
+                LOGGER.debug("The folder {} does not exist. Folder will be created", filePath);
                 Files.createDirectories(path);
             }
 
 
-            filePath = filePath + "/" + generateFileName(fileName, docId, docVersion);
+            filePath = filePath + "/" + uuid;
 
-            LOGGER.debug("The filePath for file  " + filePath );
+            LOGGER.debug("The filePath for file  {}", filePath );
             File file = new File(filePath);
             Files.write(file.toPath(), fileArr);
 
-            LOGGER.debug("The file was written to path obj  ");
-            LOGGER.info("the file " + fileName + " was written to " + file.getAbsolutePath());
+            LOGGER.info("the file {} was written to {} {}", file.getName(), file.getAbsolutePath());
             return file.getAbsolutePath();
         } catch (IOException e) {
-            LOGGER.error("Exception has been thrown while file was writing " + e.getMessage());
+            LOGGER.error("Exception has been thrown while file was writing {} {}", e.getMessage(), e);
 
-            e.printStackTrace();
             throw new Exception("Exception has been thrown while file was writing " + e.getMessage());
         }
 
@@ -87,16 +85,6 @@ public class FileHelper {
     private  String[] getFolderNames(String fileName){
         final int mid = fileName.length() / 2;
         return new String[]{fileName.substring(0, mid),fileName.substring(mid)};
-    }
-
-
-    private String generateFileName(final String fileNameWithExtension, final Long docId, final String docVersion) {
-        String basename = FilenameUtils.getBaseName(fileNameWithExtension);
-        String extension = FilenameUtils.getExtension(fileNameWithExtension);
-
-        LOGGER.debug("base filename " + basename + "\n extension " + extension);
-
-        return docVersion + "_" + docId + "." + extension;
     }
 
 }

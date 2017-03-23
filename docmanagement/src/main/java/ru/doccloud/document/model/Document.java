@@ -1,6 +1,7 @@
 package ru.doccloud.document.model;
 
 import java.sql.Timestamp;
+import java.util.UUID;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -41,6 +42,8 @@ public class Document {
     
     private final JsonNode data;
 
+    private final UUID uuid;
+
     private Document(Builder builder) {
         this.id = builder.id;
 
@@ -76,6 +79,7 @@ public class Document {
         
         this.data = builder.data;
         this.docVersion = builder.docVersion;
+        this.uuid = builder.uuid;
     }
 
     public static Builder getBuilder(String title) {
@@ -118,6 +122,10 @@ public class Document {
         return fileName;
     }
 
+    public UUID getUuid() {
+        return uuid;
+    }
+
     @Override
     public String toString() {
         return "Document{" +
@@ -135,6 +143,7 @@ public class Document {
                 ", type='" + type + '\'' +
                 ", docVersion='" + docVersion + '\'' +
                 ", data=" + data +
+                ", uuid=" + uuid +
                 '}';
     }
 
@@ -187,6 +196,8 @@ public class Document {
         private JsonNode data;
 
         private String docVersion;
+
+        private UUID uuid;
 
         public Builder(String title) {
             this.title = title;
@@ -257,6 +268,11 @@ public class Document {
         
         public Builder docVersion(String docVersion){
             this.docVersion = docVersion;
+            return this;
+        }
+
+        public Builder uuid(UUID uuid){
+            this.uuid = uuid;
             return this;
         }
 

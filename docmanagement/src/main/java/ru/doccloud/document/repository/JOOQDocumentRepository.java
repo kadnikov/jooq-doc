@@ -218,6 +218,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
         selectedFields.add(DOCUMENTS.SYS_TYPE);
         selectedFields.add(DOCUMENTS.SYS_FILE_NAME);
         selectedFields.add(DOCUMENTS.SYS_VERSION);
+        selectedFields.add(DOCUMENTS.SYS_UUID);
         if (fields!=null){
             for (String field : fields) {
                 selectedFields.add(jsonObject(DOCUMENTS.DATA, field).as(field));
@@ -364,12 +365,6 @@ public class JOOQDocumentRepository implements DocumentRepository {
         return new PageImpl<>(documentEntries, pageable, totalCount);
     }
 
-
-
-
-
-
-
     @Transactional
     @Override
     public Document update(Document documentEntry) {
@@ -448,7 +443,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
 		Links l = LINKS.as("l");
 		Documents t = DOCUMENTS.as("t");
 		
-        List<DocumentsRecord> queryResults = jooq.select(d.ID, d.SYS_TITLE, d.SYS_AUTHOR, d.SYS_DATE_CR, d.SYS_DATE_MOD, d.SYS_DESC, d.SYS_MODIFIER, d.SYS_FILE_PATH, d.SYS_TYPE, d.SYS_FILE_NAME)
+        List<DocumentsRecord> queryResults = jooq.select(d.ID, d.SYS_TITLE, d.SYS_AUTHOR, d.SYS_DATE_CR, d.SYS_DATE_MOD, d.SYS_DESC, d.SYS_MODIFIER, d.SYS_FILE_PATH, d.SYS_TYPE, d.SYS_FILE_NAME, d.SYS_UUID)
         		.from(d
         		.join(l
         				.join(t)
@@ -472,7 +467,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
 		Links l = LINKS.as("l");
 		Documents t = DOCUMENTS.as("t");
 		
-        List<DocumentsRecord> queryResults = jooq.select(d.ID, d.SYS_TITLE, d.SYS_AUTHOR, d.SYS_DATE_CR, d.SYS_DATE_MOD, d.SYS_DESC, d.SYS_MODIFIER, d.SYS_FILE_PATH, d.SYS_TYPE, d.SYS_FILE_NAME)
+        List<DocumentsRecord> queryResults = jooq.select(d.ID, d.SYS_TITLE, d.SYS_AUTHOR, d.SYS_DATE_CR, d.SYS_DATE_MOD, d.SYS_DESC, d.SYS_MODIFIER, d.SYS_FILE_PATH, d.SYS_TYPE, d.SYS_FILE_NAME, d.SYS_UUID)
         		.from(d
         		.join(l
         				.join(t)
@@ -597,9 +592,6 @@ public class JOOQDocumentRepository implements DocumentRepository {
         }
     }
 
-
-
-
 	private static class DocumentConverter{
         private static Document convertQueryResultToModelObject(Record queryResult, String[] fields) {
             ObjectNode data = JsonNodeFactory.instance.objectNode();
@@ -625,6 +617,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
                     .modifier(queryResult.getValue(DOCUMENTS.SYS_MODIFIER))
                     .filePath(queryResult.getValue(DOCUMENTS.SYS_FILE_PATH))
                     .fileName(queryResult.getValue(DOCUMENTS.SYS_FILE_NAME))
+                    .uuid(queryResult.getValue(DOCUMENTS.SYS_UUID))
                     .data(data)
                     .build();
         }
@@ -645,6 +638,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
                     .fileLength(queryResult.getSysFileLength())
                     .fileName(queryResult.getSysFileName())
                     .docVersion(queryResult.getSysVersion())
+                    .uuid(queryResult.getSysUuid())
                     .build();
         }
 

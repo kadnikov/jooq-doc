@@ -24,7 +24,7 @@ create table if not exists documents (
   sys_file_mime_type text,
   sys_file_name text,
   sys_file_length bigint,
-
+  sys_uuid UUID DEFAULT uuid_generate_v4() NOT NULL,
   data jsonb
 );
 

@@ -15,6 +15,8 @@ import ru.doccloud.common.json.CustomJsonDataSerializer;
 import ru.doccloud.common.json.CustomLocalDateTimeDeserializer;
 import ru.doccloud.common.json.CustomLocalDateTimeSerializer;
 
+import java.util.UUID;
+
 /**
  * @author Andrey Kadnikov
  */
@@ -55,6 +57,9 @@ public class DocumentDTO {
     private Long fileLength;
 
     private JsonNode data;
+
+    private UUID uuid;
+
 
     public DocumentDTO() {
 
@@ -98,6 +103,13 @@ public class DocumentDTO {
 		return data;
 	}
 
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
+    }
 
     public String getDocVersion() {
         return docVersion;
@@ -199,6 +211,7 @@ public class DocumentDTO {
                 ", fileName='" + fileName + '\'' +
                 ", fileLength=" + fileLength +
                 ", data=" + data +
+                ", uuid=" + uuid +
                 '}';
     }
 }
