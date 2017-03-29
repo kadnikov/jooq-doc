@@ -16,6 +16,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
+import static org.apache.commons.lang3.StringUtils.substring;
+
 @Component("fileRepository")
 public class FileRepositoryImpl implements FileRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileRepositoryImpl.class);
@@ -53,7 +55,6 @@ public class FileRepositoryImpl implements FileRepository {
                 Files.createDirectories(path);
             }
 
-
             filePath = filePath + "/" + uuid;
 
             LOGGER.debug("The filePath for file  {}", filePath );
@@ -75,8 +76,13 @@ public class FileRepositoryImpl implements FileRepository {
     }
 
     private  String[] getFolderNames(String fileName){
-        final int mid = fileName.length() / 2;
-        return new String[]{fileName.substring(0, mid),fileName.substring(mid)};
+
+//        todo add lenght of folders to database
+        String foldersName = StringUtils.substring(fileName, 0, 4);
+        LOGGER.debug("folderName {}", foldersName);
+
+        final int mid = foldersName.length() / 2;
+        return new String[]{foldersName.substring(0, mid),foldersName.substring(mid)};
     }
 
 }
