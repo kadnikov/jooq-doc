@@ -214,7 +214,7 @@ public class DocumentController {
     }
 
     @RequestMapping(value = "/uuid/{uuid}", method = RequestMethod.GET)
-    public DocumentDTO findByUUID(@PathVariable("id") String uuid) {
+    public DocumentDTO findByUUID(@PathVariable("uuid") String uuid) {
         LOGGER.info("Finding Document entry with id: {}", uuid);
 
         DocumentDTO found = crudService.findByUUID(uuid);
