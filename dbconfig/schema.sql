@@ -1,3 +1,4 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 create table if not exists todos (
   id serial primary key NOT NULL,
@@ -25,7 +26,7 @@ create table if not exists documents (
   sys_file_mime_type text,
   sys_file_name text,
   sys_file_length bigint,
-
+  sys_uuid uuid NOT NULL DEFAULT uuid_generate_v4(),
   data jsonb
 );
 
