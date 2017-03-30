@@ -624,8 +624,9 @@ public class FileBridgeRepository {
         // get the file and parent
         DocumentDTO doc = getDocument(objectId.getValue());
         DocumentDTO parent = getFirstParent(doc.getId());
-
+        if (parent!=null){
         repository.deleteLink(parent.getId(), doc.getId());
+        }
         Link link = repository.addLink(Long.parseLong(targetFolderId), doc.getId());
 
         return compileObjectData(context, doc, null, false, false, userReadOnly, objectInfos);
