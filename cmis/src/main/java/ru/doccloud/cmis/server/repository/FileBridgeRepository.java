@@ -503,12 +503,12 @@ public class FileBridgeRepository {
 
         // get the file and parent
         DocumentDTO doc = getDocument(objectId.getValue());
+	DocumentDTO parent = getFirstParent(doc.getId());
+	
 	if (parent!=null){
-        	DocumentDTO parent = getFirstParent(doc.getId());
+        	crudService.deleteLink(parent.getId(), doc.getId());
 	}
-
-        crudService.deleteLink(parent.getId(), doc.getId());
-        Link link = crudService.addLink(Long.parseLong(targetFolderId), doc.getId());
+	Link link = crudService.addLink(Long.parseLong(targetFolderId), doc.getId());
 
 
         return compileObjectData(context, doc, null, false, false, userReadOnly, objectInfos);
