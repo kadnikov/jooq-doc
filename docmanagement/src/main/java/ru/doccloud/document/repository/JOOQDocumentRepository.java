@@ -351,6 +351,25 @@ public class JOOQDocumentRepository implements DocumentRepository {
         return DocumentConverter.convertQueryResultToModelObject(queryResult);
     }
 
+
+    @Transactional(readOnly = true)
+    @Override
+    public Document findSettings() {
+        LOGGER.debug("findSettings docType");
+
+        DocumentsRecord queryResult = jooq.selectFrom(DOCUMENTS)
+                .where(DOCUMENTS.SYS_TYPE.equal("storage_area"))
+                .fetchOne();
+
+        LOGGER.debug("Got result: {}", queryResult);
+
+        if (queryResult == null) {
+            throw new DocumentNotFoundException("No Document entry found with type storageArea");
+        }
+
+        return DocumentConverter.convertQueryResultToModelObject(queryResult);
+    }
+
     @Transactional(readOnly = true)
     @Override
     public Page<Document> findBySearchTerm(String searchTerm, Pageable pageable) {

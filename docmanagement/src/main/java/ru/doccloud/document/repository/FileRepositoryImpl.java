@@ -21,24 +21,24 @@ import static org.apache.commons.lang3.StringUtils.substring;
 @Component("fileRepository")
 public class FileRepositoryImpl implements FileRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileRepositoryImpl.class);
-    private static final String CONFIG_FILENAME = "/repository.properties";
-    private static final String FILE_PATH_PROPERTY = "repository.test";
+//    private static final String CONFIG_FILENAME = "/repository.properties";
+//    private static final String FILE_PATH_PROPERTY = "repository.test";
 
 
-    public String writeFile(final UUID uuid, final byte[] fileArr) throws Exception {
-        LOGGER.debug("writing file {} to filesystem", uuid);
+    public String writeFile(final String rootFolder, final UUID uuid, final byte[] fileArr) throws Exception {
+        LOGGER.debug("writing file {} to filesystem, root Folder {}", uuid, rootFolder);
         try {
 //            todo expand functionality to write to remote server
-            final String directoryPath = PropertyReader.getProperty(CONFIG_FILENAME, FILE_PATH_PROPERTY);
-            if(StringUtils.isBlank(directoryPath) )
-                throw new Exception("property file " + CONFIG_FILENAME + " or such property " + FILE_PATH_PROPERTY + " does not exist");
+//            final String directoryPath = PropertyReader.getProperty(CONFIG_FILENAME, FILE_PATH_PROPERTY);
+            if(StringUtils.isBlank(rootFolder) )
+                throw new Exception("root folder is empty");
 
             final String[] folders = getFolderNames(uuid.toString());
 
             final String folderLvl1 = folders[0];
             final String folderLvl2 = folders[1];
 
-            String filePath = directoryPath +  "/" + folderLvl1;
+            String filePath = rootFolder +  "/" + folderLvl1;
 
             Path path = Paths.get(filePath);
             if(Files.notExists(Paths.get(filePath), LinkOption.NOFOLLOW_LINKS)) {

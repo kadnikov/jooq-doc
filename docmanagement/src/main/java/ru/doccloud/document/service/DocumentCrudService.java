@@ -33,6 +33,9 @@ public interface DocumentCrudService {
 
     public DocumentDTO findByUUID(final String uuid);
 
+    @Transactional(readOnly = true)
+    DocumentDTO findSettings();
+
     public DocumentDTO update(final DocumentDTO updated, final String user);
 	
 	public List<DocumentDTO> findAllByParent(final Long parentid);

@@ -17,8 +17,8 @@ public class FileActionsServiceImpl implements FileActionsService {
     }
 
     @Override
-    public String writeFile(final UUID uuid,  final byte[] fileArr) throws Exception {
-        return fileRepository.writeFile(uuid, fileArr);
+    public String writeFile(final String rootFolder, final UUID uuid,  final byte[] fileArr) throws Exception {
+        return fileRepository.writeFile(rootFolder, uuid, fileArr);
     }
 
     @Override

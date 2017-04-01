@@ -37,6 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.chemistry.opencmis.commons.BasicPermissions;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.Ace;
@@ -139,6 +140,7 @@ import ru.doccloud.cmis.server.FileBridgeTypeManager;
 import ru.doccloud.cmis.server.util.FileBridgeUtils;
 import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.common.service.CurrentTimeDateTimeService;
+import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
@@ -594,7 +596,7 @@ public class FileBridgeRepository {
         DocumentDTO doc = getDocument(folderId);
 
         FailedToDeleteDataImpl result = new FailedToDeleteDataImpl();
-        result.setIds(new ArrayList<String>());
+        result.setIds(new ArrayList<>());
 
         // if it is a folder, remove it recursively
         if (isFolder(doc)) {
@@ -612,7 +614,11 @@ public class FileBridgeRepository {
      */
     private String writeContent(DocumentDTO doc, InputStream stream) throws Exception {
         try {
-            final String filePath = fileActionsService.writeFile( doc.getUuid(), org.apache.commons.io.IOUtils.toByteArray(stream));
+
+            DocumentDTO settings = crudService.findSettings();
+            JsonNode settingsNode = settings.getData();
+
+            final String filePath = fileActionsService.writeFile(JsonNodeParser.getValueJsonNode(settingsNode, "repository"),  doc.getUuid(), org.apache.commons.io.IOUtils.toByteArray(stream));
             LOGGER.debug("File has been saved int the disc, path to file {}", filePath);
             doc.setFilePath(filePath);
 

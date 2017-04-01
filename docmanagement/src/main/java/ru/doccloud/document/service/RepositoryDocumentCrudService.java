@@ -175,6 +175,18 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     }
 
 
+    @Transactional(readOnly = true)
+    @Override
+    public DocumentDTO findSettings() {
+
+        Document found = repository.findSettings();
+
+        LOGGER.debug("Found Document entry: {}", found);
+
+        return transformer.convert(found, new DocumentDTO());
+    }
+
+
     @Transactional
     @Override
     public DocumentDTO update(final DocumentDTO dto, final String user) {

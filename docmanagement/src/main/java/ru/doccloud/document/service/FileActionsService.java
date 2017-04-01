@@ -14,7 +14,7 @@ import java.util.UUID;
 
 public interface FileActionsService {
 
-    public String writeFile(final UUID uuid, final byte[] fileArr) throws Exception;
+    public String writeFile(final String rootFolder, final UUID uuid, final byte[] fileArr) throws Exception;
 
     public byte[] readFile(final String filePath) throws Exception;
 

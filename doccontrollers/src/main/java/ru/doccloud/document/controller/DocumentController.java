@@ -8,6 +8,7 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.common.util.VersionHelper;
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.service.DocumentCrudService;
@@ -276,7 +278,9 @@ public class DocumentController {
     }
 
     private String writeContent(UUID uuid, byte[] bytes) throws Exception {
-        return fileActionsService.writeFile(uuid, bytes);
+        DocumentDTO settings = crudService.findSettings();
+        JsonNode settingsNode = settings.getData();
+        return fileActionsService.writeFile(JsonNodeParser.getValueJsonNode(settingsNode, "repository"), uuid, bytes);
     }
 
 
