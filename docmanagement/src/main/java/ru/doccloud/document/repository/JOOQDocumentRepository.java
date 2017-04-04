@@ -42,6 +42,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import ru.doccloud.common.dto.StorageAreaSettings;
 import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.common.service.DateTimeService;
 import ru.doccloud.document.jooq.db.tables.Documents;
@@ -355,19 +356,26 @@ public class JOOQDocumentRepository implements DocumentRepository {
     @Transactional(readOnly = true)
     @Override
     public Document findSettings() {
-        LOGGER.debug("findSettings docType");
+        LOGGER.debug("findSettings, try to find storage area settings in cache first");
 
-        DocumentsRecord queryResult = jooq.selectFrom(DOCUMENTS)
-                .where(DOCUMENTS.SYS_TYPE.equal("storage_area"))
-                .fetchOne();
+        DocumentsRecord record = (DocumentsRecord) StorageAreaSettings.INSTANCE.getStorageSetting();
+        if(record == null) {
+            LOGGER.info("storage area settings weren't found in cache. It will get from database");
+            record = jooq.selectFrom(DOCUMENTS)
+                    .where(DOCUMENTS.SYS_TYPE.equal("storage_area"))
+                    .fetchOne();
 
-        LOGGER.debug("Got result: {}", queryResult);
+            StorageAreaSettings.INSTANCE.add(record);
+            LOGGER.debug("storage area settings {} has been added to cache", record);
+        }
 
-        if (queryResult == null) {
+        LOGGER.debug("Got result: {}", record);
+
+        if (record == null) {
             throw new DocumentNotFoundException("No Document entry found with type storageArea");
         }
 
-        return DocumentConverter.convertQueryResultToModelObject(queryResult);
+        return DocumentConverter.convertQueryResultToModelObject(record);
     }
 
     @Transactional(readOnly = true)
