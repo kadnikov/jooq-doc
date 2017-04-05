@@ -32,6 +32,14 @@ public class MyCmisBrowserBindingServlet extends CmisBrowserBindingServlet {
 			 LOG.debug("getServerName - "+request.getServerName());
 			 LOG.debug("getServerPort - "+request.getServerPort());
 			 LOG.debug("host header - "+request.getHeader("host"));
+        Enumeration<String> headerNames = request.getHeaderNames();
+
+        if (headerNames != null) {
+                while (headerNames.hasMoreElements()) {
+			String headerName = headerNames.nextElement();
+                        LOG.debug("Header: "+ headerName+ " - " + request.getHeader(headerName));
+                }
+        }
 		 request.setAttribute(Dispatcher.BASE_URL_ATTRIBUTE, "http://doccloud.ru/jooq/browser");
 		 super.service(request, response);
 	 
