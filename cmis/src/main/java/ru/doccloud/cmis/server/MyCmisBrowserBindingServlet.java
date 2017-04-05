@@ -28,8 +28,11 @@ public class MyCmisBrowserBindingServlet extends CmisBrowserBindingServlet {
 	    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException,
 	            IOException {
 			 LOG.debug("LOGIN CALLED");
-
-		 request.setAttribute(Dispatcher.BASE_URL_ATTRIBUTE, "http://localhost/jooq/browser");
+			 LOG.debug("x-forwarded-proto header - "+request.getHeader("x-forwarded-proto"));
+			 LOG.debug("getServerName - "+request.getServerName());
+			 LOG.debug("getServerPort - "+request.getServerPort());
+			 LOG.debug("host header - "+request.getHeader("host"));
+		 request.setAttribute(Dispatcher.BASE_URL_ATTRIBUTE, "http://doccloud.ru/jooq/browser");
 		 super.service(request, response);
 	 
 	 }
