@@ -3,22 +3,25 @@ package ru.doccloud.document.filemanagement;
 
 import org.junit.Before;
 import org.junit.Test;
-import ru.doccloud.document.controller.util.FileHelper;
+import ru.doccloud.document.repository.FileRepositoryImpl;
+
+import java.util.UUID;
 
 public class TestSaveFile {
 
-    private FileHelper fileHelper;
+    private static final String ROOT_FOLDER = "/home/ilya/filenet_workspace/testwritefile";
+    private FileRepositoryImpl fileRepositoryImpl;
     private final String filePath = "/home/ilya/Pictures/Screenshot from 2017-01-18 22-40-24.png";
     @Before
     public void init(){
-        fileHelper = new FileHelper();
+        fileRepositoryImpl = new FileRepositoryImpl();
     }
 
     @Test
     public void writeFile(){
 
         try {
-            String fileName1 = fileHelper.writeFile("testFileNama", 1l, "0.1", getFileAsByteArr(filePath));
+            String fileName1 = fileRepositoryImpl.writeFile(ROOT_FOLDER, UUID.randomUUID(), getFileAsByteArr(filePath));
             System.out.println("fileName1 " + fileName1);
         } catch (Exception e) {
             e.printStackTrace();
@@ -31,7 +34,7 @@ public class TestSaveFile {
         for(int i=0; i <15; i++){
             fileName = fileName + i;
             try {
-                String fileName1 = fileHelper.writeFile("testFileNama", 1l, "0.1", getFileAsByteArr(filePath));
+                String fileName1 = fileRepositoryImpl.writeFile(ROOT_FOLDER, UUID.randomUUID(),  getFileAsByteArr(filePath));
                 System.out.println("fileName1 " + fileName1);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -52,6 +55,6 @@ public class TestSaveFile {
 
 
     private byte[] getFileAsByteArr(String filePath) throws Exception {
-        return fileHelper.readFile(filePath);
+        return fileRepositoryImpl.readFile(filePath);
     }
 }

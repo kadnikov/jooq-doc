@@ -47,16 +47,14 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 
     @Transactional
     @Override
-    public DocumentDTO add(final DocumentDTO dto) {
+    public DocumentDTO add(final DocumentDTO dto, final String user) {
         LOGGER.info("Adding Document entry with information: {}", dto);
-        if (dto.getId()==null){
-        	//dto.setId(DEFAULT);
-        }
+//        if (dto.getId()==null){
+//        	//dto.setId(DEFAULT);
+//        }
 
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-
-        repository.setUser(request.getRemoteUser());
-        dto.setAuthor(request.getRemoteUser());
+        repository.setUser(user);
+        dto.setAuthor(user);
         Document persisted = repository.add(createModel(dto));
 
         LOGGER.info("Added Document entry with information: {}", persisted);
@@ -66,14 +64,23 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     
     @Transactional
     @Override
-    public DocumentDTO addToFolder(final DocumentDTO dto, Long folderId) {
+    public DocumentDTO addToFolder(final DocumentDTO dto, final Long folderId) {
         LOGGER.info("Adding Document entry with information: {}", dto);
-        if (dto.getId()==null){
-        	//dto.setId(DEFAULT);
+//        if (dto.getId()==null){
+//        	//dto.setId(DEFAULT);
+//        }
+
+        Document persisted = null;
+//        try to find document in database
+        if(dto.getId() != null) {
+            persisted = repository.findById(dto.getId());
         }
-        Document persisted = repository.add(createModel(dto));
+
+
+        if(persisted == null)
+            persisted = repository.add(createModel(dto));
         
-        Link parentLink = repository.addLink(folderId, persisted.getId());
+        repository.addLink(folderId, persisted.getId());
 
         LOGGER.info("Added Document entry with information: {}", persisted);
 
@@ -123,6 +130,26 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         );
     }
 
+    @Override
+    public List<DocumentDTO> findParents(Long docId){
+        final List<Document> docEntries = repository.findParents(docId);
+
+        if(docEntries == null) {
+            LOGGER.info("There are no parents for document with ID {}", docId);
+            return null;
+        }
+
+        return transformer.convertList(docEntries, DocumentDTO.class);
+    }
+
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<DocumentDTO> findBySearchTerm(String searchTerm, Pageable pageable){
+        Page<Document> docPage = repository.findBySearchTerm(searchTerm, pageable);
+        return  transformer.convertList(docPage.getContent(), DocumentDTO.class);
+    }
+
     @Transactional(readOnly = true)
     @Override
     public DocumentDTO findById(final Long id) {
@@ -130,25 +157,94 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         
         Document found = repository.findById(id);
 
-        LOGGER.info("Found Document entry: {}", found);
+        LOGGER.debug("Found Document entry: {}", found);
 
         return transformer.convert(found, new DocumentDTO());
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public DocumentDTO findByUUID(final String uuid) {
+        LOGGER.info("Finding Document entry with id: {}", uuid);
+
+        Document found = repository.findByUUID(uuid);
+
+        LOGGER.debug("Found Document entry: {}", found);
+
+        return transformer.convert(found, new DocumentDTO());
+    }
+
+
+    @Transactional(readOnly = true)
+    @Override
+    public DocumentDTO findSettings() {
+
+        Document found = repository.findSettings();
+
+        LOGGER.debug("Found Document entry: {}", found);
+
+        return transformer.convert(found, new DocumentDTO());
+    }
+
+
     @Transactional
     @Override
-    public DocumentDTO update(final DocumentDTO dto) {
+    public DocumentDTO update(final DocumentDTO dto, final String user) {
         LOGGER.info("Updating the information of a Document entry: {}", dto);
         
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        dto.setModifier(request.getRemoteUser());
-        Document newInformation = createModel(dto);
-        Document updated = repository.update(newInformation);
+        dto.setModifier(user);
+        Document updated = repository.update(createModel(dto));
 
         LOGGER.debug("Updated the information of a Document entry: {}", updated);
 
         return transformer.convert(updated, new DocumentDTO());
     }
+
+    @Transactional
+    @Override
+    public DocumentDTO updateFileInfo(final DocumentDTO dto){
+        final Document updated = repository.updateFileInfo(createModel(dto));
+
+        LOGGER.debug("Updated file information of a Document entry: {}", updated);
+
+        return transformer.convert(updated, new DocumentDTO());
+    }
+
+
+    @Transactional
+    @Override
+    public Link addLink(Long headId, Long tailId) {
+        LOGGER.info("Adding new Link: ");
+
+        return repository.addLink(headId, tailId);
+    }
+
+    @Transactional
+    @Override
+    public Link deleteLink(Long headId, Long tailId) {
+
+        return repository.deleteLink(headId, tailId);
+    }
+
+//todo remove this method
+    @Transactional
+    @Override
+    public void setUser() {
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        LOGGER.info("Current Remote User - " + request.getRemoteUser());
+        repository.setUser(request.getRemoteUser());
+
+    }
+
+    @Transactional
+    @Override
+    public void setUser(String userName) {
+        LOGGER.info("Current User - "+userName);
+        repository.setUser(userName);
+
+        //jooq.execute("SELECT current_setting('my.username') FROM documents LIMIT 1;");
+    }
+
 
     private Document createModel(DocumentDTO dto) {
         return Document.getBuilder(dto.getTitle())

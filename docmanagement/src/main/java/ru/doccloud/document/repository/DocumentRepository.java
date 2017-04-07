@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import org.springframework.transaction.annotation.Transactional;
 import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
@@ -42,6 +43,18 @@ public interface DocumentRepository {
      * @throws DocumentNotFoundException If Document entry is not found.
      */
     public Document findById(Long id);
+
+    /**
+     * Finds a Document entry.
+     * @param uuid    The uuid of the requested Document entry.
+     * @return  The found Document entry.
+     * @throws DocumentNotFoundException If Document entry is not found.
+     */
+    public Document findByUUID(String uuid);
+
+
+    @Transactional(readOnly = true)
+    Document findSettings();
 
     public Page<Document> findBySearchTerm(String searchTerm, Pageable pageable);
 

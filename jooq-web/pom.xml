@@ -93,6 +93,12 @@
 
         <dependency>
             <groupId>ru.doccloud</groupId>
+            <artifactId>doccontrollers</artifactId>
+            <version>0.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.doccloud</groupId>
             <artifactId>docmanagement</artifactId>
             <version>0.1</version>
         </dependency>

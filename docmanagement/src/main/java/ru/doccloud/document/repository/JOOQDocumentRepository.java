@@ -9,6 +9,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -24,7 +25,6 @@ import org.jooq.TableField;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultDataType;
 import org.jooq.impl.SQLDataType;
-import org.jooq.util.postgres.PostgresDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +42,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import ru.doccloud.common.dto.StorageAreaSettings;
 import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.common.service.DateTimeService;
 import ru.doccloud.document.jooq.db.tables.Documents;
@@ -60,6 +61,7 @@ import ru.doccloud.document.model.QueryParam;
 public class JOOQDocumentRepository implements DocumentRepository { 
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JOOQDocumentRepository.class);
+
 
     private final DateTimeService dateTimeService;
 
@@ -219,6 +221,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
         selectedFields.add(DOCUMENTS.SYS_TYPE);
         selectedFields.add(DOCUMENTS.SYS_FILE_NAME);
         selectedFields.add(DOCUMENTS.SYS_VERSION);
+        selectedFields.add(DOCUMENTS.SYS_UUID);
         if (fields!=null){
             for (String field : fields) {
                 selectedFields.add(jsonObject(DOCUMENTS.DATA, field).as(field));
@@ -333,6 +336,50 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
     @Transactional(readOnly = true)
     @Override
+    public Document findByUUID(String uuid) {
+        LOGGER.debug("findByUUID uuid {}", uuid);
+
+        DocumentsRecord queryResult = jooq.selectFrom(DOCUMENTS)
+                .where(DOCUMENTS.SYS_UUID.equal( UUID.fromString(uuid)))
+                .fetchOne();
+
+        LOGGER.debug("Got result: {}", queryResult);
+
+        if (queryResult == null) {
+            throw new DocumentNotFoundException("No Document entry found with uuid: " + uuid);
+        }
+
+        return DocumentConverter.convertQueryResultToModelObject(queryResult);
+    }
+
+
+    @Transactional(readOnly = true)
+    @Override
+    public Document findSettings() {
+        LOGGER.debug("findSettings, try to find storage area settings in cache first");
+
+        DocumentsRecord record = (DocumentsRecord) StorageAreaSettings.INSTANCE.getStorageSetting();
+        if(record == null) {
+            LOGGER.info("storage area settings weren't found in cache. It will get from database");
+            record = jooq.selectFrom(DOCUMENTS)
+                    .where(DOCUMENTS.SYS_TYPE.equal("storage_area"))
+                    .fetchOne();
+
+            StorageAreaSettings.INSTANCE.add(record);
+            LOGGER.debug("storage area settings {} has been added to cache", record);
+        }
+
+        LOGGER.debug("Got result: {}", record);
+
+        if (record == null) {
+            throw new DocumentNotFoundException("No Document entry found with type storageArea");
+        }
+
+        return DocumentConverter.convertQueryResultToModelObject(record);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
     public Page<Document> findBySearchTerm(String searchTerm, Pageable pageable) {
         LOGGER.info("Finding {} Document entries for page {} by using search term: {}",
                 pageable.getPageSize(),
@@ -364,12 +411,6 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
         return new PageImpl<>(documentEntries, pageable, totalCount);
     }
-
-
-
-
-
-
 
     @Transactional
     @Override
@@ -449,7 +490,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
 		Links l = LINKS.as("l");
 		Documents t = DOCUMENTS.as("t");
 		
-        List<DocumentsRecord> queryResults = jooq.select(d.ID, d.SYS_TITLE, d.SYS_AUTHOR, d.SYS_DATE_CR, d.SYS_DATE_MOD, d.SYS_DESC, d.SYS_MODIFIER, d.SYS_FILE_PATH, d.SYS_TYPE, d.SYS_FILE_NAME)
+        List<DocumentsRecord> queryResults = jooq.select(d.ID, d.SYS_TITLE, d.SYS_AUTHOR, d.SYS_DATE_CR, d.SYS_DATE_MOD, d.SYS_DESC, d.SYS_MODIFIER, d.SYS_FILE_PATH, d.SYS_TYPE, d.SYS_FILE_NAME, d.SYS_UUID)
         		.from(d
         		.join(l
         				.join(t)
@@ -473,7 +514,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
 		Links l = LINKS.as("l");
 		Documents t = DOCUMENTS.as("t");
 		
-        List<DocumentsRecord> queryResults = jooq.select(d.ID, d.SYS_TITLE, d.SYS_AUTHOR, d.SYS_DATE_CR, d.SYS_DATE_MOD, d.SYS_DESC, d.SYS_MODIFIER, d.SYS_FILE_PATH, d.SYS_TYPE, d.SYS_FILE_NAME)
+        List<DocumentsRecord> queryResults = jooq.select(d.ID, d.SYS_TITLE, d.SYS_AUTHOR, d.SYS_DATE_CR, d.SYS_DATE_MOD, d.SYS_DESC, d.SYS_MODIFIER, d.SYS_FILE_PATH, d.SYS_TYPE, d.SYS_FILE_NAME, d.SYS_UUID)
         		.from(d
         		.join(l
         				.join(t)
@@ -598,9 +639,6 @@ public class JOOQDocumentRepository implements DocumentRepository {
         }
     }
 
-
-
-
 	private static class DocumentConverter{
         private static Document convertQueryResultToModelObject(Record queryResult, String[] fields) {
             ObjectNode data = JsonNodeFactory.instance.objectNode();
@@ -626,6 +664,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
                     .modifier(queryResult.getValue(DOCUMENTS.SYS_MODIFIER))
                     .filePath(queryResult.getValue(DOCUMENTS.SYS_FILE_PATH))
                     .fileName(queryResult.getValue(DOCUMENTS.SYS_FILE_NAME))
+                    .uuid(queryResult.getValue(DOCUMENTS.SYS_UUID))
                     .data(data)
                     .build();
         }
@@ -646,6 +685,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
                     .fileLength(queryResult.getSysFileLength())
                     .fileName(queryResult.getSysFileName())
                     .docVersion(queryResult.getSysVersion())
+                    .uuid(queryResult.getSysUuid())
                     .build();
         }
 

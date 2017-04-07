@@ -36,6 +36,7 @@
         <module>config</module>
         <module>cmis</module>
         <module>docmanagement</module>
+        <module>doccontrollers</module>
         <module>jooq-web</module>
     </modules>
 
