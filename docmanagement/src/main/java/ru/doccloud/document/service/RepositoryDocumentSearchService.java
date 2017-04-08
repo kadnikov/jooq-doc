@@ -38,19 +38,18 @@ public class RepositoryDocumentSearchService implements DocumentSearchService {
     @Transactional(readOnly = true)
     @Override
     public Page<DocumentDTO> findBySearchTerm(String searchTerm, Pageable pageable) {
-        LOGGER.info("Finding {} Document entries for page {} by using search term: {}",
+        LOGGER.debug("entering findBySearchTerm(searchTerm={}, pageSize= {}, pageNumber = {})",
+                searchTerm,
                 pageable.getPageSize(),
-                pageable.getPageNumber(),
-                searchTerm
+                pageable.getPageNumber()
         );
 
         Page<Document> searchResults = repository.findBySearchTerm(searchTerm, pageable);
-        LOGGER.info("Found {} Document entries for page: {}",
-                searchResults.getNumberOfElements(),
-                searchResults.getNumber()
-        );
+
 
         List<DocumentDTO> dtos = transformer.convertList(searchResults.getContent(), DocumentDTO.class);
+
+        LOGGER.debug("leaving findBySearchTerm(): found {}", dtos);
 
         return new PageImpl<>(dtos,
                 new PageRequest(searchResults.getNumber(), searchResults.getSize(), searchResults.getSort()),
