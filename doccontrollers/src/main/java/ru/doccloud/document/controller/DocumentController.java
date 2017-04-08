@@ -63,18 +63,16 @@ public class DocumentController {
     @RequestMapping(method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
     public DocumentDTO add(HttpServletRequest request, @RequestBody @Valid DocumentDTO dto) {
-        LOGGER.debug("Adding new Document entry with information: {}", dto);
-        DocumentDTO added = addDoc(dto, request.getRemoteUser());
-        LOGGER.debug("Added Document entry: {}", added);
+        LOGGER.info("add(): add new document");
 
-        return added;
+        return addDoc(dto, request.getRemoteUser());
     }
 
 
     @RequestMapping(value="/addcontent",headers="content-type=multipart/*",method=RequestMethod.POST)
     public DocumentDTO addContent(MultipartHttpServletRequest request) throws Exception {
 
-        LOGGER.debug("start adding new Document to database");
+        LOGGER.info("addContent... add new document from request uri {}", request.getRequestURI());
         Enumeration<String> headerNames = request.getParameterNames();//.getAttribute("data");
         
         if (headerNames != null) {
@@ -97,20 +95,15 @@ public class DocumentController {
         MultipartFile mpf = request.getFile(itr.next());
         initFileParamsFromRequest(dto, mpf);
 
-        DocumentDTO added = addDoc(dto, request.getRemoteUser());
-
-        LOGGER.info("DTO Obj after save: {}", added);
-       return writeContent(added, mpf, request.getRemoteUser());
+       return writeContent(addDoc(dto, request.getRemoteUser()), mpf, request.getRemoteUser());
     }
 
 
     @RequestMapping(value="/updatecontent/{id}",headers="content-type=multipart/*",method=RequestMethod.PUT)
     public DocumentDTO updateContent(MultipartHttpServletRequest request,  @PathVariable("id") Long id) throws Exception {
-        LOGGER.debug("find the document with id : {} ", id);
+        LOGGER.info("updateContent... update document with id {} from request uri {}", id, request.getRequestURI());
 
         DocumentDTO dto = crudService.findById(id);
-
-        LOGGER.debug("Found Document entry: {}", dto);
 
         if(dto == null)
             throw new Exception("The document with such id " + id + " was not found in database ");
@@ -124,12 +117,14 @@ public class DocumentController {
 
     @RequestMapping(value="/getcontent/{id}",headers="content-type=multipart/*",method=RequestMethod.GET)
     public byte[] getContent( @PathVariable("id") Long id) throws Exception {
-        DocumentDTO dto = crudService.findById(id);
 
-        LOGGER.debug("Found Document entry: {}", dto);
+        LOGGER.info("getContent (id = {})", id);
+        DocumentDTO dto = crudService.findById(id);
 
         if(dto == null)
             throw new Exception("The document with such id " + id + " was not found in database ");
+
+        LOGGER.info("getContent(): Found Document with id: {}", dto.getId());
 
         final String filePath = dto.getFilePath();
         if(StringUtils.isBlank(filePath)) {
@@ -142,13 +137,9 @@ public class DocumentController {
 
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     public DocumentDTO delete(@PathVariable("id") Long id) {
-        LOGGER.info("Deleting Document entry with id: {}", id);
+        LOGGER.info("delete(id={})", id);
 
-        DocumentDTO deleted = crudService.delete(id);
-
-        LOGGER.info("Deleted Document entry: {}", deleted);
-
-        return deleted;
+        return crudService.delete(id);
     }
 
     /**@RequestMapping(method = RequestMethod.GET)
@@ -164,104 +155,69 @@ public class DocumentController {
     
     @RequestMapping(method = RequestMethod.GET)
     public Page<DocumentDTO> findAll(Pageable pageable) {
-        LOGGER.info("Finding {} Document entries for page {} ",
+        LOGGER.info("findAll(pageSize= {}, pageNumber = {}) ",
                 pageable.getPageSize(),
                 pageable.getPageNumber()
         );
 
-        Page<DocumentDTO> docEntries = crudService.findAll(pageable);
-
-        LOGGER.info("Found {} Document entries for page: {}",
-        		docEntries.getNumberOfElements(),
-        		docEntries.getNumber()
-        );
-
-        return docEntries;
+        return crudService.findAll(pageable);
     }
     
     @RequestMapping(value = "/type/{type}", method = RequestMethod.GET)
     public Page<DocumentDTO> findByType(@PathVariable("type") String type, @RequestParam(value = "fields",required=false) String fields, @RequestParam(value = "filters",required=false) String query,Pageable pageable) {
-        LOGGER.info("Finding {} Document entries for page {} by type: {} and fields {}",
+        LOGGER.info("findByType(type = {}, fields={}, query={}, pageSize= {}, pageNumber = {})",
+                type, fields, query,
                 pageable.getPageSize(),
-                pageable.getPageNumber(),
-                type, fields
+                pageable.getPageNumber()
         );
         String[] fieldsArr = null;
         if (fields!=null){
         	fieldsArr = fields.split(",");
         }
 
-        Page<DocumentDTO> documentEntries = crudService.findAllByType(type, fieldsArr, pageable, query);
-
-        LOGGER.info("Found {} Document entries for page: {}",
-        		documentEntries.getNumberOfElements(),
-        		documentEntries.getNumber()
-        );
-
-        return documentEntries;
+        return crudService.findAllByType(type, fieldsArr, pageable, query);
     }
 
     @RequestMapping(value = "/parent/{parentid}", method = RequestMethod.GET)
     public List<DocumentDTO> findByParent(@PathVariable("parentid") Long parentid) {
-        LOGGER.info("Finding all Documents by parent");
+        LOGGER.info("findByParent(parentid = {})", parentid);
 
-        List<DocumentDTO> documentEntries = crudService.findAllByParent(parentid);
-
-        LOGGER.info("Found {} Document entries.");
-
-        return documentEntries;
+        return crudService.findAllByParent(parentid);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public DocumentDTO findById(@PathVariable("id") Long id) {
-        LOGGER.info("Finding Document entry with id: {}", id);
+        LOGGER.info("findById(id= {})", id);
 
-        DocumentDTO found = crudService.findById(id);
-
-        LOGGER.info("Found Document entry: {}", found);
-
-        return found;
+        return crudService.findById(id);
     }
 
     @RequestMapping(value = "/uuid/{uuid}", method = RequestMethod.GET)
     public DocumentDTO findByUUID(@PathVariable("uuid") String uuid) {
-        LOGGER.info("Finding Document entry with id: {}", uuid);
+        LOGGER.info("findByUUID(uuid= {})", uuid);
 
-        DocumentDTO found = crudService.findByUUID(uuid);
-
-        LOGGER.info("Found Document entry: {}", found);
-
-        return found;
+        return crudService.findByUUID(uuid);
     }
 
 
     @RequestMapping(value = "/search", method = RequestMethod.GET)
     public Page<DocumentDTO> findBySearchTerm(@RequestParam("searchTerm") String searchTerm, Pageable pageable) {
-        LOGGER.info("Finding {} Document entries for page {} by using search term: {}",
+        LOGGER.info("findBySearchTerm(searchTerm = {}, pageSize= {}, pageNumber = {}) ",
+                searchTerm,
                 pageable.getPageSize(),
-                pageable.getPageNumber(),
-                searchTerm
+                pageable.getPageNumber()
         );
 
-        Page<DocumentDTO> docEntries = searchService.findBySearchTerm(searchTerm, pageable);
-
-        LOGGER.info("Found {} Document entries for page: {}",
-        		docEntries.getNumberOfElements(),
-        		docEntries.getNumber()
-        );
-
-        return docEntries;
+        return searchService.findBySearchTerm(searchTerm, pageable);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
     public DocumentDTO update(HttpServletRequest request, @PathVariable("id") Long id, @RequestBody @Valid DocumentDTO dto) {
         dto.setId(id);
-        LOGGER.info("Updating Document entry with information: {}", dto);
+        LOGGER.info("update(id={})", id);
         dto.setDocVersion(VersionHelper.generateMinorDocVersion(dto.getDocVersion()));
-        DocumentDTO updated = crudService.update(dto, request.getRemoteUser());
-        LOGGER.info("Updated Document entry: {}", updated);
 
-        return updated;
+        return crudService.update(dto, request.getRemoteUser());
     }
 
     void setUser(){
