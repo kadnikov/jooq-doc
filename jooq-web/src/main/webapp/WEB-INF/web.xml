@@ -107,7 +107,7 @@
     <servlet>
         <servlet-name>cmisbrowser</servlet-name>
         <servlet-class>org.apache.chemistry.opencmis.server.impl.browser.CmisBrowserBindingServlet</servlet-class>
-        <!--servlet-class>ru.doccloud.cmis.server.MyCmisBrowserBindingServlet</servlet-class-->
+        <!--  servlet-class>ru.doccloud.cmis.server.MyCmisBrowserBindingServlet</servlet-class-->
         <init-param>
             <param-name>callContextHandler</param-name>
             <param-value>org.apache.chemistry.opencmis.server.impl.browser.token.TokenCallContextHandler</param-value>

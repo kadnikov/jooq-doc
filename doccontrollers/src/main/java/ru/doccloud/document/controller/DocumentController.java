@@ -1,6 +1,7 @@
 package ru.doccloud.document.controller;
 
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
@@ -8,7 +9,6 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,12 +16,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.common.util.VersionHelper;
 import ru.doccloud.document.dto.DocumentDTO;
@@ -63,9 +72,25 @@ public class DocumentController {
 
 
     @RequestMapping(value="/addcontent",headers="content-type=multipart/*",method=RequestMethod.POST)
-    public DocumentDTO addContent(MultipartHttpServletRequest request,  @RequestBody @Valid DocumentDTO dto) throws Exception {
+    public DocumentDTO addContent(MultipartHttpServletRequest request) throws Exception {
 
-        LOGGER.debug("start adding new Document to database: {} ", dto);
+        LOGGER.debug("start adding new Document to database");
+        Enumeration<String> headerNames = request.getParameterNames();//.getAttribute("data");
+        
+        if (headerNames != null) {
+            while (headerNames.hasMoreElements()) {
+				String headerName = headerNames.nextElement();
+				LOGGER.debug("Header: "+ headerName+ " - " + request.getHeader(headerName));
+		            }
+		    }
+        DocumentDTO dto = new DocumentDTO();
+        String data = (String) request.getParameter("data");
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jdata = mapper.readTree(data);
+        String title = jdata.get("title").asText();
+        String type = jdata.get("type").asText();
+        dto.setTitle(title);
+        dto.setType(type);
         Iterator<String> itr =  request.getFileNames();
         if(!itr.hasNext())
             return addDoc(dto, request.getRemoteUser());
@@ -76,23 +101,6 @@ public class DocumentController {
 
         LOGGER.info("DTO Obj after save: {}", added);
        return writeContent(added, mpf, request.getRemoteUser());
-    }
-
-    @RequestMapping(value="/createdoc",headers="content-type=multipart/*",method=RequestMethod.POST)
-    public DocumentDTO addContent(MultipartHttpServletRequest request) throws Exception {
-        LOGGER.info("add new document with content ");
-
-        DocumentDTO dto = new DocumentDTO();
-
-        Iterator<String> itr =  request.getFileNames();
-        if(!itr.hasNext())
-            return addDoc(dto, request.getRemoteUser());
-        MultipartFile mpf = request.getFile(itr.next());
-        initFileParamsFromRequest(dto, mpf);
-        DocumentDTO added = addDoc(dto, request.getRemoteUser());
-        LOGGER.debug("the document: {} has been added", added);
-
-        return writeContent(added, mpf, request.getRemoteUser());
     }
 
 
