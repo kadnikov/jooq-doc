@@ -57,7 +57,7 @@ public class PersistenceContext {
     @Autowired
     private Environment env;
 
-    @Bean(destroyMethod = "close")
+    @Bean(destroyMethod = "")
     public DataSource dataSource() throws Exception {
 //        Context ctx = new InitialContext();
 //
