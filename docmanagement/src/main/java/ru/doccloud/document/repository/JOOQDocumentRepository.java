@@ -58,7 +58,7 @@ import ru.doccloud.document.model.QueryParam;
  * @author Andrey Kadnikov
  */
 @Repository
-public class JOOQDocumentRepository implements DocumentRepository { 
+public class JOOQDocumentRepository implements DocumentRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JOOQDocumentRepository.class);
 
@@ -76,8 +76,9 @@ public class JOOQDocumentRepository implements DocumentRepository {
     @Transactional
     @Override
     public Document add(Document documentEntry) {
-        LOGGER.info("Adding new Document entry with information: {}", documentEntry);
+        LOGGER.trace("entering add(documentEntry= {})", documentEntry);
         String[] readers = {documentEntry.getAuthor(), "admins"};
+        LOGGER.trace("add(): readers {}", readers);
         DocumentsRecord persisted = jooq.insertInto(
                 DOCUMENTS, DOCUMENTS.SYS_DESC, DOCUMENTS.SYS_TITLE, DOCUMENTS.SYS_TYPE, DOCUMENTS.SYS_AUTHOR,
                 DOCUMENTS.SYS_READERS, DOCUMENTS.DATA, DOCUMENTS.SYS_FILE_LENGTH, DOCUMENTS.SYS_FILE_MIME_TYPE,
@@ -88,18 +89,17 @@ public class JOOQDocumentRepository implements DocumentRepository {
                         documentEntry.getFileName(), documentEntry.getFilePath(), documentEntry.getDocVersion())
                 .returning()
                 .fetchOne();
-
         Document returned = DocumentConverter.convertQueryResultToModelObject(persisted);
 
-        LOGGER.info("Added {} todo entry", returned);
+        LOGGER.trace("leaving add():  added document {}", returned);
 
         return returned;
     }
-    
+
     @Transactional
     @Override
     public Link addLink(Long headId, Long tailId) {
-        LOGGER.info("Adding new Link: ");
+        LOGGER.trace("entering addLink(headId = {}, tailId={})", headId, tailId);
 
         LinksRecord persisted = jooq.insertInto(LINKS,LINKS.HEAD_ID,LINKS.TAIL_ID)
                 .values(headId.intValue(),tailId.intValue())
@@ -108,55 +108,62 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
         Link returned = new Link(persisted.getHeadId().longValue(),persisted.getTailId().longValue());
 
-        LOGGER.info("Added {} link entry", returned);
+        LOGGER.trace("leaving addLink():  added link {}", returned);
 
         return returned;
     }
-    
+
     @Transactional
     @Override
     public Link deleteLink(Long headId, Long tailId) {
-        LOGGER.info("Delete Link: ");
+        LOGGER.trace("entering deleteLink(headId = {}, tailId={})", headId, tailId);
 
         int deleted = jooq.delete(LINKS)
-                .where(LINKS.HEAD_ID.equal(headId.intValue()).and(LINKS.TAIL_ID.equal(tailId.intValue())))  
+                .where(LINKS.HEAD_ID.equal(headId.intValue()).and(LINKS.TAIL_ID.equal(tailId.intValue())))
                 .execute();
 
+        LOGGER.trace("deleteLink(): {} link entry deleted", deleted);
         Link returned = new Link(headId,tailId);
 
-        LOGGER.info("{} link entry deleted", deleted);
-
+        LOGGER.trace("leaving deleteLink():  deleted link {}", returned);
         return returned;
     }
 
-    private DocumentsRecord createRecord(Document todoEntry) {
-        Timestamp currentTime = dateTimeService.getCurrentTimestamp();
-        LOGGER.debug("The current time is: {}", currentTime);
-
-        DocumentsRecord record = new DocumentsRecord();
-
-        record.setSysDateCr(currentTime);
-        record.setSysDesc(todoEntry.getDescription());
-        record.setSysDateMod(currentTime);
-        record.setSysTitle(todoEntry.getTitle());
-        record.setSysType(todoEntry.getType());
-
-        return record;
-    }
+//    private DocumentsRecord createRecord(Document documentEntry) {
+//        LOGGER.trace("entering createRecord(documentEntry = {}", documentEntry);
+//        Timestamp currentTime = dateTimeService.getCurrentTimestamp();
+//        LOGGER.trace("createRecord(): The current time is: {}", currentTime);
+//
+//        DocumentsRecord record = new DocumentsRecord();
+//
+//        record.setSysDateCr(currentTime);
+//        record.setSysDesc(documentEntry.getDescription());
+//        record.setSysDateMod(currentTime);
+//        record.setSysTitle(documentEntry.getTitle());
+//        record.setSysType(documentEntry.getType());
+//
+//        LOGGER.trace("leaving createRecord():  created Document {}", record);
+//        return record;
+//    }
 
     @Transactional
     @Override
     public Document delete(Long id) {
-        LOGGER.info("Deleting Document entry by id: {}", id);
+        LOGGER.trace("entering delete(id={})", id);
 
         Document deleted = findById(id);
 
+        LOGGER.trace("delete(): Document was found in database {}", deleted);
+
+        if(deleted == null)
+            throw new DocumentNotFoundException("The document with id was not found in database");
         int deletedRecordCount = jooq.delete(DOCUMENTS)
                 .where(DOCUMENTS.ID.equal(id.intValue()))
                 .execute();
 
-        LOGGER.debug("Deleted {} Document entries", deletedRecordCount);
-        LOGGER.info("Returning deleted Document entry: {}", deleted);
+        LOGGER.trace("delete(): {} document entries deleted", deletedRecordCount);
+
+        LOGGER.trace("leaving delete(): Returning deleted Document entry: {}", deleted);
 
         return deleted;
     }
@@ -164,42 +171,44 @@ public class JOOQDocumentRepository implements DocumentRepository {
     @Transactional(readOnly = true)
     @Override
     public List<Document> findAll() {
-        LOGGER.info("Finding all Document entries.");
+        LOGGER.trace("entering findAll()");
 
         List<DocumentsRecord> queryResults = jooq.selectFrom(DOCUMENTS).fetchInto(DocumentsRecord.class);
-        
+
+        LOGGER.trace("findAll(): Found {} Document entries, they are going to convert to model objects", queryResults);
+
         List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
 
-        LOGGER.info("Found {} Document entries", documentEntries.size());
+        LOGGER.trace("leaving findAll(): Found {} Document entries", documentEntries);
 
         return documentEntries;
     }
-    
+
     @Transactional(readOnly = true)
     @Override
     public Page<Document> findAll(Pageable pageable) {
-        LOGGER.info("Finding {} Document entries for page {} by using search term: {}",
-                pageable.getPageSize(),
-                pageable.getPageNumber()
-        );
+
+        LOGGER.trace("entering findAll(pageSize = {}, pageNumber = {})", pageable.getPageSize(), pageable.getPageNumber());
 
         List<DocumentsRecord> queryResults = jooq.selectFrom(DOCUMENTS)
                 .orderBy(getSortFields(pageable.getSort()))
                 .limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .fetchInto(DocumentsRecord.class);
 
+        LOGGER.trace("findAll(): Found {} Document entries, they are going to convert to model objects", queryResults);
+
         List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
 
-        LOGGER.info("Found {} document entries for page: {}",
-        		documentEntries.size(),
+        LOGGER.trace("findAll(): {} document entries for page: {} ",
+                documentEntries.size(),
                 pageable.getPageNumber()
         );
 
         long totalCount = findTotalCount();
 
-        LOGGER.info("{} document entries matches with the like expression: {}",
-                totalCount
-        );
+        LOGGER.trace("findAll(): {} document entries matches with the like expression: {}", totalCount);
+
+        LOGGER.trace("leaving findAll(): Found {} Document entries", documentEntries);
 
         return new PageImpl<>(documentEntries, pageable, totalCount);
     }
@@ -207,7 +216,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
     @Override
     public Page<Document> findAllByType(String type, String[] fields, Pageable pageable, String query) {
-        LOGGER.info("Finding all Documents by type.");
+        LOGGER.trace("entering findAllByType(type={}, fields={}, pageable={}, query={})", type, fields, pageable, query);
 
         ArrayList<SelectField<?>> selectedFields = new ArrayList<SelectField<?>>();
         selectedFields.add(DOCUMENTS.ID);
@@ -227,72 +236,77 @@ public class JOOQDocumentRepository implements DocumentRepository {
                 selectedFields.add(jsonObject(DOCUMENTS.DATA, field).as(field));
             }
         }
+        LOGGER.trace("findAllByType(): selectedFields: {}", selectedFields);
+
         FilterBean filter = null;
         List<QueryParam> QueryParams = null;
-        LOGGER.info("Query for search - "+query);
+        LOGGER.trace("Query for search - {}", query);
         ObjectMapper mapper = new ObjectMapper();
         if (query!=null){
             try {
                 filter = mapper.readValue(query, new TypeReference<FilterBean>(){});
                 QueryParams = filter.getMrules();
-                LOGGER.info("List of params - {} {}", QueryParams.toString(), QueryParams.size());
+                LOGGER.trace("findAllByType(): List of params - {} {}", QueryParams.toString(), QueryParams.size());
             } catch (IOException e) {
-                LOGGER.error("Error parsing JSON "+ e.getLocalizedMessage());
+                LOGGER.error("Error parsing JSON {}",e.getLocalizedMessage());
                 e.printStackTrace();
             }
         }
         Condition cond = DOCUMENTS.SYS_TYPE.equal(type);
         if (QueryParams !=null)
             for (QueryParam param : QueryParams) {
-                LOGGER.info("Param {} {} {} ",param.getField(),param.getOperand(),param.getValue());
+                LOGGER.trace("findAllByType(): Param {} {} {} ",param.getField(),param.getOperand(),param.getValue());
                 if (param.getOperand()!=null){
-                	DataType<Object> JSONB = new DefaultDataType<Object>(SQLDialect.POSTGRES, SQLDataType.OTHER, "jsonb");
+                    DataType<Object> JSONB = new DefaultDataType<Object>(SQLDialect.POSTGRES, SQLDataType.OTHER, "jsonb");
 //        	    // ['eq','ne','lt','le','gt','ge','bw','bn','in','ni','ew','en','cn','nc']
 //                    todo rewrite using enum implementation
-                	switch (param.getOperand().toLowerCase())
+                    final String operand = param.getOperand().toLowerCase();
+
+                    LOGGER.trace("findAllByType(): operand ",operand);
+                    switch (operand)
                     {
-                    case "eq": 
-                    	cond = cond.and(getTableField(param.getField()).equal(param.getValue()));
-                    	break;
-                    case "ne":
-                    	cond = cond.and(getTableField(param.getField()).notEqual(param.getValue()));
-                    	break;
-                    case "lt":
-                        cond = cond.and(getTableField(param.getField()).lessThan(DSL.val(param.getValue()).cast(JSONB)));
-                        break;
-                    case "le":
-                        cond = cond.and(getTableField(param.getField()).lessOrEqual(param.getValue()));
-                        break;
-                    case "gt":
-                        cond = cond.and(getTableField(param.getField()).greaterThan(DSL.val(param.getValue()).cast(JSONB)));
-                        break;
-                    case "ge":
-                        cond = cond.and(getTableField(param.getField()).greaterOrEqual(param.getValue()));
-                        break;
-                    case "bw":
-                        cond = cond.and(getTableField(param.getField()).like(param.getValue()+"%"));
-                        break;
-                    case "bn":
-                        cond = cond.and(getTableField(param.getField()).notLike(param.getValue()+"%"));
-                        break;
-                    case "in":
-                        cond = cond.and(getTableField(param.getField()).in(param.getValue()));
-                        break;
-                    case "ni":
-                        cond = cond.and(getTableField(param.getField()).notIn(param.getValue()));
-                        break;
-                    case "ew":
-                        cond = cond.and(getTableField(param.getField()).like("%"+param.getValue()));
-                        break;
-                    case "en":
-                        cond = cond.and(getTableField(param.getField()).notLike("%"+param.getValue()));
-                        break;
-                    case "cn":
-                        cond = cond.and(getTableField(param.getField()).like("%"+param.getValue()+"%"));
-                        break;
-                    case "nc":
-                        cond = cond.and(getTableField(param.getField()).notLike("%"+param.getValue()+"%"));
-                        break;
+                        case "eq":
+                            cond = cond.and(getTableField(param.getField()).equal(param.getValue()));
+                            break;
+                        case "ne":
+                            cond = cond.and(getTableField(param.getField()).notEqual(param.getValue()));
+                            break;
+                        case "lt":
+                            cond = cond.and(getTableField(param.getField()).lessThan(DSL.val(param.getValue()).cast(JSONB)));
+                            break;
+                        case "le":
+                            cond = cond.and(getTableField(param.getField()).lessOrEqual(param.getValue()));
+                            break;
+                        case "gt":
+                            cond = cond.and(getTableField(param.getField()).greaterThan(DSL.val(param.getValue()).cast(JSONB)));
+                            break;
+                        case "ge":
+                            cond = cond.and(getTableField(param.getField()).greaterOrEqual(param.getValue()));
+                            break;
+                        case "bw":
+                            cond = cond.and(getTableField(param.getField()).like(param.getValue()+"%"));
+                            break;
+                        case "bn":
+                            cond = cond.and(getTableField(param.getField()).notLike(param.getValue()+"%"));
+                            break;
+                        case "in":
+                            cond = cond.and(getTableField(param.getField()).in(param.getValue()));
+                            break;
+                        case "ni":
+                            cond = cond.and(getTableField(param.getField()).notIn(param.getValue()));
+                            break;
+                        case "ew":
+                            cond = cond.and(getTableField(param.getField()).like("%"+param.getValue()));
+                            break;
+                        case "en":
+                            cond = cond.and(getTableField(param.getField()).notLike("%"+param.getValue()));
+                            break;
+                        case "cn":
+                            cond = cond.and(getTableField(param.getField()).like("%"+param.getValue()+"%"));
+                            break;
+                        case "nc":
+                            cond = cond.and(getTableField(param.getField()).notLike("%"+param.getValue()+"%"));
+                            break;
                     }
                 }
             }
@@ -302,14 +316,15 @@ public class JOOQDocumentRepository implements DocumentRepository {
                 .limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .fetch();//Into(DocumentsRecord.class);
 
+        LOGGER.trace("findAllByType(): Found {} Document entries, they are going to convert to model objects", queryResults);
+
         List<Document> documentEntries = DocumentConverter.convertQueryResults(queryResults, fields);
 
         long totalCount = findTotalCountByType(cond);
 
-        LOGGER.info("{} document entries matches with the like expression: {}",
-                totalCount
-        );
+        LOGGER.trace("findAllByType(): {} document entries matches with the like expression: {}", totalCount);
 
+        LOGGER.trace("leaving findAllByType(): Found {} Documents", documentEntries);
         return new PageImpl<>(documentEntries, pageable, totalCount);
 
     }
@@ -319,36 +334,33 @@ public class JOOQDocumentRepository implements DocumentRepository {
     @Transactional(readOnly = true)
     @Override
     public Document findById(Long id) {
-        LOGGER.info("Finding Document entry by id: {}", id);
+        LOGGER.trace("entering findById(id = {})", id);
 
         DocumentsRecord queryResult = jooq.selectFrom(DOCUMENTS)
                 .where(DOCUMENTS.ID.equal(id.intValue()))
                 .fetchOne();
 
-        LOGGER.debug("Got result: {}", queryResult);
 
         if (queryResult == null) {
             throw new DocumentNotFoundException("No Document entry found with id: " + id);
         }
-
+        LOGGER.trace("leaving findById(): Found {}", queryResult);
         return DocumentConverter.convertQueryResultToModelObject(queryResult);
     }
 
     @Transactional(readOnly = true)
     @Override
     public Document findByUUID(String uuid) {
-        LOGGER.debug("findByUUID uuid {}", uuid);
+        LOGGER.debug("entering findByUUID(uuid = {})", uuid);
 
         DocumentsRecord queryResult = jooq.selectFrom(DOCUMENTS)
                 .where(DOCUMENTS.SYS_UUID.equal( UUID.fromString(uuid)))
                 .fetchOne();
 
-        LOGGER.debug("Got result: {}", queryResult);
-
         if (queryResult == null) {
             throw new DocumentNotFoundException("No Document entry found with uuid: " + uuid);
         }
-
+        LOGGER.trace("leaving findByUUID(): Found {}", queryResult);
         return DocumentConverter.convertQueryResultToModelObject(queryResult);
     }
 
@@ -356,36 +368,32 @@ public class JOOQDocumentRepository implements DocumentRepository {
     @Transactional(readOnly = true)
     @Override
     public Document findSettings() {
-        LOGGER.debug("findSettings, try to find storage area settings in cache first");
+        LOGGER.trace("entering findSettings(): try to find storage area settings in cache first");
 
         DocumentsRecord record = (DocumentsRecord) StorageAreaSettings.INSTANCE.getStorageSetting();
         if(record == null) {
-            LOGGER.info("storage area settings weren't found in cache. It will get from database");
+            LOGGER.trace("storage area settings weren't found in cache. It will get from database");
             record = jooq.selectFrom(DOCUMENTS)
                     .where(DOCUMENTS.SYS_TYPE.equal("storage_area"))
                     .fetchOne();
-
+            LOGGER.trace("findSettings(): settings record was found in db {}", record);
             StorageAreaSettings.INSTANCE.add(record);
-            LOGGER.debug("storage area settings {} has been added to cache", record);
+            LOGGER.trace("findSettings(): storage area settings has been added to cache");
         }
 
-        LOGGER.debug("Got result: {}", record);
+
 
         if (record == null) {
             throw new DocumentNotFoundException("No Document entry found with type storageArea");
         }
-
+        LOGGER.trace("leaving findSettings(): Got result: {}", record);
         return DocumentConverter.convertQueryResultToModelObject(record);
     }
 
     @Transactional(readOnly = true)
     @Override
     public Page<Document> findBySearchTerm(String searchTerm, Pageable pageable) {
-        LOGGER.info("Finding {} Document entries for page {} by using search term: {}",
-                pageable.getPageSize(),
-                pageable.getPageNumber(),
-                searchTerm
-        );
+        LOGGER.trace("entering findBySearchTerm(searchTerm={}, pageable={})", searchTerm, pageable);
 
         String likeExpression = "%" + searchTerm + "%";
 
@@ -395,19 +403,13 @@ public class JOOQDocumentRepository implements DocumentRepository {
                 .limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .fetchInto(DocumentsRecord.class);
 
+        LOGGER.trace("findBySearchTerm(): Found {} Document entries, they are going to convert to model objects", queryResults);
+
         List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
 
-        LOGGER.info("Found {} document entries for page: {}",
-        		documentEntries.size(),
-                pageable.getPageNumber()
-        );
-
         long totalCount = findCountByLikeExpression(likeExpression);
-
-        LOGGER.info("{} document entries matches with the like expression: {}",
-                totalCount,
-                likeExpression
-        );
+        LOGGER.trace("findBySearchTerm(): {} document entries matches with the like expression: {}", totalCount);
+        LOGGER.trace("leaving findBySearchTerm(): Found {}", documentEntries);
 
         return new PageImpl<>(documentEntries, pageable, totalCount);
     }
@@ -415,10 +417,10 @@ public class JOOQDocumentRepository implements DocumentRepository {
     @Transactional
     @Override
     public Document update(Document documentEntry) {
-        LOGGER.info("Updating document: {}", documentEntry);
+        LOGGER.trace("entering update(documentEntry={})", documentEntry);
 
         Timestamp currentTime = dateTimeService.getCurrentTimestamp();
-        LOGGER.debug("The current time is: {}", currentTime);
+        LOGGER.trace("update(): The current time is: {}", currentTime);
 
         int updatedRecordCount = jooq.update(DOCUMENTS)
                 .set(DOCUMENTS.SYS_DESC, documentEntry.getDescription())
@@ -435,8 +437,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
                 .where(DOCUMENTS.ID.equal(documentEntry.getId().intValue()))
                 .execute();
 
-        LOGGER.debug("Updated {} document entry.", updatedRecordCount);
-
+        LOGGER.trace("leaving update(): Updated {}", updatedRecordCount);
         //If you are using Firebird or PostgreSQL databases, you can use the RETURNING
         //clause in the update statement (and avoid the extra select clause):
         //http://www.jooq.org/doc/3.2/manual/sql-building/sql-statements/update-statement/#N11102
@@ -446,8 +447,8 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
     @Transactional
     @Override
-    public Document updateFileInfo(Document documentEntry) { 
-        LOGGER.info("Updating file info for document: {}", documentEntry);
+    public Document updateFileInfo(Document documentEntry) {
+        LOGGER.trace("entering updateFileInfo(documentEntry={})", documentEntry);
 
         Timestamp currentTime = dateTimeService.getCurrentTimestamp();
 
@@ -461,16 +462,15 @@ public class JOOQDocumentRepository implements DocumentRepository {
                 .where(DOCUMENTS.ID.equal(documentEntry.getId().intValue()))
                 .execute();
 
-        LOGGER.debug("Updated {} document entry.", updatedRecordCount);
-
+        LOGGER.trace("leaving updateFileInfo(): Updated {} document entry", updatedRecordCount);
         //If you are using Firebird or PostgreSQL databases, you can use the RETURNING
         //clause in the update statement (and avoid the extra select clause):
         //http://www.jooq.org/doc/3.2/manual/sql-building/sql-statements/update-statement/#N11102
 
         return findById(documentEntry.getId());
-    } 
-    
-    
+    }
+
+
     private static Field<Object> jsonObject(Field<?> field, String name) {
         return DSL.field("{0}->{1}", Object.class, field, DSL.inline(name));
     }
@@ -478,78 +478,82 @@ public class JOOQDocumentRepository implements DocumentRepository {
     private static Field<String> jsonText(Field<?> field, String name) {
         return DSL.field("{0}->>{1}", String.class, field, DSL.inline(name));
     }
-    
 
 
-//	todo return all params that requested from ui
-	@Override
-	public List<Document> findAllByParent(Long parent) {
-		LOGGER.info("Finding all Documents by parent.");
 
-		Documents d = DOCUMENTS.as("d");
-		Links l = LINKS.as("l");
-		Documents t = DOCUMENTS.as("t");
-		
+    //	todo return all params that requested from ui
+    @Override
+    public List<Document> findAllByParent(Long parent) {
+        LOGGER.info("entering findAllByParent(parent = {})", parent);
+
+        Documents d = DOCUMENTS.as("d");
+        Links l = LINKS.as("l");
+        Documents t = DOCUMENTS.as("t");
+
         List<DocumentsRecord> queryResults = jooq.select(d.ID, d.SYS_TITLE, d.SYS_AUTHOR, d.SYS_DATE_CR, d.SYS_DATE_MOD, d.SYS_DESC, d.SYS_MODIFIER, d.SYS_FILE_PATH, d.SYS_TYPE, d.SYS_FILE_NAME, d.SYS_UUID)
-        		.from(d
-        		.join(l
-        				.join(t)
-        				.on(t.ID.equal(l.HEAD_ID)))
-        		.on(d.ID.equal(l.TAIL_ID)))
-        		.where(t.ID.equal(parent.intValue()))
-        		.fetchInto(DocumentsRecord.class);
+                .from(d
+                        .join(l
+                                .join(t)
+                                .on(t.ID.equal(l.HEAD_ID)))
+                        .on(d.ID.equal(l.TAIL_ID)))
+                .where(t.ID.equal(parent.intValue()))
+                .fetchInto(DocumentsRecord.class);
+
+        LOGGER.trace("findAllByParent(): Found {} Document entries, they are going to convert to model objects", queryResults);
 
         List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
 
-        LOGGER.info("Found {} Document entries", documentEntries.size());
+        LOGGER.trace("leaving findAllByParent(): Found {}", documentEntries);
 
         return documentEntries;
-	}
-	
-	@Override
-	public List<Document> findParents(Long docId) {
-		LOGGER.info("Finding parent for doc.");
+    }
 
-		Documents d = DOCUMENTS.as("d");
-		Links l = LINKS.as("l");
-		Documents t = DOCUMENTS.as("t");
-		
+    @Override
+    public List<Document> findParents(Long docId) {
+        LOGGER.trace("entering findParents(docId = {})", docId);
+
+        Documents d = DOCUMENTS.as("d");
+        Links l = LINKS.as("l");
+        Documents t = DOCUMENTS.as("t");
+
         List<DocumentsRecord> queryResults = jooq.select(d.ID, d.SYS_TITLE, d.SYS_AUTHOR, d.SYS_DATE_CR, d.SYS_DATE_MOD, d.SYS_DESC, d.SYS_MODIFIER, d.SYS_FILE_PATH, d.SYS_TYPE, d.SYS_FILE_NAME, d.SYS_UUID)
-        		.from(d
-        		.join(l
-        				.join(t)
-        				.on(t.ID.equal(l.TAIL_ID)))
-        		.on(d.ID.equal(l.HEAD_ID)))
-        		.where(t.ID.equal(docId.intValue()))
-        		.fetchInto(DocumentsRecord.class);
+                .from(d
+                        .join(l
+                                .join(t)
+                                .on(t.ID.equal(l.TAIL_ID)))
+                        .on(d.ID.equal(l.HEAD_ID)))
+                .where(t.ID.equal(docId.intValue()))
+                .fetchInto(DocumentsRecord.class);
+
+        LOGGER.trace("findParents(): Found {} Document entries, they are going to convert to model objects", queryResults);
 
         List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
 
-        LOGGER.info("Found {} Document entries", documentEntries.size());
+        LOGGER.debug("leaving findParents(): Found: {}", documentEntries);
 
         return documentEntries;
-	}
+    }
 
-	@Transactional
-	@Override
-	public void setUser() {
+    @Transactional
+    @Override
+    public void setUser() {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        LOGGER.info("Current Remote User - "+request.getRemoteUser());
+        LOGGER.trace("Current Remote User - ",request.getRemoteUser());
         jooq.execute("SET my.username = '"+request.getRemoteUser()+"'");
-		
-	}
-	
-	@Transactional
-	@Override
-	public void setUser(String userName) {
-		LOGGER.info("Current User - "+userName);
+
+    }
+
+    @Transactional
+    @Override
+    public void setUser(String userName) {
+        LOGGER.trace("Current User - {}",userName);
         jooq.execute("SET my.username = '"+userName+"'");
-        
+
         //jooq.execute("SELECT current_setting('my.username') FROM documents LIMIT 1;");
-	}
+    }
 
     private long findCountByLikeExpression(String likeExpression) {
-        LOGGER.debug("Finding search result count by using like expression: {}", likeExpression);
+        LOGGER.trace("entering findCountByLikeExpression(likeExpression={})", likeExpression);
 
         long resultCount = jooq.fetchCount(
                 jooq.select()
@@ -557,32 +561,32 @@ public class JOOQDocumentRepository implements DocumentRepository {
                         .where(createWhereConditions(likeExpression))
         );
 
-        LOGGER.debug("Found search result count: {}", resultCount);
+        LOGGER.trace("leaving findCountByLikeExpression(): Found search result count: {}", resultCount);
 
         return resultCount;
     }
 
     private long findTotalCount() {
-        LOGGER.debug("Finding search result count by using like expression: {}");
+        LOGGER.trace("entering findTotalCount()");
 
         long resultCount = jooq.fetchCount(
                 jooq.selectFrom(DOCUMENTS)
         );
 
-        LOGGER.debug("Found search result count: {}", resultCount);
+        LOGGER.trace("leaving findTotalCount(): Found search result count: {}", resultCount);
 
         return resultCount;
     }
 
     private long findTotalCountByType(Condition cond) {
-        LOGGER.debug("Finding search result count by using like expression: {}");
+        LOGGER.trace("entering findTotalCountByType(cond={})", cond);
 
         long resultCount = jooq.fetchCount(
                 jooq.selectFrom(DOCUMENTS)
                         .where(cond)
         );
 
-        LOGGER.debug("Found search result count: {}", resultCount);
+        LOGGER.trace("leaving findTotalCountByType(): Found search result count: {}", resultCount);
 
         return resultCount;
     }
@@ -594,39 +598,45 @@ public class JOOQDocumentRepository implements DocumentRepository {
     }
 
     private Collection<SortField<?>> getSortFields(Sort sortSpecification) {
-        LOGGER.debug("Getting sort fields from sort specification: {}", sortSpecification);
+        LOGGER.trace("entering getSortFields(sortSpecification={})", sortSpecification);
         Collection<SortField<?>> querySortFields = new ArrayList<>();
 
         if (sortSpecification == null) {
-            LOGGER.debug("No sort specification found. Returning empty collection -> no sorting is done.");
+            LOGGER.trace("getSortFields(): No sort specification found. Returning empty collection -> no sorting is done.");
             return querySortFields;
         }
 
         for (Sort.Order specifiedField : sortSpecification) {
             String sortFieldName = specifiedField.getProperty();
             Sort.Direction sortDirection = specifiedField.getDirection();
-            LOGGER.debug("Getting sort field with name: {} and direction: {}", sortFieldName, sortDirection);
+            LOGGER.trace("getSortFields(): Getting sort field with name: {} and direction: {}", sortFieldName, sortDirection);
 
             Field<Object> tableField = getTableField(sortFieldName);
             SortField<?> querySortField = convertTableFieldToSortField(tableField, sortDirection);
+
+            LOGGER.trace("getSortFields(): tableField: {} and querySortField: {}", tableField, querySortField);
             querySortFields.add(querySortField);
         }
+
+        LOGGER.trace("leaving getSortFields(): querySortFields {}", querySortFields);
 
         return querySortFields;
     }
 
     private Field<Object> getTableField(String sortFieldName) {
+        LOGGER.trace("entering getTableField(sortFieldName={})", sortFieldName);
         Field<Object> sortField = null;
         try {
             java.lang.reflect.Field tableField = DOCUMENTS.getClass().getField(sortFieldName.toUpperCase());
             sortField = (TableField) tableField.get(DOCUMENTS);
-            LOGGER.info("sortField - "+sortField);
+            LOGGER.trace("getTableField(): sortField - {}", sortField);
         } catch (NoSuchFieldException | IllegalAccessException ex) {
-            LOGGER.info("Could not find table field: {}, Try to search in JSON data", sortFieldName);
+            LOGGER.trace("getTableField(): Could not find table field: {}, Try to search in JSON data", sortFieldName);
             sortField = jsonObject(DOCUMENTS.DATA, sortFieldName);
-
+            LOGGER.trace("getTableField(): sort field in  JSON data", sortField);
         }
 
+        LOGGER.trace("leaving getTableField()", sortField);
         return sortField;
     }
 
@@ -639,7 +649,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
         }
     }
 
-	private static class DocumentConverter{
+    private static class DocumentConverter{
         private static Document convertQueryResultToModelObject(Record queryResult, String[] fields) {
             ObjectNode data = JsonNodeFactory.instance.objectNode();
             ObjectMapper mapper = new ObjectMapper();
