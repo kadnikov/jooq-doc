@@ -1,34 +1,6 @@
 package ru.doccloud.cmis.server;
 
-import static org.apache.chemistry.opencmis.commons.impl.JSONConstants.ERROR_EXCEPTION;
-import static org.apache.chemistry.opencmis.commons.impl.JSONConstants.ERROR_MESSAGE;
-import static org.apache.chemistry.opencmis.commons.impl.JSONConstants.ERROR_STACKTRACE;
-
-import java.io.IOException;
-import java.util.Enumeration;
-import java.util.Map;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisConstraintException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisContentAlreadyExistsException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisFilterNotValidException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisNameConstraintViolationException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisNotSupportedException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisServiceUnavailableException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisStorageException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisStreamNotSupportedException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisTooManyRequestsException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisUpdateConflictException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisVersioningException;
+import org.apache.chemistry.opencmis.commons.exceptions.*;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.CmisService;
@@ -37,8 +9,18 @@ import org.apache.chemistry.opencmis.server.impl.browser.BrowserCallContextImpl;
 import org.apache.chemistry.opencmis.server.impl.browser.CmisBrowserBindingServlet;
 import org.apache.chemistry.opencmis.server.shared.Dispatcher;
 import org.apache.chemistry.opencmis.server.shared.ExceptionHelper;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Map;
+
+import static org.apache.chemistry.opencmis.commons.impl.JSONConstants.*;
 
 public class MyCmisBrowserBindingServlet extends CmisBrowserBindingServlet {
 
@@ -60,25 +42,24 @@ public class MyCmisBrowserBindingServlet extends CmisBrowserBindingServlet {
 	 @Override
 	    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException,
 	            IOException {
-			 LOG.debug("MyCmis Service CALLED");
-//			 LOG.debug("x-forwarded-proto header - "+request.getHeader("x-forwarded-proto"));
-//			 LOG.debug("getServerName - "+request.getServerName());
-//			 LOG.debug("getServerPort - "+request.getServerPort());
-//			 LOG.debug("host header - "+request.getHeader("host"));
-//			 Enumeration<String> headerNames = request.getHeaderNames();
-//
-//		        if (headerNames != null) {
-//		                while (headerNames.hasMoreElements()) {
-//					String headerName = headerNames.nextElement();
-//		                        LOG.debug("Header: "+ headerName+ " - " + request.getHeader(headerName));
-//		                }
-//		        }
-        String host = request.getHeader("host");
-        if (request.getHeader("x-forwarded-host")!=null){
-        	host = request.getHeader("x-forwarded-host");
-        }
-		 request.setAttribute(Dispatcher.BASE_URL_ATTRIBUTE, "http://"+host+"/jooq/browser");
-		 super.service(request, response);
+			 LOG.info("MyCmis Service CALLED");
+			 try {
+				 String host = request.getHeader("host");
+				 if (request.getHeader("x-forwarded-host") != null) {
+					 host = request.getHeader("x-forwarded-host");
+				 }
+                 String baseUrl = "http://" + host + "/jooq";
+
+                 baseUrl = StringUtils.stripEnd(baseUrl, "/") + request.getServletPath() + "/"
+                         + AbstractBrowserServiceCall.REPOSITORY_PLACEHOLDER + "/";
+
+                 request.setAttribute(Dispatcher.BASE_URL_ATTRIBUTE, baseUrl);
+
+				 super.service(request, response);
+			 } catch (Exception e) {
+			 	LOG.error("Exception {}",e.getMessage());
+			 	e.printStackTrace();
+			 }
 	 
 	 }
 	 
