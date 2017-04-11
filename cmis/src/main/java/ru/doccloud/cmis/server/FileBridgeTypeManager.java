@@ -22,33 +22,24 @@
  */
 package ru.doccloud.cmis.server;
 
+import org.apache.chemistry.opencmis.commons.definitions.*;
+import org.apache.chemistry.opencmis.commons.enums.CmisVersion;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
+import org.apache.chemistry.opencmis.server.support.TypeDefinitionFactory;
+
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.chemistry.opencmis.commons.definitions.MutableDocumentTypeDefinition;
-import org.apache.chemistry.opencmis.commons.definitions.MutableFolderTypeDefinition;
-import org.apache.chemistry.opencmis.commons.definitions.MutablePropertyDefinition;
-import org.apache.chemistry.opencmis.commons.definitions.MutableTypeDefinition;
-import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
-import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
-import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionContainer;
-import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionList;
-import org.apache.chemistry.opencmis.commons.enums.CmisVersion;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
-import org.apache.chemistry.opencmis.commons.server.CallContext;
-import org.apache.chemistry.opencmis.server.support.TypeDefinitionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Manages the type definitions for all FileShare repositories.
  */
 public class FileBridgeTypeManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileBridgeTypeManager.class);
+//    private static final Logger LOGGER = LoggerFactory.getLogger(FileBridgeTypeManager.class);
 
     private static final String NAMESPACE = "http://chemistry.apache.org/opencmis/fileshare";
 
@@ -114,9 +105,6 @@ public class FileBridgeTypeManager {
 
         typeDefinitions.put(newType.getId(), newType);
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Added type '{}'.", type.getId());
-        }
     }
 
     /**

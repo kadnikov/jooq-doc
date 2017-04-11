@@ -22,134 +22,43 @@
  */
 package ru.doccloud.cmis.server.repository;
 
-import java.io.*;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.GregorianCalendar;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.chemistry.opencmis.commons.BasicPermissions;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
-import org.apache.chemistry.opencmis.commons.data.Ace;
-import org.apache.chemistry.opencmis.commons.data.Acl;
-import org.apache.chemistry.opencmis.commons.data.AllowableActions;
-import org.apache.chemistry.opencmis.commons.data.BulkUpdateObjectIdAndChangeToken;
-import org.apache.chemistry.opencmis.commons.data.ContentStream;
-import org.apache.chemistry.opencmis.commons.data.FailedToDeleteData;
-import org.apache.chemistry.opencmis.commons.data.MutablePropertyData;
-import org.apache.chemistry.opencmis.commons.data.ObjectData;
-import org.apache.chemistry.opencmis.commons.data.ObjectInFolderContainer;
-import org.apache.chemistry.opencmis.commons.data.ObjectInFolderData;
-import org.apache.chemistry.opencmis.commons.data.ObjectInFolderList;
-import org.apache.chemistry.opencmis.commons.data.ObjectList;
-import org.apache.chemistry.opencmis.commons.data.ObjectParentData;
-import org.apache.chemistry.opencmis.commons.data.PermissionMapping;
+import org.apache.chemistry.opencmis.commons.data.*;
 import org.apache.chemistry.opencmis.commons.data.Properties;
-import org.apache.chemistry.opencmis.commons.data.PropertyData;
-import org.apache.chemistry.opencmis.commons.data.RepositoryInfo;
-import org.apache.chemistry.opencmis.commons.definitions.PermissionDefinition;
-import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
-import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
-import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionContainer;
-import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionList;
-import org.apache.chemistry.opencmis.commons.enums.AclPropagation;
-import org.apache.chemistry.opencmis.commons.enums.Action;
-import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
-import org.apache.chemistry.opencmis.commons.enums.CapabilityAcl;
-import org.apache.chemistry.opencmis.commons.enums.CapabilityChanges;
-import org.apache.chemistry.opencmis.commons.enums.CapabilityContentStreamUpdates;
-import org.apache.chemistry.opencmis.commons.enums.CapabilityJoin;
-import org.apache.chemistry.opencmis.commons.enums.CapabilityOrderBy;
-import org.apache.chemistry.opencmis.commons.enums.CapabilityQuery;
-import org.apache.chemistry.opencmis.commons.enums.CapabilityRenditions;
-import org.apache.chemistry.opencmis.commons.enums.CmisVersion;
-import org.apache.chemistry.opencmis.commons.enums.SupportedPermissions;
-import org.apache.chemistry.opencmis.commons.enums.Updatability;
-import org.apache.chemistry.opencmis.commons.enums.VersioningState;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisConstraintException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisContentAlreadyExistsException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisNameConstraintViolationException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisStorageException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisStreamNotSupportedException;
+import org.apache.chemistry.opencmis.commons.definitions.*;
+import org.apache.chemistry.opencmis.commons.enums.*;
+import org.apache.chemistry.opencmis.commons.exceptions.*;
 import org.apache.chemistry.opencmis.commons.impl.Base64;
 import org.apache.chemistry.opencmis.commons.impl.IOUtils;
 import org.apache.chemistry.opencmis.commons.impl.MimeTypes;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlEntryImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlListImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlPrincipalDataImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.AclCapabilitiesDataImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.AllowableActionsImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.BulkUpdateObjectIdAndChangeTokenImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.CreatablePropertyTypesImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.FailedToDeleteDataImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.NewTypeSettableAttributesImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectDataImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectInFolderContainerImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectInFolderDataImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectInFolderListImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectListImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectParentDataImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.PartialContentStreamImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.PermissionDefinitionDataImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.PermissionMappingDataImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertiesImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyBooleanImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyDateTimeImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyIdImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyIntegerImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertyStringImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.RepositoryCapabilitiesImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.RepositoryInfoImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.*;
 import org.apache.chemistry.opencmis.commons.impl.server.ObjectInfoImpl;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
-import org.jtransfo.JTransfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Repository;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-import ru.doccloud.cmis.server.util.ContentRangeInputStream;
 import ru.doccloud.cmis.server.FileBridgeTypeManager;
 import ru.doccloud.cmis.server.util.FileBridgeUtils;
 import ru.doccloud.common.exception.DocumentNotFoundException;
-import ru.doccloud.common.service.CurrentTimeDateTimeService;
 import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.document.dto.DocumentDTO;
-import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
-import ru.doccloud.document.repository.DocumentRepository;
-import ru.doccloud.document.repository.JOOQDocumentRepository;
 import ru.doccloud.document.service.DocumentCrudService;
 import ru.doccloud.document.service.FileActionsService;
 
-import javax.servlet.http.HttpServletRequest;
+import java.io.*;
+import java.math.BigInteger;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Implements all repository operations.
@@ -189,6 +98,8 @@ public class FileBridgeRepository {
 
     public FileBridgeRepository(final String repositoryId, final String rootPath,
                                 final FileBridgeTypeManager typeManager, DSLContext jooq, DocumentCrudService crudService, FileActionsService fileActionsService) {
+
+        LOGGER.trace("FileBridgeRepository(repositoryId={}, rootPath={}, typeManager={}, jooq={}, crudService= {}, fileActionsService={})",repositoryId, rootPath, typeManager, jooq, crudService, fileActionsService);
         // check repository id
         if (repositoryId == null || repositoryId.trim().length() == 0) {
             throw new IllegalArgumentException("Invalid repository id!");
@@ -196,8 +107,7 @@ public class FileBridgeRepository {
 
         this.repositoryId = repositoryId;
 
-        LOGGER.info("jooq: {}", jooq);   
-        
+
         // check root folder
         if (rootPath == null || rootPath.trim().length() == 0) {
             throw new IllegalArgumentException("Invalid root folder!");
@@ -241,6 +151,8 @@ public class FileBridgeRepository {
      * Sets read-only flag for the given user.
      */
     public void setUserReadOnly(final String user) {
+
+        LOGGER.trace("setUserReadOnly(user={})", user);
         if (StringUtils.isBlank(user)) {
             return;
         }
@@ -252,6 +164,7 @@ public class FileBridgeRepository {
      * Sets read-write flag for the given user.
      */
     public void setUserReadWrite(final String user) {
+        LOGGER.trace("setUserReadWrite(user={})", user);
         if (StringUtils.isBlank(user)) {
             return;
         }
@@ -267,6 +180,7 @@ public class FileBridgeRepository {
     public RepositoryInfo getRepositoryInfo(CallContext context) {
         checkUser(context, false);
 
+        LOGGER.trace("getRepositoryInfo(): cmisVersion {})", context.getCmisVersion());
         if (context.getCmisVersion() == CmisVersion.CMIS_1_0) {
             return repositoryInfo10;
         } else {
@@ -506,12 +420,12 @@ public class FileBridgeRepository {
         // get the file and parent
         DocumentDTO doc = getDocument(objectId.getValue());
 
-	DocumentDTO parent = getFirstParent(doc.getId());
-	
-	if (parent!=null){
-        	crudService.deleteLink(parent.getId(), doc.getId());
-	}
-	Link link = crudService.addLink(Long.parseLong(targetFolderId), doc.getId());
+        DocumentDTO parent = getFirstParent(doc.getId());
+
+        if (parent!=null){
+            crudService.deleteLink(parent.getId(), doc.getId());
+        }
+        Link link = crudService.addLink(Long.parseLong(targetFolderId), doc.getId());
 
 
         return compileObjectData(context, doc, null, false, false, userReadOnly, objectInfos);
@@ -1449,7 +1363,7 @@ public class FileBridgeRepository {
     	
         DocumentDTO found = crudService.findById(id);
         if(found == null)
-            throw new DocumentNotFoundException("Document " + found + " was not found in database");
+            throw new DocumentNotFoundException("Document was not found in database");
 
         LOGGER.info("Found Document entry: {}", found);
 
@@ -1980,12 +1894,13 @@ public class FileBridgeRepository {
      */
     private boolean checkUser(CallContext context, boolean writeRequired) {
 
-        LOGGER.debug("params  call context {} and write required {}", context, writeRequired);
+        LOGGER.trace("entering checkUser(context={},writeRequired={})", context, writeRequired);
         if (context == null) {
             throw new CmisPermissionDeniedException("No user context!");
         }
 
         Boolean readOnly = readWriteUserMap.get(context.getUsername());
+
         if (readOnly == null) {
             throw new CmisPermissionDeniedException("Unknown user!");
         }
@@ -1994,10 +1909,10 @@ public class FileBridgeRepository {
             throw new CmisPermissionDeniedException("No write permission!");
         }
 
-        LOGGER.debug("crud service {} ", crudService);
-        LOGGER.debug("username from context {} ", context.getUsername());
         crudService.setUser(context.getUsername());
-        
+
+
+        LOGGER.trace("leaving checkUser(): is user {} readOnly? {}", context.getUsername(), readOnly);
         return readOnly;
     }
 
@@ -2191,5 +2106,13 @@ public class FileBridgeRepository {
         pm.setPermissions(Collections.singletonList(permission));
 
         return pm;
+    }
+
+    @Override
+    public String toString() {
+        return "FileBridgeRepository{" +
+                "repositoryId='" + repositoryId + '\'' +
+                ", root=" + root +
+                '}';
     }
 }

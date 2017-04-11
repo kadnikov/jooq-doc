@@ -35,14 +35,14 @@ public class MyCmisBrowserBindingServlet extends CmisBrowserBindingServlet {
     
     @Override
     public void init(ServletConfig config) throws ServletException {
-    	LOGGER.debug("MyCmis INIT CALLED");
+    	LOGGER.debug("init(config={})", config);
         super.init(config);
     }
     
 	 @Override
 	    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException,
 	            IOException {
-			 LOGGER.info("service(): MyCmis Service CALLED");
+			 LOGGER.debug(" service(): MyCmis Service CALLED");
 			 try {
                  String host = request.getHeader("x-forwarded-host") != null ? request.getHeader("x-forwarded-host")
                          : request.getHeader("host");
@@ -53,7 +53,7 @@ public class MyCmisBrowserBindingServlet extends CmisBrowserBindingServlet {
                  baseUrl = StringUtils.stripEnd(baseUrl, "/") + request.getContextPath()  + request.getServletPath() + "/"
                          + AbstractBrowserServiceCall.REPOSITORY_PLACEHOLDER + "/";
 
-                 LOGGER.info("service(): baseUrl {}", baseUrl);
+                 LOGGER.debug("service(): baseUrl {}", baseUrl);
 
                  request.setAttribute(Dispatcher.BASE_URL_ATTRIBUTE, baseUrl);
 

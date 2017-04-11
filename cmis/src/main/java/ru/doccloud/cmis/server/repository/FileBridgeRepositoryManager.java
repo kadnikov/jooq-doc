@@ -22,14 +22,14 @@
  */
 package ru.doccloud.cmis.server.repository;
 
+import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Repository;
 
 /**
  * Manages all repositories.
@@ -37,6 +37,7 @@ import org.springframework.stereotype.Repository;
 @Component
 public class FileBridgeRepositoryManager {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileBridgeRepositoryManager.class);
     private final Map<String, FileBridgeRepository> repositories;
 
     public FileBridgeRepositoryManager() {
@@ -47,22 +48,26 @@ public class FileBridgeRepositoryManager {
      * Adds a repository object.
      */
     public void addRepository(FileBridgeRepository fsr) {
+        LOGGER.debug("enetring addRepository(fsr={})", fsr);
         if (fsr == null || fsr.getRepositoryId() == null) {
             return;
         }
 
         repositories.put(fsr.getRepositoryId(), fsr);
+        LOGGER.debug("leaving addRepository(): repositoryID {} has been added to repository map", fsr.getRepositoryId());
     }
 
     /**
      * Gets a repository object by id.
      */
     public FileBridgeRepository getRepository(String repositoryId) {
+        LOGGER.debug("entering getRepository(repositoryId={})", repositoryId);
         FileBridgeRepository result = repositories.get(repositoryId);
         if (result == null) {
             throw new CmisObjectNotFoundException("Unknown repository '" + repositoryId + "'!");
         }
 
+        LOGGER.debug("leaving getRepository(): FileBridgeRepository was found {}", result);
         return result;
     }
 

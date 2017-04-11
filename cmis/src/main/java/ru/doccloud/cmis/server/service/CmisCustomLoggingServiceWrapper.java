@@ -1,9 +1,5 @@
 package ru.doccloud.cmis.server.service;
 
-import java.math.BigInteger;
-
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.data.ObjectInFolderList;
 import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
@@ -12,6 +8,9 @@ import org.apache.chemistry.opencmis.commons.server.CmisService;
 import org.apache.chemistry.opencmis.server.support.wrapper.AbstractCmisServiceWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.servlet.http.HttpServletRequest;
+import java.math.BigInteger;
 
 /**
  * Example of a minimal CMIS Custom Service Wrapper (logging example)
@@ -54,7 +53,7 @@ public class CmisCustomLoggingServiceWrapper extends AbstractCmisServiceWrapper 
 
         String binding = getCallContext().getBinding();
 
-        LOGGER.debug("Operation: {}, Repository ID: {}, Binding: {}, User Agent: {}", "getChildren ", repositoryId, binding,
+        LOGGER.debug("slflog(): Operation: {}, Repository ID: {}, Binding: {}, User Agent: {}", "getChildren ", repositoryId, binding,
                 userAgent);
     }
 
@@ -73,8 +72,8 @@ public class CmisCustomLoggingServiceWrapper extends AbstractCmisServiceWrapper 
                 skipCount, extension);
 
         // dual log output in case logger not configured
-        LOGGER.debug("[CmisCustomServiceWrapper] Exiting method getChildren. time (ms):"
-                + (System.currentTimeMillis() - startTime));
+        LOGGER.debug("leaving getChildren(): [CmisCustomServiceWrapper] Exiting method getChildren. time (ms): {}"
+                , (System.currentTimeMillis() - startTime));
         return retVal;
     }
 
