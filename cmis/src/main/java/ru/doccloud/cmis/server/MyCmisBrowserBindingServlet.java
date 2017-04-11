@@ -29,35 +29,37 @@ public class MyCmisBrowserBindingServlet extends CmisBrowserBindingServlet {
 	 */
 	private static final long serialVersionUID = 1L;
 
-    private static final Logger LOG = LoggerFactory.getLogger(MyCmisBrowserBindingServlet.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(MyCmisBrowserBindingServlet.class.getName());
 
     private static final MyBrowserServiceCall ERROR_SERTVICE_CALL = new MyBrowserServiceCall();
     
     @Override
     public void init(ServletConfig config) throws ServletException {
-    	LOG.debug("MyCmis INIT CALLED");
+    	LOGGER.debug("MyCmis INIT CALLED");
         super.init(config);
     }
     
 	 @Override
 	    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException,
 	            IOException {
-			 LOG.info("MyCmis Service CALLED");
+			 LOGGER.info("service(): MyCmis Service CALLED");
 			 try {
 				 String host = request.getHeader("host");
 				 if (request.getHeader("x-forwarded-host") != null) {
 					 host = request.getHeader("x-forwarded-host");
 				 }
-                 String baseUrl = "http://" + host + "/jooq";
+                 String baseUrl = "http://" + host;
 
-                 baseUrl = StringUtils.stripEnd(baseUrl, "/") + request.getServletPath() + "/"
+                 baseUrl = StringUtils.stripEnd(baseUrl, "/") + request.getContextPath()  + request.getServletPath() + "/"
                          + AbstractBrowserServiceCall.REPOSITORY_PLACEHOLDER + "/";
+
+                 LOGGER.info("service(): baseUrl {}", baseUrl);
 
                  request.setAttribute(Dispatcher.BASE_URL_ATTRIBUTE, baseUrl);
 
 				 super.service(request, response);
 			 } catch (Exception e) {
-			 	LOG.error("Exception {}",e.getMessage());
+			 	LOGGER.error("Exception {}",e.getMessage());
 			 	e.printStackTrace();
 			 }
 	 
@@ -126,10 +128,10 @@ public class MyCmisBrowserBindingServlet extends CmisBrowserBindingServlet {
 	            String exceptionName = CmisRuntimeException.EXCEPTION_NAME;
 
 	            if (ex instanceof CmisRuntimeException) {
-	                LOG.error(createLogMessage(ex, request), ex);
+	                LOGGER.error(createLogMessage(ex, request), ex);
 	                statusCode = getErrorCode((CmisRuntimeException) ex);
 	            } else if (ex instanceof CmisStorageException) {
-	                LOG.error(createLogMessage(ex, request), ex);
+	                LOGGER.error(createLogMessage(ex, request), ex);
 	                statusCode = getErrorCode((CmisStorageException) ex);
 	                exceptionName = ((CmisStorageException) ex).getExceptionName();
 	            } else if (ex instanceof CmisBaseException) {
@@ -137,16 +139,16 @@ public class MyCmisBrowserBindingServlet extends CmisBrowserBindingServlet {
 	                exceptionName = ((CmisBaseException) ex).getExceptionName();
 
 	                if (statusCode == HttpServletResponse.SC_INTERNAL_SERVER_ERROR) {
-	                    LOG.error(createLogMessage(ex, request), ex);
+	                    LOGGER.error(createLogMessage(ex, request), ex);
 	                }
 	            } else if (ex instanceof IOException) {
-	                LOG.warn(createLogMessage(ex, request), ex);
+	                LOGGER.warn(createLogMessage(ex, request), ex);
 	            } else {
-	                LOG.error(createLogMessage(ex, request), ex);
+	                LOGGER.error(createLogMessage(ex, request), ex);
 	            }
 
 	            if (response.isCommitted()) {
-	                LOG.warn("Failed to send error message to client. Response is already committed.", ex);
+	                LOGGER.warn("Failed to send error message to client. Response is already committed.", ex);
 	                return;
 	            }
 
@@ -188,7 +190,7 @@ public class MyCmisBrowserBindingServlet extends CmisBrowserBindingServlet {
 	                try {
 	                    writeJSON(jsonResponse, request, response);
 	                } catch (Exception e) {
-	                    LOG.error(createLogMessage(ex, request), e);
+	                    LOGGER.error(createLogMessage(ex, request), e);
 	                    try {
 	                        response.sendError(statusCode, message);
 	                    } catch (Exception en) {
