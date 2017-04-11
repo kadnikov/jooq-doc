@@ -1,14 +1,12 @@
 package ru.doccloud.document.service;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
 import org.springframework.transaction.annotation.Transactional;
 import ru.doccloud.document.dto.DocumentDTO;
-import ru.doccloud.document.model.Document;
-import ru.doccloud.document.model.Link;
+import ru.doccloud.document.dto.LinkDTO;
+
+import java.util.List;
 
 /**
  * @author Andrey Kadnikov
@@ -47,10 +45,10 @@ public interface DocumentCrudService {
     DocumentDTO updateFileInfo(final DocumentDTO dto);
 
     @Transactional
-    Link addLink(Long headId, Long tailId);
+    LinkDTO addLink(Long headId, Long tailId);
 
     @Transactional
-    Link deleteLink(Long headId, Long tailId);
+    LinkDTO deleteLink(Long headId, Long tailId);
 
     @Transactional
     void setUser();

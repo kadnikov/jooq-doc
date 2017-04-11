@@ -49,7 +49,7 @@ import ru.doccloud.cmis.server.util.FileBridgeUtils;
 import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.document.dto.DocumentDTO;
-import ru.doccloud.document.model.Link;
+import ru.doccloud.document.dto.LinkDTO;
 import ru.doccloud.document.service.DocumentCrudService;
 import ru.doccloud.document.service.FileActionsService;
 
@@ -425,8 +425,7 @@ public class FileBridgeRepository {
         if (parent!=null){
             crudService.deleteLink(parent.getId(), doc.getId());
         }
-        Link link = crudService.addLink(Long.parseLong(targetFolderId), doc.getId());
-
+        LinkDTO link = crudService.addLink(Long.parseLong(targetFolderId), doc.getId());
 
         return compileObjectData(context, doc, null, false, false, userReadOnly, objectInfos);
     }
@@ -1129,14 +1128,14 @@ public class FileBridgeRepository {
 
         result.setProperties(compileProperties(context, doc, filter, objectInfo));
 
-        if (includeAllowableActions) {
-            //result.setAllowableActions(compileAllowableActions(file, userReadOnly));
-        }
-
-        if (includeAcl) {
-           // result.setAcl(compileAcl(file));
-           // result.setIsExactAcl(true);
-        }
+//        if (includeAllowableActions) {
+//            //result.setAllowableActions(compileAllowableActions(file, userReadOnly));
+//        }
+//
+//        if (includeAcl) {
+//           // result.setAcl(compileAcl(file));
+//           // result.setIsExactAcl(true);
+//        }
 
         if (context.isObjectInfoRequired()) {
             objectInfo.setObject(result);

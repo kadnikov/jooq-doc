@@ -1,9 +1,5 @@
 package ru.doccloud.document.service;
 
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-
 import org.jtransfo.JTransfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,11 +12,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
 import ru.doccloud.document.dto.DocumentDTO;
+import ru.doccloud.document.dto.LinkDTO;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
 import ru.doccloud.document.repository.DocumentRepository;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * @author Andrey Kadnikov
@@ -204,21 +203,21 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     //todo implement that this method return LinkDTO instead of link
     @Transactional
     @Override
-    public Link addLink(Long headId, Long tailId) {
+    public LinkDTO addLink(Long headId, Long tailId) {
         LOGGER.debug("entering addLink(headId={}, tailId = {})", headId, tailId);
 
         Link link = repository.addLink(headId, tailId);
         LOGGER.debug("leaving addLink(): Link {}", link);
-        return link;
+        return transformer.convert(link, new LinkDTO());
     }
     //todo implement that this method return LinkDTO instead of link
     @Transactional
     @Override
-    public Link deleteLink(Long headId, Long tailId) {
+    public LinkDTO deleteLink(Long headId, Long tailId) {
         LOGGER.debug("entering deleteLink(headId={}, tailId = {})", headId, tailId);
         Link link = repository.deleteLink(headId, tailId);
         LOGGER.debug("leaving deleteLink(): Link {}", link);
-        return link;
+        return transformer.convert(link, new LinkDTO());
     }
 
     //todo remove this method
