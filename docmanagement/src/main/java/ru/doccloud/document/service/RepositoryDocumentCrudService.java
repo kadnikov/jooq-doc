@@ -200,7 +200,6 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         return transformer.convert(updated, new DocumentDTO());
     }
 
-    //todo implement that this method return LinkDTO instead of link
     @Transactional
     @Override
     public LinkDTO addLink(Long headId, Long tailId) {
@@ -210,7 +209,6 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         LOGGER.debug("leaving addLink(): Link {}", link);
         return transformer.convert(link, new LinkDTO());
     }
-    //todo implement that this method return LinkDTO instead of link
     @Transactional
     @Override
     public LinkDTO deleteLink(Long headId, Long tailId) {
@@ -220,7 +218,6 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         return transformer.convert(link, new LinkDTO());
     }
 
-    //todo remove this method
     @Transactional
     @Override
     public void setUser() {
