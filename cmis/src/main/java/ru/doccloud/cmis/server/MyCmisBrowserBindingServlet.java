@@ -44,10 +44,10 @@ public class MyCmisBrowserBindingServlet extends CmisBrowserBindingServlet {
 	            IOException {
 			 LOGGER.info("service(): MyCmis Service CALLED");
 			 try {
-				 String host = request.getHeader("host");
-				 if (request.getHeader("x-forwarded-host") != null) {
-					 host = request.getHeader("x-forwarded-host");
-				 }
+                 String host = request.getHeader("x-forwarded-host") != null ? request.getHeader("x-forwarded-host")
+                         : request.getHeader("host");
+
+
                  String baseUrl = "http://" + host;
 
                  baseUrl = StringUtils.stripEnd(baseUrl, "/") + request.getContextPath()  + request.getServletPath() + "/"
