@@ -154,13 +154,13 @@ public class DocumentController {
     }*/
     
     @RequestMapping(method = RequestMethod.GET)
-    public Page<DocumentDTO> findAll(Pageable pageable) {
+    public Page<DocumentDTO> findAll(Pageable pageable, @RequestParam(value = "filters",required=false) String query) {
         LOGGER.info("findAll(pageSize= {}, pageNumber = {}) ",
                 pageable.getPageSize(),
                 pageable.getPageNumber()
         );
 
-        return crudService.findAll(pageable);
+        return crudService.findAll(pageable, query);
     }
     
     @RequestMapping(value = "/type/{type}", method = RequestMethod.GET)

@@ -104,10 +104,10 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 
     @Transactional(readOnly = true)
     @Override
-    public Page<DocumentDTO> findAll(final Pageable pageable) {
+    public Page<DocumentDTO> findAll(final Pageable pageable, String query) {
         LOGGER.debug("entering findAll(pageable = {})", pageable);
 
-        Page<Document> searchResults = repository.findAll(pageable);
+        Page<Document> searchResults = repository.findAll(pageable, query);
 
         List<DocumentDTO> dtos = transformer.convertList(searchResults.getContent(), DocumentDTO.class);
 

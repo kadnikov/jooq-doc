@@ -80,9 +80,8 @@ public interface DocumentRepository {
 
 	public void setUser(String userName);
 
-	public Page<Document> findAll(Pageable pageable);
+	public Page<Document> findAll(Pageable pageable, String query);
 
 	public Page<Document> findAllByType(String type, String[] fields, Pageable pageable, String query);
 
-	
 }

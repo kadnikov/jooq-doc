@@ -38,8 +38,7 @@ public interface DocumentCrudService {
 	
 	public List<DocumentDTO> findAllByParent(final Long parentid);
 
-	public Page<DocumentDTO> findAll(final Pageable pageable);
-
+	public Page<DocumentDTO> findAll(Pageable pageable, String query);
 
     @Transactional
     DocumentDTO updateFileInfo(final DocumentDTO dto);
@@ -57,6 +56,5 @@ public interface DocumentCrudService {
     void setUser(String userName);
 
     public Page<DocumentDTO> findAllByType(final String type, final String[] fields, final Pageable pageable, final String query);
-
 
 }

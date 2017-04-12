@@ -186,11 +186,14 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
     @Transactional(readOnly = true)
     @Override
-    public Page<Document> findAll(Pageable pageable) {
+    public Page<Document> findAll(Pageable pageable, String query) {
 
         LOGGER.trace("entering findAll(pageSize = {}, pageNumber = {})", pageable.getPageSize(), pageable.getPageNumber());
-
+        List<QueryParam> queryParams = getQueryParams(query);
+        Condition cond = DOCUMENTS.SYS_TYPE.isNotNull();
+        cond = extendConditions(cond, queryParams);
         List<DocumentsRecord> queryResults = jooq.selectFrom(DOCUMENTS)
+        		.where(cond)
                 .orderBy(getSortFields(pageable.getSort()))
                 .limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .fetchInto(DocumentsRecord.class);
@@ -204,7 +207,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
                 pageable.getPageNumber()
         );
 
-        long totalCount = findTotalCount();
+        long totalCount = findTotalCount(cond);
 
         LOGGER.trace("findAll(): {} document entries matches with the like expression: {}", totalCount);
 
@@ -238,78 +241,9 @@ public class JOOQDocumentRepository implements DocumentRepository {
         }
         LOGGER.trace("findAllByType(): selectedFields: {}", selectedFields);
 
-        FilterBean filter = null;
-        List<QueryParam> QueryParams = null;
-        LOGGER.trace("Query for search - {}", query);
-        ObjectMapper mapper = new ObjectMapper();
-        if (query!=null){
-            try {
-                filter = mapper.readValue(query, new TypeReference<FilterBean>(){});
-                QueryParams = filter.getMrules();
-                LOGGER.trace("findAllByType(): List of params - {} {}", QueryParams.toString(), QueryParams.size());
-            } catch (IOException e) {
-                LOGGER.error("Error parsing JSON {}",e.getLocalizedMessage());
-                e.printStackTrace();
-            }
-        }
+        List<QueryParam> queryParams = getQueryParams(query);
         Condition cond = DOCUMENTS.SYS_TYPE.equal(type);
-        if (QueryParams !=null)
-            for (QueryParam param : QueryParams) {
-                LOGGER.trace("findAllByType(): Param {} {} {} ",param.getField(),param.getOperand(),param.getValue());
-                if (param.getOperand()!=null){
-                    DataType<Object> JSONB = new DefaultDataType<Object>(SQLDialect.POSTGRES, SQLDataType.OTHER, "jsonb");
-//        	    // ['eq','ne','lt','le','gt','ge','bw','bn','in','ni','ew','en','cn','nc']
-//                    todo rewrite using enum implementation
-                    final String operand = param.getOperand().toLowerCase();
-
-                    LOGGER.trace("findAllByType(): operand ",operand);
-                    switch (operand)
-                    {
-                        case "eq":
-                            cond = cond.and(getTableField(param.getField()).equal(param.getValue()));
-                            break;
-                        case "ne":
-                            cond = cond.and(getTableField(param.getField()).notEqual(param.getValue()));
-                            break;
-                        case "lt":
-                            cond = cond.and(getTableField(param.getField()).lessThan(DSL.val(param.getValue()).cast(JSONB)));
-                            break;
-                        case "le":
-                            cond = cond.and(getTableField(param.getField()).lessOrEqual(param.getValue()));
-                            break;
-                        case "gt":
-                            cond = cond.and(getTableField(param.getField()).greaterThan(DSL.val(param.getValue()).cast(JSONB)));
-                            break;
-                        case "ge":
-                            cond = cond.and(getTableField(param.getField()).greaterOrEqual(param.getValue()));
-                            break;
-                        case "bw":
-                            cond = cond.and(getTableField(param.getField()).like(param.getValue()+"%"));
-                            break;
-                        case "bn":
-                            cond = cond.and(getTableField(param.getField()).notLike(param.getValue()+"%"));
-                            break;
-                        case "in":
-                            cond = cond.and(getTableField(param.getField()).in(param.getValue()));
-                            break;
-                        case "ni":
-                            cond = cond.and(getTableField(param.getField()).notIn(param.getValue()));
-                            break;
-                        case "ew":
-                            cond = cond.and(getTableField(param.getField()).like("%"+param.getValue()));
-                            break;
-                        case "en":
-                            cond = cond.and(getTableField(param.getField()).notLike("%"+param.getValue()));
-                            break;
-                        case "cn":
-                            cond = cond.and(getTableField(param.getField()).like("%"+param.getValue()+"%"));
-                            break;
-                        case "nc":
-                            cond = cond.and(getTableField(param.getField()).notLike("%"+param.getValue()+"%"));
-                            break;
-                    }
-                }
-            }
+        cond = extendConditions(cond, queryParams);
         List<Record> queryResults = jooq.select(selectedFields).from(DOCUMENTS)
                 .where(cond)
                 .orderBy(getSortFields(pageable.getSort()))
@@ -331,7 +265,86 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
 
 
-    @Transactional(readOnly = true)
+    private List<QueryParam> getQueryParams(String query) {
+    	FilterBean filter = null;
+        List<QueryParam> queryParams = null;
+        LOGGER.trace("Query for search - {}", query);
+        ObjectMapper mapper = new ObjectMapper();
+        if (query!=null){
+            try {
+                filter = mapper.readValue(query, new TypeReference<FilterBean>(){});
+                queryParams = filter.getMrules();
+                LOGGER.trace("findAllByType(): List of params - {} {}", queryParams.toString(), queryParams.size());
+            } catch (IOException e) {
+                LOGGER.error("Error parsing JSON {}",e.getLocalizedMessage());
+                e.printStackTrace();
+            }
+        }
+        return queryParams;
+	}
+
+	private Condition extendConditions(Condition cond, List<QueryParam> queryParams) {
+        if (queryParams !=null)
+            for (QueryParam param : queryParams) {
+                LOGGER.trace("extendConditions: Param {} {} {} ",param.getField(),param.getOperand(),param.getValue());
+                if (param.getOperand()!=null){
+                    
+//        	    // ['eq','ne','lt','le','gt','ge','bw','bn','in','ni','ew','en','cn','nc']
+//                    todo rewrite using enum implementation
+                    final String operand = param.getOperand().toLowerCase();
+
+                    LOGGER.trace("extendConditions: operand ",operand);
+                    switch (operand)
+                    {
+                        case "eq":
+                            cond = cond.and(getTableField(param.getField()).equal(getFieldValue(param)));
+                            break;
+                        case "ne":
+                            cond = cond.and(getTableField(param.getField()).notEqual(getFieldValue(param)));
+                            break;
+                        case "lt":
+                            cond = cond.and(getTableField(param.getField()).lessThan(getFieldValue(param)));
+                            break;
+                        case "le":
+                            cond = cond.and(getTableField(param.getField()).lessOrEqual(getFieldValue(param)));
+                            break;
+                        case "gt":
+                            cond = cond.and(getTableField(param.getField()).greaterThan(getFieldValue(param)));
+                            break;
+                        case "ge":
+                            cond = cond.and(getTableField(param.getField()).greaterOrEqual(getFieldValue(param)));
+                            break;
+                        case "bw":
+                            cond = cond.and(getTableField(param.getField()).like(param.getValue()+"%"));
+                            break;
+                        case "bn":
+                            cond = cond.and(getTableField(param.getField()).notLike(param.getValue()+"%"));
+                            break;
+                        case "in":
+                            cond = cond.and(getTableField(param.getField()).in(getFieldValue(param)));
+                            break;
+                        case "ni":
+                            cond = cond.and(getTableField(param.getField()).notIn(getFieldValue(param)));
+                            break;
+                        case "ew":
+                            cond = cond.and(getTableField(param.getField()).like("%"+param.getValue()));
+                            break;
+                        case "en":
+                            cond = cond.and(getTableField(param.getField()).notLike("%"+param.getValue()));
+                            break;
+                        case "cn":
+                            cond = cond.and(getTableField(param.getField()).like("%"+param.getValue()+"%"));
+                            break;
+                        case "nc":
+                            cond = cond.and(getTableField(param.getField()).notLike("%"+param.getValue()+"%"));
+                            break;
+                    }
+                }
+            }
+        return cond;
+	}
+
+	@Transactional(readOnly = true)
     @Override
     public Document findById(Long id) {
         LOGGER.trace("entering findById(id = {})", id);
@@ -566,11 +579,12 @@ public class JOOQDocumentRepository implements DocumentRepository {
         return resultCount;
     }
 
-    private long findTotalCount() {
+    private long findTotalCount(Condition cond) {
         LOGGER.trace("entering findTotalCount()");
 
         long resultCount = jooq.fetchCount(
                 jooq.selectFrom(DOCUMENTS)
+                .where(cond)
         );
 
         LOGGER.trace("leaving findTotalCount(): Found search result count: {}", resultCount);
@@ -639,6 +653,36 @@ public class JOOQDocumentRepository implements DocumentRepository {
         LOGGER.trace("leaving getTableField()", sortField);
         return sortField;
     }
+    
+    private Field<Object> getFieldValue(QueryParam param) {
+    	Field<Object> result = null;
+        DataType<Object> JSONB = new DefaultDataType<Object>(SQLDialect.POSTGRES, SQLDataType.OTHER, "jsonb");
+        DataType<Object> intType = new DefaultDataType<Object>(SQLDialect.POSTGRES, SQLDataType.OTHER, "int");
+        DataType<Object> timeType = new DefaultDataType<Object>(SQLDialect.POSTGRES, SQLDataType.OTHER, "timestamp");
+        
+        try {
+            java.lang.reflect.Field tableField = DOCUMENTS.getClass().getField(param.getField().toUpperCase());
+            Field<Object> sortField = (TableField) tableField.get(DOCUMENTS);
+            LOGGER.trace("getFieldValue(): Field {}, type {}", sortField, sortField.getDataType());
+            
+            if (sortField.getDataType().isNumeric()){
+            	 LOGGER.trace("getFieldValue(): integer");
+            	result = DSL.val(param.getValue()).cast(intType);
+            }else if(sortField.getDataType().isDateTime()){
+            	 LOGGER.trace("getFieldValue(): Timestamp");
+            	result = DSL.val(param.getValue()).cast(timeType);
+            }else{
+            	result = DSL.val(param.getValue());
+            }
+            
+        } catch (NoSuchFieldException | IllegalAccessException ex) {
+            LOGGER.trace("getFieldValue(): Could not find table field: {}, Cast to JSONB", param);
+            result =  DSL.val(param.getValue()).cast(JSONB);
+        }
+        LOGGER.trace("getFieldValue(): Result {}", result);
+        return result;
+    }
+    
 
     private SortField<?> convertTableFieldToSortField(Field<Object> tableField, Sort.Direction sortDirection) {
         if (sortDirection == Sort.Direction.ASC) {
