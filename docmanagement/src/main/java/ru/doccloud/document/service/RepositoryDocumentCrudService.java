@@ -52,7 +52,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         dto.setAuthor(user);
         Document persisted = repository.add(createModel(dto));
 
-        LOGGER.info("leaving add(): Added Document entry {}", persisted);
+        LOGGER.debug("leaving add(): Added Document entry {}", persisted);
 
         return transformer.convert(persisted, new DocumentDTO());
     }
@@ -252,7 +252,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 
     @Override
     public List<DocumentDTO> findAllByParent(final Long parentid) {
-        LOGGER.info("entering findAllByParent(parentId = {})", parentid);
+        LOGGER.debug("entering findAllByParent(parentId = {})", parentid);
 
         List<Document> docEntries = repository.findAllByParent(parentid);
 

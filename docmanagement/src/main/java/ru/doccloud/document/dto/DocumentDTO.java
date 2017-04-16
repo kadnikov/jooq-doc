@@ -1,17 +1,12 @@
 package ru.doccloud.document.dto;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.joda.time.LocalDateTime;
 import org.jtransfo.DomainClass;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
-import ru.doccloud.common.json.CustomJsonDataDeserializer;
-import ru.doccloud.common.json.CustomJsonDataSerializer;
 import ru.doccloud.common.json.CustomLocalDateTimeDeserializer;
 import ru.doccloud.common.json.CustomLocalDateTimeSerializer;
 
@@ -70,6 +65,7 @@ public class DocumentDTO {
         this.title = title;
         this.type = type;
     }
+
 
     public Long getId() {
         return id;

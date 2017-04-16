@@ -22,25 +22,7 @@
  */
 package ru.doccloud.cmis.server.service;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.chemistry.opencmis.commons.data.Acl;
-import org.apache.chemistry.opencmis.commons.data.AllowableActions;
-import org.apache.chemistry.opencmis.commons.data.BulkUpdateObjectIdAndChangeToken;
-import org.apache.chemistry.opencmis.commons.data.ContentStream;
-import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
-import org.apache.chemistry.opencmis.commons.data.FailedToDeleteData;
-import org.apache.chemistry.opencmis.commons.data.ObjectData;
-import org.apache.chemistry.opencmis.commons.data.ObjectInFolderContainer;
-import org.apache.chemistry.opencmis.commons.data.ObjectInFolderList;
-import org.apache.chemistry.opencmis.commons.data.ObjectList;
-import org.apache.chemistry.opencmis.commons.data.ObjectParentData;
-import org.apache.chemistry.opencmis.commons.data.Properties;
-import org.apache.chemistry.opencmis.commons.data.RenditionData;
-import org.apache.chemistry.opencmis.commons.data.RepositoryInfo;
+import org.apache.chemistry.opencmis.commons.data.*;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionList;
 import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
@@ -56,20 +38,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import ru.doccloud.cmis.server.repository.FileBridgeRepository;
 import ru.doccloud.cmis.server.repository.FileBridgeRepositoryManager;
 
-import javax.servlet.http.HttpServletRequest;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * FileShare Service implementation.
  */
 @Component
 public class FileBridgeCmisService extends AbstractCmisService implements CallContextAwareCmisService {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileBridgeCmisService.class);
 
 	private final FileBridgeRepositoryManager repositoryManager;
     private CallContext context;
@@ -206,10 +188,14 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
     @Override
     public String create(String repositoryId, Properties properties, String folderId, ContentStream contentStream,
             VersioningState versioningState, List<String> policies, ExtensionsData extension) {
-        ObjectData object = null;
+
+        LOGGER.info("entering create()",
+                repositoryId, properties, folderId, versioningState, policies, extension);
         try {
-            object = getRepository().create(getCallContext(), properties, folderId, contentStream,
+            ObjectData object = getRepository().create(getCallContext(), properties, folderId, contentStream,
                     versioningState, this);
+
+            LOGGER.info("leaving create()");
             return object.getId();
         } catch (Exception e) {
             e.printStackTrace();
@@ -222,8 +208,13 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
     public String createDocument(String repositoryId, Properties properties, String folderId,
             ContentStream contentStream, VersioningState versioningState, List<String> policies, Acl addAces,
             Acl removeAces, ExtensionsData extension)  {
+
+        LOGGER.info("entering createDocument()");
         try {
-            return getRepository().createDocument(getCallContext(), properties, folderId, contentStream, versioningState);
+            ObjectData object = getRepository().create(getCallContext(), properties, folderId, contentStream,
+                    versioningState, this);
+            LOGGER.info("leaving createDocument()");
+            return object.getId();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -235,6 +226,7 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
             String folderId, VersioningState versioningState, List<String> policies, Acl addAces, Acl removeAces,
             ExtensionsData extension) {
         try {
+            LOGGER.info(" createDocumentFromSource()");
             return getRepository().createDocumentFromSource(getCallContext(), sourceId, properties, folderId,
                     versioningState);
         } catch (Exception e) {
@@ -246,8 +238,12 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
     @Override
     public String createFolder(String repositoryId, Properties properties, String folderId, List<String> policies,
             Acl addAces, Acl removeAces, ExtensionsData extension) {
+        LOGGER.info("entering createFolder()");
         try {
-            return getRepository().createFolder(getCallContext(), properties, folderId);
+            ObjectData object = getRepository().create(getCallContext(), properties, folderId, null,
+                    null, this);
+            LOGGER.info("leaving createFolder()");
+            return object.getId();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -257,12 +253,14 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
     @Override
     public void deleteObjectOrCancelCheckOut(String repositoryId, String objectId, Boolean allVersions,
             ExtensionsData extension) {
+        LOGGER.info("deleteObjectOrCancelCheckOut()");
         getRepository().deleteObject(getCallContext(), objectId);
     }
 
     @Override
     public FailedToDeleteData deleteTree(String repositoryId, String folderId, Boolean allVersions,
             UnfileObject unfileObjects, Boolean continueOnFailure, ExtensionsData extension) {
+        LOGGER.info("deleteTree()");
         return getRepository().deleteTree(getCallContext(), folderId, continueOnFailure);
     }
 
@@ -313,6 +311,7 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
     @Override
     public void moveObject(String repositoryId, Holder<String> objectId, String targetFolderId, String sourceFolderId,
             ExtensionsData extension) {
+        LOGGER.info("moveObject()");
         getRepository().moveObject(getCallContext(), objectId, targetFolderId, this);
     }
 
@@ -390,4 +389,5 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
             BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
         return getRepository().query(getCallContext(), statement, includeAllowableActions, maxItems, skipCount, this);
     }
+
 }

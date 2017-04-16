@@ -22,13 +22,6 @@
  */
 package ru.doccloud.cmis.server.service;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.chemistry.opencmis.commons.impl.server.AbstractServiceFactory;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.CmisService;
@@ -36,13 +29,11 @@ import org.apache.chemistry.opencmis.server.support.wrapper.CallContextAwareCmis
 import org.apache.chemistry.opencmis.server.support.wrapper.CmisServiceWrapperManager;
 import org.apache.chemistry.opencmis.server.support.wrapper.ConformanceCmisServiceWrapper;
 import org.jooq.DSLContext;
-import org.jtransfo.JTransfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
-
 import ru.doccloud.cmis.server.FileBridgeCallContext;
 import ru.doccloud.cmis.server.FileBridgeTypeManager;
 import ru.doccloud.cmis.server.FileBridgeUserManager;
@@ -51,6 +42,9 @@ import ru.doccloud.cmis.server.repository.FileBridgeRepositoryManager;
 import ru.doccloud.config.PersistenceContext;
 import ru.doccloud.document.service.DocumentCrudService;
 import ru.doccloud.document.service.FileActionsService;
+
+import java.math.BigInteger;
+import java.util.*;
 
 /**
  * FileShare Service Factory.
@@ -233,9 +227,6 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
                     String root = parameters.get(key);
 
                     LOGGER.debug("Adding repository '{}': {}", repositoryId, root);
-                    LOGGER.debug("Documentcrud service {}", crudService);
-                    LOGGER.debug("FileActions service {}", fileActionsService);
-                    LOGGER.debug("appContext: {}", appContext);
                     PersistenceContext pctx = appContext.getBean(PersistenceContext.class);
                     LOGGER.info("pctx: {}", pctx);
                     DSLContext jooq = pctx.dsl();

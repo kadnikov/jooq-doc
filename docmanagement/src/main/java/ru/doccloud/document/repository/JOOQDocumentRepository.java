@@ -497,7 +497,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
     //	todo return all params that requested from ui
     @Override
     public List<Document> findAllByParent(Long parent) {
-        LOGGER.info("entering findAllByParent(parent = {})", parent);
+        LOGGER.trace("entering findAllByParent(parent = {})", parent);
 
         Documents d = DOCUMENTS.as("d");
         Links l = LINKS.as("l");
