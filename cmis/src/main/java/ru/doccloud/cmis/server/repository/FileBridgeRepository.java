@@ -59,7 +59,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 
 import static ru.doccloud.cmis.server.util.FileBridgeUtils.*;
@@ -67,7 +66,7 @@ import static ru.doccloud.cmis.server.util.FileBridgeUtils.*;
 /**
  * Implements all repository operations.
  */
-public class FileBridgeRepository extends AbstractBridgeRepository {
+public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileBridgeRepository.class);
 
@@ -75,15 +74,9 @@ public class FileBridgeRepository extends AbstractBridgeRepository {
 
     public FileBridgeRepository(final String repositoryId, final String rootPath,
                                 final FileBridgeTypeManager typeManager, DSLContext jooq, DocumentCrudService crudService, FileActionsService fileActionsService) {
-        super(repositoryId, rootPath, crudService);
+        super(repositoryId, rootPath, crudService, typeManager);
 
         LOGGER.trace("FileBridgeRepository(repositoryId={}, rootPath={}, typeManager={}, jooq={}, crudService= {}, fileActionsService={})",repositoryId, rootPath, typeManager, jooq, crudService, fileActionsService);
-
-        // set type manager objects
-        this.typeManager = typeManager;
-
-        // set up read-write user map
-        readWriteUserMap = new ConcurrentHashMap<>();
 
         this.fileActionsService = fileActionsService;
     }
@@ -101,8 +94,6 @@ public class FileBridgeRepository extends AbstractBridgeRepository {
     }
 
     // --- CMIS operations ---
-
-
 
     /**
      * CMIS getTypesChildren.
