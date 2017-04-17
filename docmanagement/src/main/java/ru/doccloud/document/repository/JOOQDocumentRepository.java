@@ -6,6 +6,10 @@ import static ru.doccloud.document.jooq.db.tables.Links.LINKS;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -263,87 +267,6 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
     }
 
-
-
-    private List<QueryParam> getQueryParams(String query) {
-    	FilterBean filter = null;
-        List<QueryParam> queryParams = null;
-        LOGGER.trace("Query for search - {}", query);
-        ObjectMapper mapper = new ObjectMapper();
-        if (query!=null){
-            try {
-                filter = mapper.readValue(query, new TypeReference<FilterBean>(){});
-                queryParams = filter.getMrules();
-                LOGGER.trace("findAllByType(): List of params - {} {}", queryParams.toString(), queryParams.size());
-            } catch (IOException e) {
-                LOGGER.error("Error parsing JSON {}",e.getLocalizedMessage());
-                e.printStackTrace();
-            }
-        }
-        return queryParams;
-	}
-
-	private Condition extendConditions(Condition cond, List<QueryParam> queryParams) {
-        if (queryParams !=null)
-            for (QueryParam param : queryParams) {
-                LOGGER.trace("extendConditions: Param {} {} {} ",param.getField(),param.getOperand(),param.getValue());
-                if (param.getOperand()!=null){
-                    
-//        	    // ['eq','ne','lt','le','gt','ge','bw','bn','in','ni','ew','en','cn','nc']
-//                    todo rewrite using enum implementation
-                    final String operand = param.getOperand().toLowerCase();
-
-                    LOGGER.trace("extendConditions: operand ",operand);
-                    switch (operand)
-                    {
-                        case "eq":
-                            cond = cond.and(getTableField(param.getField()).equal(getFieldValue(param)));
-                            break;
-                        case "ne":
-                            cond = cond.and(getTableField(param.getField()).notEqual(getFieldValue(param)));
-                            break;
-                        case "lt":
-                            cond = cond.and(getTableField(param.getField()).lessThan(getFieldValue(param)));
-                            break;
-                        case "le":
-                            cond = cond.and(getTableField(param.getField()).lessOrEqual(getFieldValue(param)));
-                            break;
-                        case "gt":
-                            cond = cond.and(getTableField(param.getField()).greaterThan(getFieldValue(param)));
-                            break;
-                        case "ge":
-                            cond = cond.and(getTableField(param.getField()).greaterOrEqual(getFieldValue(param)));
-                            break;
-                        case "bw":
-                            cond = cond.and(getTableField(param.getField()).like(param.getValue()+"%"));
-                            break;
-                        case "bn":
-                            cond = cond.and(getTableField(param.getField()).notLike(param.getValue()+"%"));
-                            break;
-                        case "in":
-                            cond = cond.and(getTableField(param.getField()).in(getFieldValue(param)));
-                            break;
-                        case "ni":
-                            cond = cond.and(getTableField(param.getField()).notIn(getFieldValue(param)));
-                            break;
-                        case "ew":
-                            cond = cond.and(getTableField(param.getField()).like("%"+param.getValue()));
-                            break;
-                        case "en":
-                            cond = cond.and(getTableField(param.getField()).notLike("%"+param.getValue()));
-                            break;
-                        case "cn":
-                            cond = cond.and(getTableField(param.getField()).like("%"+param.getValue()+"%"));
-                            break;
-                        case "nc":
-                            cond = cond.and(getTableField(param.getField()).notLike("%"+param.getValue()+"%"));
-                            break;
-                    }
-                }
-            }
-        return cond;
-	}
-
 	@Transactional(readOnly = true)
     @Override
     public Document findById(Long id) {
@@ -488,8 +411,8 @@ public class JOOQDocumentRepository implements DocumentRepository {
         return DSL.field("{0}->{1}", Object.class, field, DSL.inline(name));
     }
 
-    private static Field<String> jsonText(Field<?> field, String name) {
-        return DSL.field("{0}->>{1}", String.class, field, DSL.inline(name));
+    private static Field<Object> jsonText(Field<?> field, String name) {
+        return DSL.field("{0}->>{1}", Object.class, field, DSL.inline(name));
     }
 
 
@@ -611,6 +534,86 @@ public class JOOQDocumentRepository implements DocumentRepository {
                 .or(DOCUMENTS.SYS_TITLE.likeIgnoreCase(likeExpression));
     }
 
+    private List<QueryParam> getQueryParams(String query) {
+    	FilterBean filter = null;
+        List<QueryParam> queryParams = null;
+        LOGGER.trace("Query for search - {}", query);
+        ObjectMapper mapper = new ObjectMapper();
+        if (query!=null){
+            try {
+                filter = mapper.readValue(query, new TypeReference<FilterBean>(){});
+                queryParams = filter.getMrules();
+                LOGGER.trace("findAllByType(): List of params - {} {}", queryParams.toString(), queryParams.size());
+            } catch (IOException e) {
+                LOGGER.error("Error parsing JSON {}",e.getLocalizedMessage());
+                e.printStackTrace();
+            }
+        }
+        return queryParams;
+	}
+
+	private Condition extendConditions(Condition cond, List<QueryParam> queryParams) {
+        if (queryParams !=null)
+            for (QueryParam param : queryParams) {
+                LOGGER.trace("extendConditions: Param {} {} {} ",param.getField(),param.getOperand(),param.getValue());
+                if (param.getOperand()!=null){
+                    
+//        	    // ['eq','ne','lt','le','gt','ge','bw','bn','in','ni','ew','en','cn','nc']
+//                    todo rewrite using enum implementation
+                    final String operand = param.getOperand().toLowerCase();
+
+                    LOGGER.trace("extendConditions: operand ",operand);
+                    switch (operand)
+                    {
+                        case "eq":
+                            cond = cond.and(getFilterField(param).equal(getFieldValue(param)));
+                            break;
+                        case "ne":
+                            cond = cond.and(getFilterField(param).notEqual(getFieldValue(param)));
+                            break;
+                        case "lt":
+                            cond = cond.and(getFilterField(param).lessThan(getFieldValue(param)));
+                            break;
+                        case "le":
+                            cond = cond.and(getFilterField(param).lessOrEqual(getFieldValue(param)));
+                            break;
+                        case "gt":
+                            cond = cond.and(getFilterField(param).greaterThan(getFieldValue(param)));
+                            break;
+                        case "ge":
+                            cond = cond.and(getFilterField(param).greaterOrEqual(getFieldValue(param)));
+                            break;
+                        case "bw":
+                            cond = cond.and(getFilterField(param).like(param.getValue()+"%"));
+                            break;
+                        case "bn":
+                            cond = cond.and(getFilterField(param).notLike(param.getValue()+"%"));
+                            break;
+                        case "in":
+                            cond = cond.and(getFilterField(param).in(getFieldValue(param)));
+                            break;
+                        case "ni":
+                            cond = cond.and(getFilterField(param).notIn(getFieldValue(param)));
+                            break;
+                        case "ew":
+                            cond = cond.and(getFilterField(param).like("%"+param.getValue()));
+                            break;
+                        case "en":
+                            cond = cond.and(getFilterField(param).notLike("%"+param.getValue()));
+                            break;
+                        case "cn":
+                            cond = cond.and(getFilterField(param).like("%"+param.getValue()+"%"));
+                            break;
+                        case "nc":
+                            cond = cond.and(getFilterField(param).notLike("%"+param.getValue()+"%"));
+                            break;
+                    }
+                }
+            }
+        return cond;
+	}
+
+
     private Collection<SortField<?>> getSortFields(Sort sortSpecification) {
         LOGGER.trace("entering getSortFields(sortSpecification={})", sortSpecification);
         Collection<SortField<?>> querySortFields = new ArrayList<>();
@@ -654,6 +657,48 @@ public class JOOQDocumentRepository implements DocumentRepository {
         return sortField;
     }
     
+    private Field<Object> getFilterField(QueryParam param) {
+        Field<Object> sortField = null;
+        try {
+            java.lang.reflect.Field tableField = DOCUMENTS.getClass().getField(param.getField().toUpperCase());
+            sortField = (TableField) tableField.get(DOCUMENTS);
+            LOGGER.trace("getFilterField(): sortField - {}", sortField);
+        } catch (NoSuchFieldException | IllegalAccessException ex) {
+        	try {
+        		int intval = Integer.parseInt(param.getValue());
+        		sortField = jsonObject(DOCUMENTS.DATA, param.getField());
+        	}catch (NumberFormatException exN){
+        		try{
+        			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        			 dateFormat.setLenient(false);
+        			 java.util.Date dateval = parseFully(dateFormat,param.getValue());
+	        		sortField = jsonObject(DOCUMENTS.DATA, param.getField());
+        		}catch (ParseException exP){
+        			sortField = jsonText(DOCUMENTS.DATA, param.getField());
+        		}
+        	}
+            LOGGER.trace("getFilterField(): sort field in  JSON data", sortField);
+        }
+
+        LOGGER.trace("leaving getTableField()", sortField);
+        return sortField;
+    }
+    
+    private static java.util.Date parseFully(DateFormat format, String text) 
+            throws ParseException {
+          ParsePosition position = new ParsePosition(0);
+          java.util.Date date = format.parse(text, position);
+          if (position.getIndex() == text.length()) {
+              return date;
+          }
+          if (date == null) {
+              throw new ParseException("Date could not be parsed: " + text,
+                                       position.getErrorIndex());
+          }
+          throw new ParseException("Date was parsed incompletely: " + text,
+                                   position.getIndex());
+      }
+    
     private Field<Object> getFieldValue(QueryParam param) {
     	Field<Object> result = null;
         DataType<Object> JSONB = new DefaultDataType<Object>(SQLDialect.POSTGRES, SQLDataType.OTHER, "jsonb");
@@ -677,7 +722,20 @@ public class JOOQDocumentRepository implements DocumentRepository {
             
         } catch (NoSuchFieldException | IllegalAccessException ex) {
             LOGGER.trace("getFieldValue(): Could not find table field: {}, Cast to JSONB", param);
-            result =  DSL.val(param.getValue()).cast(JSONB);
+            try {
+        		int intval = Integer.parseInt(param.getValue());
+        		result =  DSL.val(param.getValue()).cast(JSONB);
+        	}catch (NumberFormatException exN){
+        		try{
+        			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        			 dateFormat.setLenient(false);
+        			 java.util.Date dateval = parseFully(dateFormat,param.getValue());
+        			 result =  DSL.val(param.getValue()).cast(JSONB);
+        		}catch (ParseException exP){
+        			result =  DSL.val(param.getValue());
+        		}
+        	}
+            
         }
         LOGGER.trace("getFieldValue(): Result {}", result);
         return result;
