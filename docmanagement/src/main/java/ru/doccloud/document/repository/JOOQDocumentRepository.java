@@ -194,14 +194,17 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
         LOGGER.trace("entering findAll(pageSize = {}, pageNumber = {})", pageable.getPageSize(), pageable.getPageNumber());
         List<QueryParam> queryParams = getQueryParams(query);
-        Condition cond = DOCUMENTS.SYS_TYPE.isNotNull();
-        cond = extendConditions(cond, queryParams);
+        Condition cond = null;
+        if (queryParams !=null){
+	        cond = DOCUMENTS.SYS_TYPE.isNotNull();
+	        cond = extendConditions(cond, queryParams);
+        }
         List<DocumentsRecord> queryResults = jooq.selectFrom(DOCUMENTS)
         		.where(cond)
                 .orderBy(getSortFields(pageable.getSort()))
                 .limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .fetchInto(DocumentsRecord.class);
-
+        
         LOGGER.trace("findAll(): Found {} Document entries, they are going to convert to model objects", queryResults);
 
         List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
@@ -210,8 +213,12 @@ public class JOOQDocumentRepository implements DocumentRepository {
                 documentEntries.size(),
                 pageable.getPageNumber()
         );
-
-        long totalCount = findTotalCount(cond);
+        long totalCount = 0;
+        if (queryParams !=null){
+        	totalCount = findTotalCountByType(cond);
+        }else{
+        	totalCount = findTotalCount();
+        }
 
         LOGGER.trace("findAll(): {} document entries matches with the like expression: {}", totalCount);
 
@@ -502,13 +509,12 @@ public class JOOQDocumentRepository implements DocumentRepository {
         return resultCount;
     }
 
-    private long findTotalCount(Condition cond) {
+    private long findTotalCount() {
         LOGGER.trace("entering findTotalCount()");
 
-        long resultCount = jooq.fetchCount(
-                jooq.selectFrom(DOCUMENTS)
-                .where(cond)
-        );
+        long resultCount = jooq.selectCount()
+        		   .from(DOCUMENTS)
+        		   .fetchOne(0, long.class);		
 
         LOGGER.trace("leaving findTotalCount(): Found search result count: {}", resultCount);
 
