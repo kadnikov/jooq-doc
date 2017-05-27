@@ -33,6 +33,7 @@
 
     <modules>
         <module>common</module>
+<module>amazon</module>
         <module>config</module>
         <module>cmis</module>
         <module>docmanagement</module>
@@ -649,6 +650,15 @@
             <artifactId>guava</artifactId>
             <version>16.0.1</version>
         </dependency>
+
+
+        <!-- AMAZON -->
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-s3</artifactId>
+            <version>1.11.6</version>
+        </dependency>
+
 
         <!-- Spring Framework -->
         <dependency>
