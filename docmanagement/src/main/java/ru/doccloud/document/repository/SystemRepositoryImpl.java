@@ -1,10 +1,29 @@
 package ru.doccloud.document.repository;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.jooq.*;
+import static ru.doccloud.document.jooq.db.tables.System.SYSTEM;
+
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.DataType;
+import org.jooq.Field;
+import org.jooq.Record;
+import org.jooq.SQLDialect;
+import org.jooq.SelectField;
+import org.jooq.SortField;
+import org.jooq.TableField;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultDataType;
 import org.jooq.impl.SQLDataType;
@@ -19,6 +38,12 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import ru.doccloud.common.dto.StorageAreaSettings;
 import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.common.service.DateTimeService;
@@ -26,20 +51,6 @@ import ru.doccloud.document.jooq.db.tables.records.SystemRecord;
 import ru.doccloud.document.model.FilterBean;
 import ru.doccloud.document.model.QueryParam;
 import ru.doccloud.document.model.SystemEntity;
-
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.ParsePosition;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
-
-import static ru.doccloud.document.jooq.db.tables.System.SYSTEM;
 
 
 /**
@@ -240,6 +251,22 @@ public class SystemRepositoryImpl implements SystemRepository {
             throw new DocumentNotFoundException("No Document entry found with uuid: " + uuid);
         }
         LOGGER.trace("leaving findByUUID(): Found {}", queryResult);
+        return SystemConverter.convertQueryResultToModelObject(queryResult);
+    }
+    
+    @Transactional(readOnly = true)
+    @Override
+    public SystemEntity findBySymbolicName(String symbolic) {
+        LOGGER.debug("entering findBySymbolicName(symbolic = {})", symbolic);
+
+        SystemRecord queryResult = jooq.selectFrom(SYSTEM)
+                .where(SYSTEM.SYS_SYMBOLIC_NAME.equal(symbolic))
+                .fetchOne();
+
+        if (queryResult == null) {
+            throw new DocumentNotFoundException("No Document entry found with symbolic name: " + symbolic);
+        }
+        LOGGER.trace("leaving findBySymbolicName(): Found {}", queryResult);
         return SystemConverter.convertQueryResultToModelObject(queryResult);
     }
 

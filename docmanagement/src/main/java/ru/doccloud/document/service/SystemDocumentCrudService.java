@@ -152,6 +152,17 @@ public class SystemDocumentCrudService implements SystemCrudService {
         return transformer.convert(found, new SystemDTO());
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public SystemDTO findBySymbolicName(final String symbolic) {
+        LOGGER.debug("entering findByUUID(uuid = {})", symbolic);
+
+        SystemEntity found = repository.findBySymbolicName(symbolic);
+
+        LOGGER.debug("leaving findBySymbolicName(): Found {}", found);
+
+        return transformer.convert(found, new SystemDTO());
+    }
 
     @Transactional(readOnly = true)
     @Override

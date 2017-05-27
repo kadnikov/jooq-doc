@@ -49,4 +49,6 @@ public interface SystemCrudService {
 
     public Page<SystemDTO> findAllByType(final String type, final String[] fields, final Pageable pageable, final String query);
 
+	SystemDTO findBySymbolicName(String symbolic);
+
 }

@@ -75,4 +75,6 @@ public interface SystemRepository {
 
 	public Page<SystemEntity> findAllByType(String type, String[] fields, Pageable pageable, String query);
 
+	public SystemEntity findBySymbolicName(String symbolic);
+
 }
