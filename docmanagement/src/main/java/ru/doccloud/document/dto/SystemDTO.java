@@ -5,7 +5,7 @@ import org.jtransfo.DomainClass;
 /**
  * @author Ilya Ushakov
  */
-@DomainClass("ru.doccloud.document.model.System")
+@DomainClass("ru.doccloud.document.model.SystemEntity")
 public class SystemDTO extends AbstractDocumentDTO{
 
 

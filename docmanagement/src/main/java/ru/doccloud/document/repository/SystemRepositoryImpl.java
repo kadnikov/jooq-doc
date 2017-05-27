@@ -25,7 +25,7 @@ import ru.doccloud.common.service.DateTimeService;
 import ru.doccloud.document.jooq.db.tables.records.SystemRecord;
 import ru.doccloud.document.model.FilterBean;
 import ru.doccloud.document.model.QueryParam;
-import ru.doccloud.document.model.System;
+import ru.doccloud.document.model.SystemEntity;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -63,7 +63,7 @@ public class SystemRepositoryImpl implements SystemRepository {
 
     @Transactional
     @Override
-    public System add(System documentEntry) {
+    public SystemEntity add(SystemEntity documentEntry) {
         LOGGER.trace("entering add(documentEntry= {})", documentEntry);
         String[] readers = {documentEntry.getAuthor(), "admins"};
         LOGGER.trace("add(): readers {}", readers);
@@ -77,7 +77,7 @@ public class SystemRepositoryImpl implements SystemRepository {
                         documentEntry.getFileName(), documentEntry.getFilePath(), documentEntry.getDocVersion(), documentEntry.getSymbolicName())
                 .returning()
                 .fetchOne();
-        System returned = SystemConverter.convertQueryResultToModelObject(persisted);
+        SystemEntity returned = SystemConverter.convertQueryResultToModelObject(persisted);
 
         LOGGER.trace("leaving add():  added document {}", returned);
 
@@ -87,10 +87,10 @@ public class SystemRepositoryImpl implements SystemRepository {
 
     @Transactional
     @Override
-    public System delete(Long id) {
+    public SystemEntity delete(Long id) {
         LOGGER.trace("entering delete(id={})", id);
 
-        System deleted = findById(id);
+        SystemEntity deleted = findById(id);
 
         LOGGER.trace("delete(): Document was found in database {}", deleted);
 
@@ -109,14 +109,14 @@ public class SystemRepositoryImpl implements SystemRepository {
 
     @Transactional(readOnly = true)
     @Override
-    public List<System> findAll() {
+    public List<SystemEntity> findAll() {
         LOGGER.trace("entering findAll()");
 
         List<SystemRecord> queryResults = jooq.selectFrom(SYSTEM).fetchInto(SystemRecord.class);
 
         LOGGER.trace("findAll(): Found {} Document entries, they are going to convert to model objects", queryResults);
 
-        List<System> documentEntries = SystemConverter.convertQueryResultsToModelObjects(queryResults);
+        List<SystemEntity> documentEntries = SystemConverter.convertQueryResultsToModelObjects(queryResults);
 
         LOGGER.trace("leaving findAll(): Found {} Document entries", documentEntries);
 
@@ -125,7 +125,7 @@ public class SystemRepositoryImpl implements SystemRepository {
 
     @Transactional(readOnly = true)
     @Override
-    public Page<System> findAll(Pageable pageable, String query) {
+    public Page<SystemEntity> findAll(Pageable pageable, String query) {
 
         LOGGER.trace("entering findAll(pageSize = {}, pageNumber = {})", pageable.getPageSize(), pageable.getPageNumber());
         List<QueryParam> queryParams = getQueryParams(query);
@@ -142,7 +142,7 @@ public class SystemRepositoryImpl implements SystemRepository {
         
         LOGGER.trace("findAll(): Found {} Document entries, they are going to convert to model objects", queryResults);
 
-        List<ru.doccloud.document.model.System> documentEntries = SystemConverter.convertQueryResultsToModelObjects(queryResults);
+        List<SystemEntity> documentEntries = SystemConverter.convertQueryResultsToModelObjects(queryResults);
 
         LOGGER.trace("findAll(): {} document entries for page: {} ",
                 documentEntries.size(),
@@ -164,7 +164,7 @@ public class SystemRepositoryImpl implements SystemRepository {
 
 
     @Override
-    public Page<System> findAllByType(String type, String[] fields, Pageable pageable, String query) {
+    public Page<SystemEntity> findAllByType(String type, String[] fields, Pageable pageable, String query) {
         LOGGER.trace("entering findAllByType(type={}, fields={}, pageable={}, query={})", type, fields, pageable, query);
 
         ArrayList<SelectField<?>> selectedFields = new ArrayList<SelectField<?>>();
@@ -199,7 +199,7 @@ public class SystemRepositoryImpl implements SystemRepository {
 
         LOGGER.trace("findAllByType(): Found {} Document entries, they are going to convert to model objects", queryResults);
 
-        List<System> documentEntries = SystemConverter.convertQueryResults(queryResults, fields);
+        List<SystemEntity> documentEntries = SystemConverter.convertQueryResults(queryResults, fields);
 
         long totalCount = findTotalCountByType(cond);
 
@@ -212,7 +212,7 @@ public class SystemRepositoryImpl implements SystemRepository {
 
 	@Transactional(readOnly = true)
     @Override
-    public System findById(Long id) {
+    public SystemEntity findById(Long id) {
         LOGGER.trace("entering findById(id = {})", id);
 
         SystemRecord queryResult = jooq.selectFrom(SYSTEM)
@@ -229,7 +229,7 @@ public class SystemRepositoryImpl implements SystemRepository {
 
     @Transactional(readOnly = true)
     @Override
-    public System findByUUID(String uuid) {
+    public SystemEntity findByUUID(String uuid) {
         LOGGER.debug("entering findByUUID(uuid = {})", uuid);
 
         SystemRecord queryResult = jooq.selectFrom(SYSTEM)
@@ -247,7 +247,7 @@ public class SystemRepositoryImpl implements SystemRepository {
 //    todo this method should be moved to another repository
     @Transactional(readOnly = true)
     @Override
-    public System findSettings() {
+    public SystemEntity findSettings() {
         LOGGER.trace("entering findSettings(): try to find storage area settings in cache first");
 
         SystemRecord record = (SystemRecord) StorageAreaSettings.INSTANCE.getStorageSetting();
@@ -272,7 +272,7 @@ public class SystemRepositoryImpl implements SystemRepository {
 
     @Transactional(readOnly = true)
     @Override
-    public Page<System> findBySearchTerm(String searchTerm, Pageable pageable) {
+    public Page<SystemEntity> findBySearchTerm(String searchTerm, Pageable pageable) {
         LOGGER.trace("entering findBySearchTerm(searchTerm={}, pageable={})", searchTerm, pageable);
 
         String likeExpression = "%" + searchTerm + "%";
@@ -285,7 +285,7 @@ public class SystemRepositoryImpl implements SystemRepository {
 
         LOGGER.trace("findBySearchTerm(): Found {} Document entries, they are going to convert to model objects", queryResults);
 
-        List<System> documentEntries = SystemConverter.convertQueryResultsToModelObjects(queryResults);
+        List<SystemEntity> documentEntries = SystemConverter.convertQueryResultsToModelObjects(queryResults);
 
         long totalCount = findCountByLikeExpression(likeExpression);
         LOGGER.trace("findBySearchTerm(): {} document entries matches with the like expression: {}", totalCount);
@@ -296,7 +296,7 @@ public class SystemRepositoryImpl implements SystemRepository {
 
     @Transactional
     @Override
-    public System update(System documentEntry) {
+    public SystemEntity update(SystemEntity documentEntry) {
         LOGGER.trace("entering update(documentEntry={})", documentEntry);
 
         Timestamp currentTime = dateTimeService.getCurrentTimestamp();
@@ -328,7 +328,7 @@ public class SystemRepositoryImpl implements SystemRepository {
 
     @Transactional
     @Override
-    public System updateFileInfo(System documentEntry) {
+    public SystemEntity updateFileInfo(SystemEntity documentEntry) {
         LOGGER.trace("entering updateFileInfo(documentEntry={})", documentEntry);
 
         Timestamp currentTime = dateTimeService.getCurrentTimestamp();
@@ -644,7 +644,7 @@ public class SystemRepositoryImpl implements SystemRepository {
     }
 
     private static class SystemConverter {
-        private static System convertQueryResultToModelObject(Record queryResult, String[] fields) {
+        private static SystemEntity convertQueryResultToModelObject(Record queryResult, String[] fields) {
             ObjectNode data = JsonNodeFactory.instance.objectNode();
             ObjectMapper mapper = new ObjectMapper();
             if (fields!=null){
@@ -658,7 +658,7 @@ public class SystemRepositoryImpl implements SystemRepository {
                     }
                 }
             }
-            return  System.getBuilder(queryResult.getValue(SYSTEM.SYS_TITLE))
+            return  SystemEntity.getBuilder(queryResult.getValue(SYSTEM.SYS_TITLE))
                     .description(queryResult.getValue(SYSTEM.SYS_DESC))
                     .type(queryResult.getValue(SYSTEM.SYS_TYPE))
                     .id(queryResult.getValue(SYSTEM.ID).longValue())
@@ -675,8 +675,8 @@ public class SystemRepositoryImpl implements SystemRepository {
         }
 
 
-        private static System convertQueryResultToModelObject(SystemRecord queryResult) {
-            return System.getBuilder(queryResult.getSysTitle())
+        private static SystemEntity convertQueryResultToModelObject(SystemRecord queryResult) {
+            return SystemEntity.getBuilder(queryResult.getSysTitle())
                     .creationTime(queryResult.getSysDateCr())
                     .description(queryResult.getSysDesc())
                     .type(queryResult.getSysType())
@@ -695,19 +695,19 @@ public class SystemRepositoryImpl implements SystemRepository {
                     .build();
         }
 
-        private static List<System> convertQueryResultsToModelObjects(List<SystemRecord> queryResults) {
-            List<System> documentEntries = new ArrayList<>();
+        private static List<SystemEntity> convertQueryResultsToModelObjects(List<SystemRecord> queryResults) {
+            List<SystemEntity> documentEntries = new ArrayList<>();
 
             for (SystemRecord queryResult : queryResults) {
-                System documentEntry = SystemConverter.convertQueryResultToModelObject(queryResult);
+                SystemEntity documentEntry = SystemConverter.convertQueryResultToModelObject(queryResult);
                 documentEntries.add(documentEntry);
             }
 
             return documentEntries;
         }
 
-        private static List<System> convertQueryResults(List<Record> queryResults, String[] fields) {
-            List<System> documentEntries = new ArrayList<>();
+        private static List<SystemEntity> convertQueryResults(List<Record> queryResults, String[] fields) {
+            List<SystemEntity> documentEntries = new ArrayList<>();
 
             for (Record queryResult : queryResults) {
                 documentEntries.add(SystemConverter.convertQueryResultToModelObject(queryResult, fields));

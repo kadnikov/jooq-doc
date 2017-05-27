@@ -10,11 +10,11 @@ import java.util.UUID;
 /**
  * @author IlyaUshakov
  */
-public class System extends AbstractDocument{
+public class SystemEntity extends AbstractDocument{
 
     private String symbolicName;
 
-    private System(Builder builder) {
+    private SystemEntity(Builder builder) {
         this.id = builder.id;
 
         LocalDateTime creationTime = null;
@@ -181,8 +181,8 @@ public class System extends AbstractDocument{
             return this;
         }
 
-        public System build() {
-            System created = new System(this);
+        public SystemEntity build() {
+            SystemEntity created = new SystemEntity(this);
 
             String title = created.getTitle();
 
@@ -198,9 +198,9 @@ public class System extends AbstractDocument{
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof System)) return false;
+        if (!(o instanceof SystemEntity)) return false;
         if (!super.equals(o)) return false;
-        System that = (System) o;
+        SystemEntity that = (SystemEntity) o;
         return Objects.equals(symbolicName, that.symbolicName);
     }
 
@@ -211,7 +211,7 @@ public class System extends AbstractDocument{
 
     @Override
     public String toString() {
-        return "System{" +
+        return "SystemEntity{" +
                 "id=" + id +
                 ", creationTime=" + creationTime +
                 ", author='" + author + '\'' +

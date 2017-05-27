@@ -4,7 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import ru.doccloud.common.exception.DocumentNotFoundException;
-import ru.doccloud.document.model.System;
+import ru.doccloud.document.model.SystemEntity;
 
 import java.util.List;
 
@@ -14,65 +14,65 @@ import java.util.List;
 public interface SystemRepository {
 
     /**
-     * Adds a new System.
-     * @param systemEntry  The information of the added System entry.
-     * @return  The added System entry.
+     * Adds a new SystemEntity.
+     * @param systemEntry  The information of the added SystemEntity entry.
+     * @return  The added SystemEntity entry.
      */
-    public System add(System systemEntry);
+    public SystemEntity add(SystemEntity systemEntry);
 
     /**
-     * Deletes a System entry.
-     * @param id    The id of the deleted System entry.
-     * @return  The deleted System entry.
+     * Deletes a SystemEntity entry.
+     * @param id    The id of the deleted SystemEntity entry.
+     * @return  The deleted SystemEntity entry.
      * @throws DocumentNotFoundException If the deleted  entry is not found.
      */
-    public System delete(Long id);
+    public SystemEntity delete(Long id);
 
     /**
-     * Finds all System entries.
-     * @return  Found System entries.
+     * Finds all SystemEntity entries.
+     * @return  Found SystemEntity entries.
      */
-    public List<System> findAll();
+    public List<SystemEntity> findAll();
 
     /**
-     * Finds a System entry.
-     * @param id    The id of the requested System entry.
-     * @return  The found System entry.
-     * @throws DocumentNotFoundException If System entry is not found.
+     * Finds a SystemEntity entry.
+     * @param id    The id of the requested SystemEntity entry.
+     * @return  The found SystemEntity entry.
+     * @throws DocumentNotFoundException If SystemEntity entry is not found.
      */
-    public System findById(Long id);
+    public SystemEntity findById(Long id);
 
     /**
-     * Finds a System entry.
-     * @param uuid    The uuid of the requested System entry.
-     * @return  The found System entry.
-     * @throws DocumentNotFoundException If System entry is not found.
+     * Finds a SystemEntity entry.
+     * @param uuid    The uuid of the requested SystemEntity entry.
+     * @return  The found SystemEntity entry.
+     * @throws DocumentNotFoundException If SystemEntity entry is not found.
      */
-    public System findByUUID(String uuid);
+    public SystemEntity findByUUID(String uuid);
 
 
     @Transactional(readOnly = true)
-    System findSettings();
+    SystemEntity findSettings();
 
-    public Page<System> findBySearchTerm(String searchTerm, Pageable pageable);
+    public Page<SystemEntity> findBySearchTerm(String searchTerm, Pageable pageable);
 
     /**
-     * Updates the information of a System entry.
-     * @param todoEntry   The new information of a System entry.
-     * @return  The updated System entry.
-     * @throws DocumentNotFoundException If the updated System entry is not found.
+     * Updates the information of a SystemEntity entry.
+     * @param todoEntry   The new information of a SystemEntity entry.
+     * @return  The updated SystemEntity entry.
+     * @throws DocumentNotFoundException If the updated SystemEntity entry is not found.
      */
-    public System update(System todoEntry);
+    public SystemEntity update(SystemEntity todoEntry);
 
 
-	public System updateFileInfo(System systemEntry);
+	public SystemEntity updateFileInfo(SystemEntity systemEntry);
 
 	public void setUser();
 
 	public void setUser(String userName);
 
-	public Page<System> findAll(Pageable pageable, String query);
+	public Page<SystemEntity> findAll(Pageable pageable, String query);
 
-	public Page<System> findAllByType(String type, String[] fields, Pageable pageable, String query);
+	public Page<SystemEntity> findAllByType(String type, String[] fields, Pageable pageable, String query);
 
 }

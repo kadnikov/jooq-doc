@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import ru.doccloud.document.dto.SystemDTO;
-import ru.doccloud.document.model.System;
+import ru.doccloud.document.model.SystemEntity;
 import ru.doccloud.document.repository.SystemRepository;
 
 import javax.servlet.http.HttpServletRequest;
@@ -48,7 +48,7 @@ public class SystemDocumentCrudService implements SystemCrudService {
 
         repository.setUser(user);
         dto.setAuthor(user);
-        System persisted = repository.add(createModel(dto));
+        SystemEntity persisted = repository.add(createModel(dto));
 
         LOGGER.debug("leaving add(): Added Document entry {}", persisted);
 
@@ -81,7 +81,7 @@ public class SystemDocumentCrudService implements SystemCrudService {
     public SystemDTO delete(final Long id) {
         LOGGER.debug("entering delete(id ={})", id);
 
-        System deleted = repository.delete(id);
+        SystemEntity deleted = repository.delete(id);
 
         LOGGER.debug("leaving delete(): Deleted Document  {}", deleted);
 
@@ -93,7 +93,7 @@ public class SystemDocumentCrudService implements SystemCrudService {
     public List<SystemDTO> findAll() {
         LOGGER.debug("entering findAll() ");
 
-        List<System> docEntries = repository.findAll();
+        List<SystemEntity> docEntries = repository.findAll();
 
         LOGGER.debug("leaving findAll(): Found {} Documents", docEntries.size());
 
@@ -105,7 +105,7 @@ public class SystemDocumentCrudService implements SystemCrudService {
     public Page<SystemDTO> findAll(final Pageable pageable, String query) {
         LOGGER.debug("entering findAll(pageable = {})", pageable);
 
-        Page<System> searchResults = repository.findAll(pageable, query);
+        Page<SystemEntity> searchResults = repository.findAll(pageable, query);
 
         List<SystemDTO> dtos = transformer.convertList(searchResults.getContent(), SystemDTO.class);
 
@@ -123,7 +123,7 @@ public class SystemDocumentCrudService implements SystemCrudService {
     @Override
     public List<SystemDTO> findBySearchTerm(String searchTerm, Pageable pageable){
         LOGGER.debug("entering findBySearchTerm(searchTerm={}, pageable={})", searchTerm, pageable);
-        Page<System> docPage = repository.findBySearchTerm(searchTerm, pageable);
+        Page<SystemEntity> docPage = repository.findBySearchTerm(searchTerm, pageable);
         LOGGER.debug("leaving findBySearchTerm(): Found {}", docPage);
         return  transformer.convertList(docPage.getContent(), SystemDTO.class);
     }
@@ -133,7 +133,7 @@ public class SystemDocumentCrudService implements SystemCrudService {
     public SystemDTO findById(final Long id) {
         LOGGER.debug("entering findById(id = {})", id);
 
-        System found = repository.findById(id);
+        SystemEntity found = repository.findById(id);
 
         LOGGER.debug("leaving findById(): Found {}", found);
 
@@ -145,7 +145,7 @@ public class SystemDocumentCrudService implements SystemCrudService {
     public SystemDTO findByUUID(final String uuid) {
         LOGGER.debug("entering findByUUID(uuid = {})", uuid);
 
-        System found = repository.findByUUID(uuid);
+        SystemEntity found = repository.findByUUID(uuid);
 
         LOGGER.debug("leaving findByUUID(): Found {}", found);
 
@@ -157,7 +157,7 @@ public class SystemDocumentCrudService implements SystemCrudService {
     @Override
     public SystemDTO findSettings() {
         LOGGER.debug("entering findSettings()");
-        System found = repository.findSettings();
+        SystemEntity found = repository.findSettings();
 
         LOGGER.debug("leaving findSettings(): Found {}", found);
 
@@ -171,7 +171,7 @@ public class SystemDocumentCrudService implements SystemCrudService {
         LOGGER.debug("entering update(dto={}, user={})", dto, user);
 
         dto.setModifier(user);
-        System updated = repository.update(createModel(dto));
+        SystemEntity updated = repository.update(createModel(dto));
 
         LOGGER.debug("leaving update(): Updated {}", updated);
 
@@ -182,7 +182,7 @@ public class SystemDocumentCrudService implements SystemCrudService {
     @Override
     public SystemDTO updateFileInfo(final SystemDTO dto){
         LOGGER.debug("entering updateFileInfo(dto={})", dto);
-        final System updated = repository.updateFileInfo(createModel(dto));
+        final SystemEntity updated = repository.updateFileInfo(createModel(dto));
 
         LOGGER.debug("leaving updateFileInfo(): Updated {}", updated);
 
@@ -211,7 +211,7 @@ public class SystemDocumentCrudService implements SystemCrudService {
     public Page<SystemDTO> findAllByType(final String type, final String[] fields, final Pageable pageable, final String query) {
 
         LOGGER.debug("entering findAllByType(type={}, fields={}, pageable={}, query={})", type, fields, pageable, query);
-        Page<System> searchResults = repository.findAllByType(type, fields, pageable, query);
+        Page<SystemEntity> searchResults = repository.findAllByType(type, fields, pageable, query);
 
         List<SystemDTO> dtos = transformer.convertList(searchResults.getContent(), SystemDTO.class);
 
@@ -223,8 +223,8 @@ public class SystemDocumentCrudService implements SystemCrudService {
     }
 
 
-    private System createModel(SystemDTO dto) {
-        return System.getBuilder(dto.getTitle())
+    private SystemEntity createModel(SystemDTO dto) {
+        return SystemEntity.getBuilder(dto.getTitle())
                 .description(dto.getDescription())
                 .type(dto.getType())
                 .data(dto.getData())
