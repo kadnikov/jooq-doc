@@ -14,6 +14,10 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 @ComponentScan
 public class AmazonConfig {
 
+    private static final String AMAZON_KEY = "";
+    private static final String SECRET_AMAZON_KEY = "";
+    private static final String AMAZON_REGION = "";
+
   @Bean
   public static PropertySourcesPlaceholderConfigurer placeHolderConfigurer() {
     return new PropertySourcesPlaceholderConfigurer();
@@ -24,14 +28,14 @@ public class AmazonConfig {
   @Bean
   public BasicAWSCredentials basicAWSCredentials() {
 
-        String awsAccessKeyId = "AKIAJWB5GOLHL3TLCVMA";
-        String awsSecretAccessKey = "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";
+        String awsAccessKeyId = AMAZON_KEY;
+        String awsSecretAccessKey = SECRET_AMAZON_KEY;
     return new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey);
   }
 
   @Bean
   public AmazonS3 amazonS3(BasicAWSCredentials basicAWSCredentials) {
-      String awsRegion = "doccloud";
+      String awsRegion = AMAZON_REGION;
     AmazonS3 amazonS3 = new AmazonS3Client(basicAWSCredentials);
     amazonS3.setRegion(Region.getRegion(Regions.fromName(awsRegion)));
     return amazonS3;
