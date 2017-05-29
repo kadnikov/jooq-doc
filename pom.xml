@@ -32,8 +32,11 @@
     </properties>
 
     <modules>
+        <module>storageactions</module>
+        <module>storagemanager</module>
         <module>common</module>
-<module>amazon</module>
+        <module>amazon</module>
+        <module>filestorage</module>
         <module>config</module>
         <module>cmis</module>
         <module>docmanagement</module>

@@ -313,22 +313,18 @@ public class JOOQDocumentRepository implements DocumentRepository {
     public Document findSettings() {
         LOGGER.trace("entering findSettings(): try to find storage area settings in cache first");
 
-        DocumentsRecord record = (DocumentsRecord) StorageAreaSettings.INSTANCE.getStorageSetting();
-        if(record == null) {
             LOGGER.trace("storage area settings weren't found in cache. It will get from database");
-            record = jooq.selectFrom(DOCUMENTS)
+            DocumentsRecord record = jooq.selectFrom(DOCUMENTS)
                     .where(DOCUMENTS.SYS_TYPE.equal("storage_area"))
                     .fetchOne();
             LOGGER.trace("findSettings(): settings record was found in db {}", record);
-            StorageAreaSettings.INSTANCE.add(record);
-            LOGGER.trace("findSettings(): storage area settings has been added to cache");
-        }
-
-
-
         if (record == null) {
             throw new DocumentNotFoundException("No Document entry found with type storageArea");
         }
+
+            LOGGER.trace("findSettings(): storage area settings has been added to cache");
+
+
         LOGGER.trace("leaving findSettings(): Got result: {}", record);
         return DocumentConverter.convertQueryResultToModelObject(record);
     }

@@ -1,5 +1,6 @@
 package ru.doccloud.document.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +31,7 @@ public interface SystemCrudService {
     public SystemDTO findByUUID(final String uuid);
 
     @Transactional(readOnly = true)
-    SystemDTO findSettings();
+    JsonNode findSettings();
 
     public SystemDTO update(final SystemDTO updated, final String user);
 	

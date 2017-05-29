@@ -20,4 +20,5 @@ import org.springframework.context.annotation.ImportResource;
 })
 @ImportResource("classpath:org/jtransfo/spring/jTransfoContext.xml")
 public class ExampleApplicationContext {
+
 }

@@ -1,9 +1,8 @@
-package ru.doccloud.document.service;
+package ru.doccloud.document.service.admin;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.Bucket;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.doccloud.document.repository.AmazonRepository;
 
 /**
  *see http://docs.aws.amazon.com/AmazonS3/latest/dev/create-bucket-get-location-example.html#create-bucket-get-location-java
@@ -13,21 +12,21 @@ import org.springframework.stereotype.Service;
 public class AmazonAdminServiceImpl implements AmazonAdminService {
 
 
-    private final AmazonS3 amazonS3;
+    private final AmazonRepository amazonRepository;
 
     @Autowired
-    public AmazonAdminServiceImpl(AmazonS3 amazonS3) {
-        this.amazonS3 = amazonS3;
+    public AmazonAdminServiceImpl(AmazonRepository amazonRepository) {
+        this.amazonRepository = amazonRepository;
     }
+
 
     @Override
     public String createBucket(String bucketName) {
-        Bucket bucket  = amazonS3.createBucket(bucketName);
-        return bucket.getName();
+       return amazonRepository.createBucket(bucketName);
     }
 
     @Override
     public void deleteBucket(String bucketName) {
-        amazonS3.deleteBucket(bucketName);
+        amazonRepository.deleteBucket(bucketName);
     }
 }
