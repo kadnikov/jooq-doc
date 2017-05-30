@@ -209,7 +209,7 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
             ContentStream contentStream, VersioningState versioningState, List<String> policies, Acl addAces,
             Acl removeAces, ExtensionsData extension)  {
 
-        LOGGER.info("entering createDocument()");
+        LOGGER.info("entering createDocument(repositoryId={}, properties = {}, folderId ={})", repositoryId, properties, folderId);
         try {
             ObjectData object = getRepository().create(getCallContext(), properties, folderId, contentStream,
                     versioningState, this);

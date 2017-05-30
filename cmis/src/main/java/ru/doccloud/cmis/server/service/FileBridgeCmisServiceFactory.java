@@ -40,8 +40,9 @@ import ru.doccloud.cmis.server.FileBridgeUserManager;
 import ru.doccloud.cmis.server.repository.FileBridgeRepository;
 import ru.doccloud.cmis.server.repository.FileBridgeRepositoryManager;
 import ru.doccloud.config.PersistenceContext;
+import ru.doccloud.document.StorageManager;
+import ru.doccloud.document.StorageManagerImpl;
 import ru.doccloud.document.service.DocumentCrudService;
-import ru.doccloud.document.service.FileActionsService;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -79,8 +80,8 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
 //    private final JTransfo transformer;
 
     private final DocumentCrudService crudService;
-    private final FileActionsService fileActionsService;
-    
+    private final StorageManager storageManager;
+
     /** Each thread gets its own {@link FileBridgeCmisService} instance. */
     // old threadLocalService
     // private ThreadLocal<CmisServiceWrapper<FileBridgeCmisService>>
@@ -96,10 +97,11 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
     private FileBridgeTypeManager typeManager;
 
     @Autowired
-    public FileBridgeCmisServiceFactory(ApplicationContext appContext,  DocumentCrudService crudService, FileActionsService fileActionsService) {
+    public FileBridgeCmisServiceFactory(ApplicationContext appContext,  DocumentCrudService crudService) {
         this.appContext = appContext;
         this.crudService = crudService;
-        this.fileActionsService = fileActionsService;
+        //        todo add storageManager as autowired
+        this.storageManager = new StorageManagerImpl();
     }
 
     @Override
@@ -231,7 +233,7 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
                     LOGGER.info("pctx: {}", pctx);
                     DSLContext jooq = pctx.dsl();
                     
-                    FileBridgeRepository fsr = new FileBridgeRepository(repositoryId, root, typeManager, jooq, crudService, fileActionsService);
+                    FileBridgeRepository fsr = new FileBridgeRepository(repositoryId, root, typeManager, jooq, crudService, storageManager);
                     repositoryManager.addRepository(fsr);
                 }
             }

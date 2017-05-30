@@ -4,12 +4,19 @@
 	xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="CmisLifecycleBean" class="ru.doccloud.cmis.server.CmisLifecycleBean">
-		<property name="CmisServiceFactory" ref="CmisServiceFactory" />
-	</bean>
+	<!--<bean id="CmisLifecycleBean" class="ru.doccloud.cmis.server.CmisLifecycleBean">-->
+		<!--<property name="CmisServiceFactory" ref="CmisServiceFactory" />-->
+	<!--</bean>-->
 
-	<bean id="CmisServiceFactory" class="ru.doccloud.cmis.server.service.FileBridgeCmisServiceFactory">
-	</bean>
+    <!--<bean id = "file"-->
+
+	<!--<bean id = "storageManager" class="ru.doccloud.document.StorageManagerImpl" />-->
+    <!--<bean id="fileActionsService" class="ru.doccloud.document.service.FileActionsServiceImpl">-->
+        <!--<constructor-arg ref=""/>-->
+    <!--</bean>-->
+
+	<!--<bean id="CmisServiceFactory" class="ru.doccloud.cmis.server.service.FileBridgeCmisServiceFactory">-->
+	<!--</bean>-->
 
     <!--<bean id="CmisLifecycleBean" class="org.example.cmis.server.CmisLifecycleBean">-->
     	<!--<property name="CmisServiceFactory" ref="CmisServiceFactory" />-->

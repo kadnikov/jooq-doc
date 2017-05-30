@@ -277,22 +277,19 @@ public class SystemRepositoryImpl implements SystemRepository {
     public SystemEntity findSettings() {
         LOGGER.trace("entering findSettings(): try to find storage area settings in cache first");
 
-        SystemRecord record = (SystemRecord) StorageAreaSettings.INSTANCE.getStorageSetting();
-        if(record == null) {
+
             LOGGER.trace("storage area settings weren't found in cache. It will get from database");
-            record = jooq.selectFrom(SYSTEM)
+            SystemRecord record = jooq.selectFrom(SYSTEM)
                     .where(SYSTEM.SYS_TYPE.equal("storage_area"))
                     .fetchOne();
             LOGGER.trace("findSettings(): settings record was found in db {}", record);
-            StorageAreaSettings.INSTANCE.add(record);
+            if (record == null) {
+                throw new DocumentNotFoundException("No Document entry found with type storageArea");
+            }
+
             LOGGER.trace("findSettings(): storage area settings has been added to cache");
-        }
 
 
-
-        if (record == null) {
-            throw new DocumentNotFoundException("No Document entry found with type storageArea");
-        }
         LOGGER.trace("leaving findSettings(): Got result: {}", record);
         return SystemConverter.convertQueryResultToModelObject(record);
     }

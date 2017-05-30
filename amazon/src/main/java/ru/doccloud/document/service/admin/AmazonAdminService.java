@@ -1,4 +1,4 @@
-package ru.doccloud.document.service;
+package ru.doccloud.document.service.admin;
 
 /**
  * THis interface provides admin methods for amazon s3 interaction.

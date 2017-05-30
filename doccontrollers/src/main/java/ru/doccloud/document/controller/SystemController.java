@@ -1,14 +1,7 @@
 package ru.doccloud.document.controller;
 
-import java.io.IOException;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,45 +9,51 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.common.util.VersionHelper;
-import ru.doccloud.document.dto.DocumentDTO;
+import ru.doccloud.document.StorageManager;
+import ru.doccloud.document.StorageManagerImpl;
+import ru.doccloud.document.Storages;
 import ru.doccloud.document.dto.SystemDTO;
-import ru.doccloud.document.service.FileActionsService;
 import ru.doccloud.document.service.SystemCrudService;
+import ru.doccloud.document.storage.StorageActionsService;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.UUID;
 
 /**
  * @author Andrey Kadnikov
  */
 @RestController
 @RequestMapping("/api/system")
-public class SystemController {
+public class SystemController  {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SystemController.class);
 
     private final SystemCrudService crudService;
 
-    private final FileActionsService fileActionsService;
+
+    private final StorageActionsService storageActionsService;
+
+    private JsonNode settingsNode;
 
     @Autowired
-    public SystemController(SystemCrudService crudService, FileActionsService fileActionsService) {
+    public SystemController(SystemCrudService crudService) throws Exception {
         this.crudService = crudService;
-        this.fileActionsService = fileActionsService;
+        //todo add settings to separate table and separate cache
+        settingsNode =  crudService.findSettings();
+//        todo add storageManager as autowired
+        StorageManager storageManager = new StorageManagerImpl();
+        this.storageActionsService = storageManager.getStorageService(getDefaultStorage());
     }
 
     @RequestMapping(method = RequestMethod.POST)
@@ -129,7 +128,7 @@ public class SystemController {
             throw new Exception("Filepath is empty, conteny for document " + dto + "does not exist");
         }
 
-        return fileActionsService.readFile(filePath);
+        return storageActionsService.readFile(filePath);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
@@ -243,9 +242,7 @@ public class SystemController {
     }
 
     private String writeContent(UUID uuid, byte[] bytes) throws Exception {
-        SystemDTO settings = crudService.findSettings();
-        JsonNode settingsNode = settings.getData();
-        return fileActionsService.writeFile(JsonNodeParser.getValueJsonNode(settingsNode, "repository"), uuid, bytes);
+        return storageActionsService.writeFile(getRootName(), uuid, bytes);
     }
 
 
@@ -273,6 +270,25 @@ public class SystemController {
         return !StringUtils.isBlank(mpf.getOriginalFilename()) &&
                 !StringUtils.isBlank(mpf.getContentType()) &&
                 mpf.getBytes().length > 0;
+    }
+
+    private Storages getDefaultStorage() throws Exception {
+
+        String currentStorageId = JsonNodeParser.getValueJsonNode(settingsNode, "currentStorageID");
+
+        LOGGER.debug("getDefaultStorage(): currentStorageId: {} ", currentStorageId);
+        if(StringUtils.isBlank(currentStorageId))
+            throw new Exception("StorageId is not set up");
+
+        Storages storages = Storages.getStorageByName(currentStorageId);
+        LOGGER.debug("getDefaultStorage(): Storages: {} ", storages);
+        return storages;
+    }
+
+    private String getRootName () throws Exception {
+        Storages currentStorage = getDefaultStorage();
+
+        return JsonNodeParser.getValueJsonNode(settingsNode, currentStorage.equals(Storages.AMAZONSTORAGE) ? "bucketName": "repository");
     }
 
 }

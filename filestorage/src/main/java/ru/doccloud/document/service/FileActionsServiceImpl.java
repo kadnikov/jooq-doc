@@ -5,11 +5,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.doccloud.document.repository.FileRepository;
+import ru.doccloud.document.storage.StorageActionsService;
 
 import java.util.UUID;
 
 @Service
-public class FileActionsServiceImpl implements FileActionsService {
+public class FileActionsServiceImpl implements StorageActionsService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileActionsServiceImpl.class);
 
@@ -26,7 +27,7 @@ public class FileActionsServiceImpl implements FileActionsService {
 
         String pathToFile = fileRepository.writeFile(rootFolder, uuid, fileArr);;
 
-        LOGGER.debug("leaving writeFile(): found {}", pathToFile);
+        LOGGER.debug("leaving writeFile(): result {}", pathToFile);
 
         return pathToFile;
     }
@@ -36,7 +37,7 @@ public class FileActionsServiceImpl implements FileActionsService {
         LOGGER.debug("entering readFile(filePath={})", filePath);
 
         byte[] foundFile = fileRepository.readFile(filePath);
-        LOGGER.debug("entering readFile(): found {}", foundFile.length);
+        LOGGER.debug("leaving readFile(): found {}", foundFile.length);
 
         return foundFile;
     }

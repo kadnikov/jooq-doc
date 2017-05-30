@@ -1,39 +1,67 @@
-/*
- * Copyright 2014 Florian Müller & Jay Brown
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- *
- * This code is based on the Apache Chemistry OpenCMIS FileShare project
- * <http://chemistry.apache.org/java/developing/repositories/dev-repositories-fileshare.html>.
- *
- * It is part of a training exercise and not intended for production use!
- *
- */
 package ru.doccloud.cmis.server.repository;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import static ru.doccloud.cmis.server.util.FileBridgeUtils.checkCopyProperties;
+import static ru.doccloud.cmis.server.util.FileBridgeUtils.checkNewProperties;
+import static ru.doccloud.cmis.server.util.FileBridgeUtils.checkUpdateProperties;
+import static ru.doccloud.cmis.server.util.FileBridgeUtils.getObjectTypeId;
+import static ru.doccloud.cmis.server.util.FileBridgeUtils.isValidName;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+
 import org.apache.chemistry.opencmis.commons.PropertyIds;
-import org.apache.chemistry.opencmis.commons.data.*;
+import org.apache.chemistry.opencmis.commons.data.Acl;
+import org.apache.chemistry.opencmis.commons.data.AllowableActions;
+import org.apache.chemistry.opencmis.commons.data.BulkUpdateObjectIdAndChangeToken;
+import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.chemistry.opencmis.commons.data.FailedToDeleteData;
+import org.apache.chemistry.opencmis.commons.data.MutablePropertyData;
+import org.apache.chemistry.opencmis.commons.data.ObjectData;
+import org.apache.chemistry.opencmis.commons.data.ObjectInFolderContainer;
+import org.apache.chemistry.opencmis.commons.data.ObjectInFolderData;
+import org.apache.chemistry.opencmis.commons.data.ObjectInFolderList;
+import org.apache.chemistry.opencmis.commons.data.ObjectList;
+import org.apache.chemistry.opencmis.commons.data.ObjectParentData;
+import org.apache.chemistry.opencmis.commons.data.Properties;
+import org.apache.chemistry.opencmis.commons.data.PropertyData;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionContainer;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionList;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
-import org.apache.chemistry.opencmis.commons.exceptions.*;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisConstraintException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisContentAlreadyExistsException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisNameConstraintViolationException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisStorageException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisStreamNotSupportedException;
 import org.apache.chemistry.opencmis.commons.impl.IOUtils;
 import org.apache.chemistry.opencmis.commons.impl.MimeTypes;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.*;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.BulkUpdateObjectIdAndChangeTokenImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.FailedToDeleteDataImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectInFolderContainerImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectInFolderDataImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectInFolderListImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectListImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectParentDataImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.PartialContentStreamImpl;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
@@ -43,25 +71,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
 import ru.doccloud.cmis.server.FileBridgeTypeManager;
 import ru.doccloud.cmis.server.util.FileBridgeUtils;
 import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.common.util.VersionHelper;
+import ru.doccloud.document.StorageManager;
+import ru.doccloud.document.Storages; 
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.dto.LinkDTO;
 import ru.doccloud.document.service.DocumentCrudService;
-import ru.doccloud.document.service.FileActionsService;
-
-import java.io.*;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-
-import static ru.doccloud.cmis.server.util.FileBridgeUtils.*;
+import ru.doccloud.document.storage.StorageActionsService;
 
 /**
  * Implements all repository operations.
@@ -70,15 +93,26 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileBridgeRepository.class);
 
-    private FileActionsService fileActionsService;
+    private final StorageActionsService storageActionsService;
+
+    private JsonNode settingsNode;
 
     public FileBridgeRepository(final String repositoryId, final String rootPath,
-                                final FileBridgeTypeManager typeManager, DSLContext jooq, DocumentCrudService crudService, FileActionsService fileActionsService) {
+                                final FileBridgeTypeManager typeManager, DSLContext jooq, DocumentCrudService crudService, StorageManager storageManager) throws Exception {
         super(repositoryId, rootPath, crudService, typeManager);
 
-        LOGGER.trace("FileBridgeRepository(repositoryId={}, rootPath={}, typeManager={}, jooq={}, crudService= {}, fileActionsService={})",repositoryId, rootPath, typeManager, jooq, crudService, fileActionsService);
+        LOGGER.trace("FileBridgeRepository(repositoryId={}, rootPath={}, typeManager={}, jooq={}, crudService= {}, fileActionsService={})",repositoryId, rootPath, typeManager, jooq, crudService, storageManager);
 
-        this.fileActionsService = fileActionsService;
+        settingsNode = crudService.findSettings();
+
+        LOGGER.info("FileBridgeRepository( storageManager = {})", storageManager);
+
+        Storages defaultStorage = getDefaultStorage();
+        LOGGER.info("FileBridgeRepository( defaultStorage = {})", defaultStorage);
+
+        LOGGER.trace("FileBridgeRepository(repositoryId={}, rootPath={}, typeManager={}, jooq={}, crudService= {}, fileActionsService={})",repositoryId, rootPath, typeManager, jooq, crudService, storageManager);
+
+        storageActionsService = storageManager.getStorageService(defaultStorage);
     }
 
     /**
@@ -157,7 +191,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
      */
     private DocumentDTO createDocument(CallContext context, Properties properties, String folderId,
                                  ContentStream contentStream, VersioningState versioningState, TypeDefinition type) throws Exception {
-        LOGGER.debug("entering createDocument(context={}, properties = {}, folderId={}, versionState={}, type= {})", context, properties, folderId, versioningState, type);
+        LOGGER.info("entering createDocument(context={}, properties = {}, folderId={}, versionState={}, type= {})", context, properties, folderId, versioningState, type);
         checkUser(context, true);
 
         // check versioning state
@@ -167,7 +201,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
         // get parent
         DocumentDTO parent = getDocument(folderId);
-        LOGGER.debug("createDocument(): parent is {}", parent);
+        LOGGER.info("createDocument(): parent is {}", parent);
         if (!isFolder(parent.getType())) {
             throw new CmisObjectNotFoundException("Parent is not a folder!");
         }
@@ -177,13 +211,13 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
             final String name = FileBridgeUtils.getStringProperty(properties, PropertyIds.NAME);
 
-            LOGGER.debug("createDocument(): name is {}", name);
+            LOGGER.info("createDocument(): name is {}", name);
 
             doc = new DocumentDTO(name, "document", context.getUsername());
             doc.setDocVersion(VersionHelper.generateMinorDocVersion(doc.getDocVersion()));
             doc = crudService.add(doc, context.getUsername());
 
-            LOGGER.debug("createDocument(): Document has been created {}", doc);
+            LOGGER.info("createDocument(): Document has been created {}", doc);
             crudService.addToFolder(doc, parent.getId());
 
 
@@ -496,11 +530,10 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
      */
     private String writeContent(DocumentDTO doc, InputStream stream) throws Exception {
         try {
-
-            DocumentDTO settings = crudService.findSettings();
-            JsonNode settingsNode = settings.getData();
-
-            final String filePath = fileActionsService.writeFile(JsonNodeParser.getValueJsonNode(settingsNode, "repository"),  doc.getUuid(), org.apache.commons.io.IOUtils.toByteArray(stream));
+            LOGGER.info("entering writeContent(doc={})", doc);
+            JsonNode settingsNode = crudService.findSettings();
+            LOGGER.info("writeContent(): settingsNode {}, storageSettingsNode {}", settingsNode, storageActionsService != null ? storageActionsService.getClass() : null);
+            final String filePath = storageActionsService.writeFile(getRootName(),  doc.getUuid(), org.apache.commons.io.IOUtils.toByteArray(stream));
             LOGGER.debug("writeContent(): File has been saved on the disc, path to file {}", filePath);
             doc.setFilePath(filePath);
 
@@ -763,7 +796,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
             throw new CmisConstraintException("Document has no content!");
         }
 
-        byte[] contentByteArr = fileActionsService.readFile(doc.getFilePath());
+        byte[] contentByteArr = storageActionsService.readFile(doc.getFilePath());
 
         // compile data
         ContentStreamImpl result;
@@ -1141,6 +1174,27 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
         return found;
     }
+
+
+    private Storages getDefaultStorage() throws Exception {
+
+        String currentStorageId = JsonNodeParser.getValueJsonNode(settingsNode, "currentStorageID");
+
+        LOGGER.debug("getDefaultStorage(): currentStorageId: {} ", currentStorageId);
+        if(StringUtils.isBlank(currentStorageId))
+            throw new Exception("StorageId is not set up");
+
+        Storages storages = Storages.getStorageByName(currentStorageId);
+        LOGGER.debug("getDefaultStorage(): Storages: {} ", storages);
+        return storages;
+    }
+
+    private String getRootName () throws Exception {
+        Storages currentStorage = getDefaultStorage();
+
+        return JsonNodeParser.getValueJsonNode(settingsNode, currentStorage.equals(Storages.AMAZONSTORAGE) ? "bucketName": "repository");
+    }
+
 
     @Override
     public String toString() {
