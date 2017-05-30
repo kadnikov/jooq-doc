@@ -245,6 +245,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
         selectedFields.add(DOCUMENTS.SYS_FILE_NAME);
         selectedFields.add(DOCUMENTS.SYS_VERSION);
         selectedFields.add(DOCUMENTS.SYS_UUID);
+        selectedFields.add(DOCUMENTS.SYS_PARENT);
         if (fields!=null){
             for (String field : fields) {
                 selectedFields.add(jsonObject(DOCUMENTS.DATA, field).as(field));
