@@ -46,6 +46,8 @@ public abstract class AbstractDocumentDTO {
     protected String fileMimeType;
 
     protected String fileName;
+    
+    protected String parent;
 
     protected Long fileLength;
 
@@ -158,7 +160,15 @@ public abstract class AbstractDocumentDTO {
         this.fileName = fileName;
     }
 
-    public Long getFileLength() {
+    public String getParent() {
+		return parent;
+	}
+
+	public void setParent(String parent) {
+		this.parent = parent;
+	}
+
+	public Long getFileLength() {
         return fileLength;
     }
 

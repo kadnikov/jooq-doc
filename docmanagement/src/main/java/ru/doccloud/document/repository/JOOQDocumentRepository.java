@@ -412,6 +412,26 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
         return findById(documentEntry.getId());
     }
+    
+    @Transactional
+    @Override
+    public Document setParent(Document documentEntry) {
+        LOGGER.trace("entering updateFileInfo(documentEntry={})", documentEntry);
+
+        Timestamp currentTime = dateTimeService.getCurrentTimestamp();
+
+        int updatedRecordCount = jooq.update(DOCUMENTS)
+                .set(DOCUMENTS.SYS_PARENT, documentEntry.getParent())
+                .where(DOCUMENTS.ID.equal(documentEntry.getId().intValue()))
+                .execute();
+
+        LOGGER.trace("leaving updateFileInfo(): Updated {} document entry", updatedRecordCount);
+        //If you are using Firebird or PostgreSQL databases, you can use the RETURNING
+        //clause in the update statement (and avoid the extra select clause):
+        //http://www.jooq.org/doc/3.2/manual/sql-building/sql-statements/update-statement/#N11102
+
+        return findById(documentEntry.getId());
+    }
 
 
     private static Field<Object> jsonObject(Field<?> field, String name) {
@@ -422,11 +442,27 @@ public class JOOQDocumentRepository implements DocumentRepository {
         return DSL.field("{0}->>{1}", Object.class, field, DSL.inline(name));
     }
 
-
-
-    //	todo return all params that requested from ui
     @Override
     public List<Document> findAllByParent(Long parent) {
+
+        LOGGER.trace("entering findAllByParent(parent = {})", parent);
+        
+    	List<DocumentsRecord>  queryResults = jooq.selectFrom(DOCUMENTS)
+                .where(DOCUMENTS.SYS_PARENT.equal(parent.toString()))
+                .fetchInto(DocumentsRecord.class);
+
+
+        LOGGER.trace("findAllByParent(): Found {} Document entries, they are going to convert to model objects", queryResults);
+
+        List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
+
+        LOGGER.trace("leaving findAllByParent(): Found {}", documentEntries);
+
+        return documentEntries;
+    }
+
+    @Override
+    public List<Document> findAllByLinkParent(Long parent) {
         LOGGER.trace("entering findAllByParent(parent = {})", parent);
 
         Documents d = DOCUMENTS.as("d");
@@ -783,6 +819,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
                     .filePath(queryResult.getValue(DOCUMENTS.SYS_FILE_PATH))
                     .fileName(queryResult.getValue(DOCUMENTS.SYS_FILE_NAME))
                     .uuid(queryResult.getValue(DOCUMENTS.SYS_UUID))
+                    .parent(queryResult.getValue(DOCUMENTS.SYS_PARENT))
                     .data(data)
                     .build();
         }
@@ -803,6 +840,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
                     .fileLength(queryResult.getSysFileLength())
                     .fileName(queryResult.getSysFileName())
                     .docVersion(queryResult.getSysVersion())
+                    .parent(queryResult.getSysParent())
                     .uuid(queryResult.getSysUuid())
                     .build();
         }

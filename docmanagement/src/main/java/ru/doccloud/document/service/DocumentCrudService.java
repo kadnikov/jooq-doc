@@ -57,4 +57,6 @@ public interface DocumentCrudService {
 
     public Page<DocumentDTO> findAllByType(final String type, final String[] fields, final Pageable pageable, final String query);
 
+    public DocumentDTO setParent(DocumentDTO dto);
+
 }

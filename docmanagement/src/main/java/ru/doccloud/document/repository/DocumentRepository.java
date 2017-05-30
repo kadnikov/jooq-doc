@@ -84,4 +84,8 @@ public interface DocumentRepository {
 
 	public Page<Document> findAllByType(String type, String[] fields, Pageable pageable, String query);
 
+	public Document setParent(Document documentEntry);
+
+	public List<Document> findAllByLinkParent(Long parent);
+
 }

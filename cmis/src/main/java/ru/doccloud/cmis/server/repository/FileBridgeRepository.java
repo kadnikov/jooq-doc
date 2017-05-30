@@ -353,7 +353,8 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
         LOGGER.debug(" moveObject(): document for move {}", doc);
 
-        DocumentDTO parent = getFirstParent(doc.getId());
+        DocumentDTO parent = getDocument(doc.getParent());//getFirstParent(doc.getId());
+        
 
         LOGGER.debug(" moveObject(): parent document {}", parent);
 
@@ -363,7 +364,9 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
             LOGGER.debug("moveObject(): existing link {} has been deleted", deletedLink);
         }
         LinkDTO link = crudService.addLink(Long.parseLong(targetFolderId), doc.getId());
-
+        doc.setParent(parent.getId().toString());
+        crudService.setParent(doc);
+        
         LOGGER.debug("leaving moveObject(): new link {} has been created for object {}", link, doc);
 
         return compileObjectData(context, doc, null, false, false, userReadOnly, objectInfos);
@@ -439,7 +442,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         LinkDTO deletedLink = null;
         try {
 
-            DocumentDTO parent = getFirstParent(doc.getId());
+            DocumentDTO parent = getDocument(doc.getParent());//getFirstParent(doc.getId());
 
             LOGGER.debug("deleteObject(): parent document {}", parent);
 
@@ -529,7 +532,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
             } else {
                 LinkDTO deletedChildLink = null;
 
-                DocumentDTO parent = getFirstParent(doc.getId());
+                DocumentDTO parent = getDocument(doc.getParent());//getFirstParent(doc.getId());
 
                 LOGGER.debug("deleteFolder(): parent document {}", parent);
 
@@ -552,7 +555,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         }
 
         LinkDTO deletedLink = null;
-        DocumentDTO parent = getFirstParent(doc.getId());
+        DocumentDTO parent = getDocument(doc.getParent());//getFirstParent(doc.getId());
 
         LOGGER.debug("deleteFolder(): parent document for deleted folder {}", parent);
 
@@ -938,7 +941,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         }
 
         // get parent folder
-        DocumentDTO parent = getFirstParent(doc.getId());
+        DocumentDTO parent = getDocument(doc.getParent());//getFirstParent(doc.getId());
         ObjectData object = compileObjectData(context, parent, filterCollection, iaa, false, userReadOnly, objectInfos);
 
         ObjectParentDataImpl result = new ObjectParentDataImpl();

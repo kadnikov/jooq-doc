@@ -71,6 +71,8 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         if(persisted == null)
             persisted = repository.add(createModel(dto));
 
+        dto.setParent(folderId.toString());
+        setParent(dto);
         Link link = repository.addLink(folderId, persisted.getId());
 
         LOGGER.debug("leaving addToFolder(): Added Document entry  {} with link {}", persisted, link);
@@ -199,6 +201,17 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 
         return transformer.convert(updated, new DocumentDTO());
     }
+    
+    @Transactional
+    @Override
+    public DocumentDTO setParent(final DocumentDTO dto){
+        LOGGER.debug("entering updateFileInfo(dto={})", dto);
+        final Document updated = repository.setParent(createModel(dto));
+
+        LOGGER.debug("leaving updateFileInfo(): Updated {}", updated);
+
+        return transformer.convert(updated, new DocumentDTO());
+    }
 
     @Transactional
     @Override
@@ -265,6 +278,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         return Document.getBuilder(dto.getTitle())
                 .description(dto.getDescription())
                 .type(dto.getType())
+                .parent(dto.getParent())
                 .data(dto.getData())
                 .id(dto.getId())
                 .author(dto.getAuthor())

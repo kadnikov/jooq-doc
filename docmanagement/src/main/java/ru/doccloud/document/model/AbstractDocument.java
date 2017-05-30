@@ -32,6 +32,8 @@ public abstract class AbstractDocument {
     protected  Long fileLength;
 
     protected  String type;
+    
+    protected  String parent;
 
     protected  String docVersion;
 
@@ -88,7 +90,15 @@ public abstract class AbstractDocument {
         return type;
     }
 
-    public String getDocVersion() {
+    public String getParent() {
+		return parent;
+	}
+
+	public void setParent(String parent) {
+		this.parent = parent;
+	}
+
+	public String getDocVersion() {
         return docVersion;
     }
 

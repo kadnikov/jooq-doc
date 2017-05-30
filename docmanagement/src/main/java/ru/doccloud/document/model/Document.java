@@ -45,6 +45,8 @@ public class Document extends AbstractDocument {
         
         this.type = builder.type;
         
+        this.parent = builder.parent;
+        
         this.data = builder.data;
         this.docVersion = builder.docVersion;
         this.uuid = builder.uuid;
@@ -99,6 +101,8 @@ public class Document extends AbstractDocument {
         
         private String type;
         
+        private String parent;
+        
         private String author;
         
         private String modifier;
@@ -122,6 +126,11 @@ public class Document extends AbstractDocument {
         public Builder type(String type) {
             this.type = type;
             return this;
+        }
+        
+        public Builder parent(String parent) {
+            this.parent = parent;
+			return this;
         }
         
         public Builder modifier(String modifiedBy) {
