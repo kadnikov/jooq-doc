@@ -80,10 +80,11 @@ import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.common.util.VersionHelper;
 import ru.doccloud.document.StorageManager;
-import ru.doccloud.document.Storages; 
+import ru.doccloud.document.Storages;
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.dto.LinkDTO;
 import ru.doccloud.document.service.DocumentCrudService;
+import ru.doccloud.document.service.SystemCrudService;
 import ru.doccloud.document.storage.StorageActionsService;
 
 /**
@@ -98,12 +99,12 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
     private JsonNode settingsNode;
 
     public FileBridgeRepository(final String repositoryId, final String rootPath,
-                                final FileBridgeTypeManager typeManager, DSLContext jooq, DocumentCrudService crudService, StorageManager storageManager) throws Exception {
-        super(repositoryId, rootPath, crudService, typeManager);
+                                final FileBridgeTypeManager typeManager, DSLContext jooq, DocumentCrudService crudService, SystemCrudService systemCrudService, StorageManager storageManager) throws Exception {
+        super(repositoryId, rootPath, crudService, systemCrudService, typeManager);
 
         LOGGER.trace("FileBridgeRepository(repositoryId={}, rootPath={}, typeManager={}, jooq={}, crudService= {}, fileActionsService={})",repositoryId, rootPath, typeManager, jooq, crudService, storageManager);
 
-        settingsNode = crudService.findSettings();
+        settingsNode = systemCrudService.findSettings();
 
         LOGGER.info("FileBridgeRepository( storageManager = {})", storageManager);
 

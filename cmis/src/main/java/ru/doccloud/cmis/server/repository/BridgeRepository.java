@@ -23,6 +23,7 @@ import ru.doccloud.cmis.server.FileBridgeTypeManager;
 import ru.doccloud.cmis.server.util.FileBridgeUtils;
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.service.DocumentCrudService;
+import ru.doccloud.document.service.SystemCrudService;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,7 +59,7 @@ abstract class BridgeRepository {
     /** Root directory. */
     protected final File root;
 
-    BridgeRepository(String rootPath, DocumentCrudService crudService, FileBridgeTypeManager typeManager) {
+    BridgeRepository(String rootPath, DocumentCrudService crudService, SystemCrudService systemCrudService, FileBridgeTypeManager typeManager) {
         // check root folder
         if (StringUtils.isBlank(rootPath)) {
             throw new IllegalArgumentException("Invalid root folder!");
