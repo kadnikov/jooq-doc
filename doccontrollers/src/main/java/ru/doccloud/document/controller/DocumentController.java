@@ -22,6 +22,7 @@ import ru.doccloud.document.Storages;
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.service.DocumentCrudService;
 import ru.doccloud.document.service.DocumentSearchService;
+import ru.doccloud.document.service.SystemCrudService;
 import ru.doccloud.document.storage.StorageActionsService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -47,14 +48,17 @@ public class DocumentController  {
 
     private final StorageActionsService storageActionsService;
 
+    private final SystemCrudService systemCrudService;
+
     private JsonNode settingsNode;
 
 
     @Autowired
-    public DocumentController(DocumentCrudService crudService, DocumentSearchService searchService) throws Exception {
+    public DocumentController(DocumentCrudService crudService, DocumentSearchService searchService, SystemCrudService systemCrudService) throws Exception {
         this.crudService = crudService;
         this.searchService = searchService;
-        settingsNode =  crudService.findSettings();
+        this.systemCrudService = systemCrudService;
+        settingsNode =  systemCrudService.findSettings();
         //        todo add storageManager as autowired
         StorageManager storageManager = new StorageManagerImpl();
         this.storageActionsService = storageManager.getStorageService(getDefaultStorage());
