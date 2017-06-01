@@ -16,8 +16,8 @@ import ru.doccloud.docs.common.TestDateUtil;
 import ru.doccloud.docs.config.ServiceTestContext;
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.model.Document;
-import ru.doccloud.document.repository.DocumentRepository;
-import ru.doccloud.document.service.RepositoryDocumentSearchService;
+import ru.doccloud.amazon.repository.DocumentRepository;
+import ru.doccloud.amazon.service.RepositoryDocumentSearchService;
 
 import java.sql.Timestamp;
 

@@ -40,9 +40,8 @@ import ru.doccloud.cmis.server.FileBridgeUserManager;
 import ru.doccloud.cmis.server.repository.FileBridgeRepository;
 import ru.doccloud.cmis.server.repository.FileBridgeRepositoryManager;
 import ru.doccloud.config.PersistenceContext;
-import ru.doccloud.document.StorageManager;
-import ru.doccloud.document.StorageManagerImpl;
-import ru.doccloud.document.service.DocumentCrudService;
+import ru.doccloud.storagemanager.StorageManager;
+import ru.doccloud.amazon.service.DocumentCrudService;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
 
 import java.math.BigInteger;
@@ -99,12 +98,13 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
     private FileBridgeTypeManager typeManager;
 
     @Autowired
-    public FileBridgeCmisServiceFactory(ApplicationContext appContext,  DocumentCrudService crudService, StorageAreaSettings storageAreaSettings) {
+    public FileBridgeCmisServiceFactory(ApplicationContext appContext,  DocumentCrudService crudService, StorageAreaSettings storageAreaSettings,  StorageManager storageManager) {
+        LOGGER.info("FileBridgeCmisServiceFactory(crudService={}, storageAreaSettings= {}, storageManager={})", crudService, storageAreaSettings, storageManager);
         this.appContext = appContext;
         this.crudService = crudService;
         this.storageAreaSettings = storageAreaSettings;
         //        todo add storageManager as autowired
-        this.storageManager = new StorageManagerImpl();
+        this.storageManager = storageManager;
     }
 
     @Override

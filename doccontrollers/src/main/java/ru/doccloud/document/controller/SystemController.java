@@ -16,13 +16,12 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.common.util.VersionHelper;
-import ru.doccloud.document.StorageManager;
-import ru.doccloud.document.StorageManagerImpl;
-import ru.doccloud.document.Storages;
 import ru.doccloud.document.dto.SystemDTO;
-import ru.doccloud.document.service.SystemCrudService;
+import ru.doccloud.amazon.service.SystemCrudService;
 import ru.doccloud.storage.StorageActionsService;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
+import ru.doccloud.storagemanager.StorageManager;
+import ru.doccloud.storagemanager.Storages;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -44,19 +43,18 @@ public class SystemController  {
 
     private final StorageAreaSettings storageAreaSettings;
     private final StorageActionsService storageActionsService;
+    private final StorageManager storageManager;
 
     private JsonNode settingsNode;
 
     @Autowired
-    public SystemController(SystemCrudService crudService, StorageAreaSettings storageAreaSettings) throws Exception {
-        LOGGER.info("SystemController(crudService={}, storageAreaSettings= {})", crudService, storageAreaSettings);
+    public SystemController(SystemCrudService crudService, StorageAreaSettings storageAreaSettings, StorageManager storageManager) throws Exception {
+        LOGGER.info("SystemController(crudService={}, storageAreaSettings= {}, storageManager={})", crudService, storageAreaSettings, storageManager);
         this.crudService = crudService;
-        //todo add settings to separate table and separate cache
         this.storageAreaSettings = storageAreaSettings;
         settingsNode = (JsonNode) storageAreaSettings.getStorageSetting();
         LOGGER.info("SystemController(): storage settings {}", settingsNode);
-//        todo add storageManager as autowired
-        StorageManager storageManager = new StorageManagerImpl();
+        this.storageManager = storageManager;
         this.storageActionsService = storageManager.getStorageService(getDefaultStorage());
     }
 

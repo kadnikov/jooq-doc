@@ -3,7 +3,7 @@ package ru.doccloud.document.filemanagement;
 
 import org.junit.Before;
 import org.junit.Test;
-import ru.doccloud.document.repository.FileRepositoryImpl;
+import ru.doccloud.filestorage.repository.FileRepositoryImpl;
 
 import java.util.UUID;
 

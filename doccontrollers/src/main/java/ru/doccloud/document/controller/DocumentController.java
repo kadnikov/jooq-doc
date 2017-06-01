@@ -16,12 +16,11 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.common.util.VersionHelper;
-import ru.doccloud.document.StorageManager;
-import ru.doccloud.document.StorageManagerImpl;
-import ru.doccloud.document.Storages;
+import ru.doccloud.storagemanager.StorageManager;
+import ru.doccloud.storagemanager.Storages;
 import ru.doccloud.document.dto.DocumentDTO;
-import ru.doccloud.document.service.DocumentCrudService;
-import ru.doccloud.document.service.DocumentSearchService;
+import ru.doccloud.amazon.service.DocumentCrudService;
+import ru.doccloud.amazon.service.DocumentSearchService;
 import ru.doccloud.storage.StorageActionsService;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
 
@@ -50,22 +49,20 @@ public class DocumentController  {
 
     private final StorageAreaSettings storageAreaSettings;
 
+    private final StorageManager storageManager;
+
     private JsonNode settingsNode;
 
 
     @Autowired
-    public DocumentController(DocumentCrudService crudService, DocumentSearchService searchService, StorageAreaSettings storageAreaSettings) throws Exception {
-        LOGGER.info("DocumentController(crudService={}, searchService = {}, storageAreaSettings= {})", crudService, searchService, storageAreaSettings);
-
+    public DocumentController(DocumentCrudService crudService, DocumentSearchService searchService, StorageAreaSettings storageAreaSettings, StorageManager storageManager) throws Exception {
+        LOGGER.info("DocumentController(crudService={}, searchService = {}, storageAreaSettings= {}, storageManager={})", crudService, searchService, storageAreaSettings, storageManager);
         this.crudService = crudService;
-
-
         this.searchService = searchService;
         this.storageAreaSettings = storageAreaSettings;
         settingsNode = (JsonNode) storageAreaSettings.getStorageSetting();
         LOGGER.info("DocumentController(): storage settings {}", settingsNode);
-        //        todo add storageManager as autowired
-        StorageManager storageManager = new StorageManagerImpl();
+        this.storageManager = storageManager;
         this.storageActionsService = storageManager.getStorageService(getDefaultStorage());
     }
 

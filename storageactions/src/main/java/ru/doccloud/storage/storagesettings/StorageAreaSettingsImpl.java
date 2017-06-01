@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.doccloud.document.service.SystemCrudService;
+import ru.doccloud.amazon.service.SystemCrudService;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

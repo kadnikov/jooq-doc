@@ -27,11 +27,11 @@ import ru.doccloud.cmis.server.util.FileBridgeUtils;
 import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.common.util.VersionHelper;
-import ru.doccloud.document.StorageManager;
-import ru.doccloud.document.Storages;
+import ru.doccloud.storagemanager.StorageManager;
+import ru.doccloud.storagemanager.Storages;
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.dto.LinkDTO;
-import ru.doccloud.document.service.DocumentCrudService;
+import ru.doccloud.amazon.service.DocumentCrudService;
 import ru.doccloud.storage.StorageActionsService;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
 

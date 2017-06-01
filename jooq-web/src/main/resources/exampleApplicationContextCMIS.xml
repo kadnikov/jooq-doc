@@ -10,8 +10,8 @@
 
     <!--<bean id = "file"-->
 
-	<!--<bean id = "storageManager" class="ru.doccloud.document.StorageManagerImpl" />-->
-    <!--<bean id="fileActionsService" class="ru.doccloud.document.service.FileActionsServiceImpl">-->
+	<!--<bean id = "storageManager" class="ru.doccloud.storagemanager.StorageManagerImpl" />-->
+    <!--<bean id="fileActionsService" class="ru.doccloud.amazon.service.FileActionsServiceImpl">-->
         <!--<constructor-arg ref=""/>-->
     <!--</bean>-->
 

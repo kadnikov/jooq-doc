@@ -12,7 +12,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupp
  * Created by ilya on 3/6/17.
  */
 @Configuration
-@ComponentScan({ "ru.doccloud.document.controller" })
+@ComponentScan({ "ru.doccloud.document" })
 @EnableWebMvc
 public class WebConfig extends WebMvcConfigurationSupport {
     @Bean

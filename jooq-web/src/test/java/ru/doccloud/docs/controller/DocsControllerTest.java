@@ -25,8 +25,8 @@ import ru.doccloud.docs.dto.DocsDTOBuilder;
 import ru.doccloud.docs.utils.WebTestConstants;
 import ru.doccloud.docs.utils.WebTestUtil;
 import ru.doccloud.document.dto.DocumentDTO;
-import ru.doccloud.document.service.DocumentCrudService;
-import ru.doccloud.document.service.DocumentSearchService;
+import ru.doccloud.amazon.service.DocumentCrudService;
+import ru.doccloud.amazon.service.DocumentSearchService;
 
 import java.util.ArrayList;
 import java.util.Arrays;

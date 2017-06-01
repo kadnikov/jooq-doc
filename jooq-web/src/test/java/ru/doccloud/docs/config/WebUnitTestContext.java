@@ -4,8 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import ru.doccloud.config.WebAppContext;
-import ru.doccloud.document.service.DocumentCrudService;
-import ru.doccloud.document.service.DocumentSearchService;
+import ru.doccloud.amazon.service.DocumentCrudService;
+import ru.doccloud.amazon.service.DocumentSearchService;
 
 import static org.mockito.Mockito.mock;
 
