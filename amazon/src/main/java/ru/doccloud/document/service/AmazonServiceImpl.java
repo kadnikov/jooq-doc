@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.doccloud.document.repository.AmazonRepository;
-import ru.doccloud.document.storage.StorageActionsService;
+import ru.doccloud.storage.StorageActionsService;
 
 import java.util.UUID;
 

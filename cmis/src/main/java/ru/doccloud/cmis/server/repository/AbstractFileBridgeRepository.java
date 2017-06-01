@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.doccloud.cmis.server.FileBridgeTypeManager;
 import ru.doccloud.document.service.DocumentCrudService;
-import ru.doccloud.document.service.SystemCrudService;
 
 import java.io.File;
 import java.util.*;
@@ -30,8 +29,8 @@ public abstract class AbstractFileBridgeRepository extends BridgeRepository{
     /** CMIS 1.1 repository info. */
     private final RepositoryInfo repositoryInfo11;
 
-    AbstractFileBridgeRepository(String repositoryId, String rootPath, DocumentCrudService crudService, SystemCrudService systemCrudService, FileBridgeTypeManager typeManager) {
-        super(rootPath, crudService, systemCrudService, typeManager);
+    AbstractFileBridgeRepository(String repositoryId, String rootPath, DocumentCrudService crudService, FileBridgeTypeManager typeManager) {
+        super(rootPath, crudService, typeManager);
 
         // check repository id
         if (StringUtils.isBlank(repositoryId)) {
@@ -42,9 +41,7 @@ public abstract class AbstractFileBridgeRepository extends BridgeRepository{
         // set up repository infos
         repositoryInfo10 = createRepositoryInfo(CmisVersion.CMIS_1_0);
         repositoryInfo11 = createRepositoryInfo(CmisVersion.CMIS_1_1);
-
     }
-
 
     /**
      * Returns the id of this repository.
@@ -59,10 +56,6 @@ public abstract class AbstractFileBridgeRepository extends BridgeRepository{
     File getRootDirectory() {
         return root;
     }
-
-
-
-
 
     private RepositoryInfo createRepositoryInfo(CmisVersion cmisVersion) {
         assert cmisVersion != null;

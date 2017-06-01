@@ -21,7 +21,8 @@ import ru.doccloud.document.StorageManagerImpl;
 import ru.doccloud.document.Storages;
 import ru.doccloud.document.dto.SystemDTO;
 import ru.doccloud.document.service.SystemCrudService;
-import ru.doccloud.document.storage.StorageActionsService;
+import ru.doccloud.storage.StorageActionsService;
+import ru.doccloud.storage.storagesettings.StorageAreaSettings;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -41,16 +42,19 @@ public class SystemController  {
 
     private final SystemCrudService crudService;
 
-
+    private final StorageAreaSettings storageAreaSettings;
     private final StorageActionsService storageActionsService;
 
     private JsonNode settingsNode;
 
     @Autowired
-    public SystemController(SystemCrudService crudService) throws Exception {
+    public SystemController(SystemCrudService crudService, StorageAreaSettings storageAreaSettings) throws Exception {
+        LOGGER.info("SystemController(crudService={}, storageAreaSettings= {})", crudService, storageAreaSettings);
         this.crudService = crudService;
         //todo add settings to separate table and separate cache
-        settingsNode =  crudService.findSettings();
+        this.storageAreaSettings = storageAreaSettings;
+        settingsNode = (JsonNode) storageAreaSettings.getStorageSetting();
+        LOGGER.info("SystemController(): storage settings {}", settingsNode);
 //        todo add storageManager as autowired
         StorageManager storageManager = new StorageManagerImpl();
         this.storageActionsService = storageManager.getStorageService(getDefaultStorage());

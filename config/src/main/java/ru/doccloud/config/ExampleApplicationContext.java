@@ -12,6 +12,7 @@ import org.springframework.context.annotation.ImportResource;
 @ComponentScan({
 		"ru.doccloud.common.service",
         "ru.doccloud.document.service",
+        "ru.doccloud.storage",
         "ru.doccloud.cmis.server"
 })
 @Import({

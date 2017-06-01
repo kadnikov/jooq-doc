@@ -22,13 +22,6 @@
  */
 package ru.doccloud.cmis.server.service;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.chemistry.opencmis.commons.impl.server.AbstractServiceFactory;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.CmisService;
@@ -41,7 +34,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
-
 import ru.doccloud.cmis.server.FileBridgeCallContext;
 import ru.doccloud.cmis.server.FileBridgeTypeManager;
 import ru.doccloud.cmis.server.FileBridgeUserManager;
@@ -51,7 +43,10 @@ import ru.doccloud.config.PersistenceContext;
 import ru.doccloud.document.StorageManager;
 import ru.doccloud.document.StorageManagerImpl;
 import ru.doccloud.document.service.DocumentCrudService;
-import ru.doccloud.document.service.SystemCrudService;
+import ru.doccloud.storage.storagesettings.StorageAreaSettings;
+
+import java.math.BigInteger;
+import java.util.*;
 
 /**
  * FileShare Service Factory.
@@ -86,8 +81,8 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
 //    private final JTransfo transformer;
 
     private final DocumentCrudService crudService;
-    private final SystemCrudService systemCrudService;
     private final StorageManager storageManager;
+    private StorageAreaSettings storageAreaSettings;
 
     /** Each thread gets its own {@link FileBridgeCmisService} instance. */
     // old threadLocalService
@@ -104,10 +99,10 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
     private FileBridgeTypeManager typeManager;
 
     @Autowired
-    public FileBridgeCmisServiceFactory(ApplicationContext appContext,  DocumentCrudService crudService, SystemCrudService systemCrudService) {
+    public FileBridgeCmisServiceFactory(ApplicationContext appContext,  DocumentCrudService crudService, StorageAreaSettings storageAreaSettings) {
         this.appContext = appContext;
         this.crudService = crudService;
-        this.systemCrudService = systemCrudService;
+        this.storageAreaSettings = storageAreaSettings;
         //        todo add storageManager as autowired
         this.storageManager = new StorageManagerImpl();
     }
@@ -241,7 +236,7 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
                     LOGGER.info("pctx: {}", pctx);
                     DSLContext jooq = pctx.dsl();
                     
-                    FileBridgeRepository fsr = new FileBridgeRepository(repositoryId, root, typeManager, jooq, crudService, systemCrudService, storageManager);
+                    FileBridgeRepository fsr = new FileBridgeRepository(repositoryId, root, typeManager, jooq, crudService, storageAreaSettings, storageManager);
                     repositoryManager.addRepository(fsr);
                 }
             }

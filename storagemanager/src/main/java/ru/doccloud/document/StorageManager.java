@@ -1,6 +1,6 @@
 package ru.doccloud.document;
 
-import ru.doccloud.document.storage.StorageActionsService;
+import ru.doccloud.storage.StorageActionsService;
 
 
 public interface StorageManager {

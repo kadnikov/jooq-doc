@@ -1,7 +1,6 @@
 package ru.doccloud.document.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.apache.commons.lang3.StringUtils;
 import org.jtransfo.JTransfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,9 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import ru.doccloud.common.dto.StorageAreaSettings;
 import ru.doccloud.document.dto.SystemDTO;
-import ru.doccloud.document.jooq.db.tables.records.SystemRecord;
 import ru.doccloud.document.model.SystemEntity;
 import ru.doccloud.document.repository.SystemRepository;
 
@@ -172,15 +169,9 @@ public class SystemDocumentCrudService implements SystemCrudService {
     @Override
     public JsonNode findSettings() {
         LOGGER.debug("entering findSettings()");
-        JsonNode jsonNode = (JsonNode) StorageAreaSettings.INSTANCE.getStorageSetting();
-        if(jsonNode == null) {
-            LOGGER.debug("findSettings(): settinf=gs were not found in the cashe. Try to finf it in database");
-            SystemEntity found = repository.findSettings();
-
-            LOGGER.debug("leaving findSettings(): Found {}", found);
-            jsonNode = found.getData();
-            StorageAreaSettings.INSTANCE.add(jsonNode);
-        }
+        SystemEntity found = repository.findSettings();
+        LOGGER.debug("leaving findSettings(): Found {}", found);
+        JsonNode jsonNode = found.getData();
 
         return jsonNode;
     }

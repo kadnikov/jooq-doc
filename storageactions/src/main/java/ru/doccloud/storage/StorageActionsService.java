@@ -1,4 +1,4 @@
-package ru.doccloud.document.storage;
+package ru.doccloud.storage;
 
 
 import java.util.UUID;

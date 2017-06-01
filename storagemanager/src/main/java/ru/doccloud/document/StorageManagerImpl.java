@@ -11,7 +11,7 @@ import ru.doccloud.document.repository.FileRepository;
 import ru.doccloud.document.repository.FileRepositoryImpl;
 import ru.doccloud.document.service.AmazonServiceImpl;
 import ru.doccloud.document.service.FileActionsServiceImpl;
-import ru.doccloud.document.storage.StorageActionsService;
+import ru.doccloud.storage.StorageActionsService;
 
 
 @Component("storageManager")
