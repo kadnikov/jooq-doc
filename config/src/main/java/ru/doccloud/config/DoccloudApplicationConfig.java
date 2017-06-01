@@ -12,7 +12,7 @@ import java.util.EnumSet;
 /**
  * @author Andrey Kadnikov
  */
-public class ExampleApplicationConfig implements WebApplicationInitializer {
+public class DoccloudApplicationConfig implements WebApplicationInitializer {
     private static final String DISPATCHER_SERVLET_NAME = "dispatcher";
     private static final String DISPATCHER_SERVLET_MAPPING = "/";
 
@@ -20,7 +20,7 @@ public class ExampleApplicationConfig implements WebApplicationInitializer {
     public void onStartup(ServletContext servletContext) throws ServletException {
         //If you want to use the XML configuration, comment the following two lines out.
         AnnotationConfigWebApplicationContext rootContext = new AnnotationConfigWebApplicationContext();
-        rootContext.register(ExampleApplicationContext.class);
+        rootContext.register(DoccloudApplicationContext.class);
 
         //If you want to use the XML configuration, uncomment the following lines.
         //XmlWebApplicationContext rootContext = new XmlWebApplicationContext();

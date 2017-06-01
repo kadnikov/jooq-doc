@@ -21,7 +21,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import ru.doccloud.config.ExampleApplicationContext;
+import ru.doccloud.config.DoccloudApplicationContext;
 import ru.doccloud.docs.IntegrationTestConstants;
 import ru.doccloud.docs.dto.DocsDTOBuilder;
 import ru.doccloud.docs.utils.WebTestConstants;
@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {ExampleApplicationContext.class})
+@ContextConfiguration(classes = {DoccloudApplicationContext.class})
 @WebAppConfiguration
 @TestExecutionListeners({ DependencyInjectionTestExecutionListener.class,
         DirtiesContextTestExecutionListener.class,

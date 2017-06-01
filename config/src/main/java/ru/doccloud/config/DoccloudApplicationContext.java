@@ -23,6 +23,6 @@ import org.springframework.context.annotation.ImportResource;
         WebAppContext.class
 })
 @ImportResource("classpath:org/jtransfo/spring/jTransfoContext.xml")
-public class ExampleApplicationContext {
+public class DoccloudApplicationContext {
 
 }

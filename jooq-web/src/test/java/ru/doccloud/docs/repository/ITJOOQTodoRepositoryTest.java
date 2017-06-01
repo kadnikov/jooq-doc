@@ -32,7 +32,7 @@ import static ru.doccloud.docs.model.DocsAssert.assertThatDoc;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {PersistenceContext.class})
-//@ContextConfiguration(locations = {"classpath:exampleApplicationContext-persistence.xml"})
+//@ContextConfiguration(locations = {"classpath:docloudApplicationContext-persistence.xml"})
 @TestExecutionListeners({ DependencyInjectionTestExecutionListener.class,
         DirtiesContextTestExecutionListener.class,
         TransactionalTestExecutionListener.class,
