@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * @author Andrey Kadnikov
  */
-public interface DocumentRepository {
+public interface DocumentRepository extends CommonRepository {
 
     /**
      * Adds a new Document.
@@ -74,10 +74,6 @@ public interface DocumentRepository {
 	public Link deleteLink(Long headId, Long tailId);
 
 	public Document updateFileInfo(Document documentEntry);
-
-	public void setUser();
-
-	public void setUser(String userName);
 
 	public Page<Document> findAll(Pageable pageable, String query);
 

@@ -11,8 +11,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.common.service.DateTimeService;
 import ru.doccloud.common.util.JsonNodeParser;
@@ -24,7 +22,6 @@ import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
 import ru.doccloud.document.model.QueryParam;
 
-import javax.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,19 +35,15 @@ import static ru.doccloud.repository.util.DataQueryHelper.*;
  * @author Andrey Kadnikov
  */
 @Repository
-public class JOOQDocumentRepository implements DocumentRepository {
+public class JOOQDocumentRepository extends AbstractJooqRepository implements DocumentRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JOOQDocumentRepository.class);
 
 
-    private final DateTimeService dateTimeService;
-
-    private final DSLContext jooq;
-
     @Autowired
     public JOOQDocumentRepository(DateTimeService dateTimeService, DSLContext jooq) {
-        this.dateTimeService = dateTimeService;
-        this.jooq = jooq;
+        super(jooq, dateTimeService);
+
     }
 
     @Transactional
@@ -151,15 +144,15 @@ public class JOOQDocumentRepository implements DocumentRepository {
     @Transactional(readOnly = true)
     @Override
     public List<Document> findAll() {
-        LOGGER.info("entering findAll()");
+        LOGGER.debug("entering findAll()");
 
         List<DocumentsRecord> queryResults = jooq.selectFrom(DOCUMENTS).fetchInto(DocumentsRecord.class);
 
-        LOGGER.info("findAll(): Found {} Document entries, they are going to convert to model objects", queryResults);
+        LOGGER.debug("findAll(): Found {} Document entries, they are going to convert to model objects", queryResults);
 
         List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
 
-        LOGGER.info("leaving findAll(): Found {} Document entries", documentEntries);
+        LOGGER.debug("leaving findAll(): Found {} Document entries", documentEntries);
 
         return documentEntries;
     }
@@ -168,7 +161,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
     @Override
     public Page<Document> findAll(Pageable pageable, String query) {
 
-        LOGGER.info("entering findAll(pageSize = {}, pageNumber = {})", pageable.getPageSize(), pageable.getPageNumber());
+        LOGGER.debug("entering findAll(pageSize = {}, pageNumber = {})", pageable.getPageSize(), pageable.getPageNumber());
         List<QueryParam> queryParams = getQueryParams(query);
         Condition cond = null;
         if (queryParams !=null){
@@ -181,11 +174,11 @@ public class JOOQDocumentRepository implements DocumentRepository {
                 .limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .fetchInto(DocumentsRecord.class);
         
-        LOGGER.info("findAll(): Found {} Document entries, they are going to convert to model objects", queryResults);
+        LOGGER.debug("findAll(): Found {} Document entries, they are going to convert to model objects", queryResults);
 
         List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
 
-        LOGGER.info("findAll(): {} document entries for page: {} ",
+        LOGGER.debug("findAll(): {} document entries for page: {} ",
                 documentEntries.size(),
                 pageable.getPageNumber()
         );
@@ -486,23 +479,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
         return documentEntries;
     }
 
-    @Transactional
-    @Override
-    public void setUser() {
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        LOGGER.trace("Current Remote User - ",request.getRemoteUser());
-        jooq.execute("SET my.username = '"+request.getRemoteUser()+"'");
 
-    }
-
-    @Transactional
-    @Override
-    public void setUser(String userName) {
-        LOGGER.trace("Current User - {}",userName);
-        jooq.execute("SET my.username = '"+userName+"'");
-
-        //jooq.execute("SELECT current_setting('my.username') FROM documents LIMIT 1;");
-    }
 
     private long findCountByLikeExpression(String likeExpression) {
         LOGGER.trace("entering findCountByLikeExpression(likeExpression={})", likeExpression);

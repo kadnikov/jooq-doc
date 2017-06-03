@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * @author Andrey Kadnikov
  */
-public interface SystemRepository {
+public interface SystemRepository extends CommonRepository {
 
     /**
      * Adds a new SystemDocument.
@@ -66,10 +66,6 @@ public interface SystemRepository {
 
 
 	public SystemDocument updateFileInfo(SystemDocument systemEntry);
-
-	public void setUser();
-
-	public void setUser(String userName);
 
 	public Page<SystemDocument> findAll(Pageable pageable, String query);
 

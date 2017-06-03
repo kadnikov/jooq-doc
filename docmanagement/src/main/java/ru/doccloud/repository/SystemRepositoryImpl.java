@@ -12,8 +12,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.common.service.DateTimeService;
 import ru.doccloud.common.util.JsonNodeParser;
@@ -21,7 +19,6 @@ import ru.doccloud.document.jooq.db.tables.records.SystemRecord;
 import ru.doccloud.document.model.QueryParam;
 import ru.doccloud.document.model.SystemDocument;
 
-import javax.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,19 +32,13 @@ import static ru.doccloud.repository.util.DataQueryHelper.*;
  * @author Ilya Ushakov
  */
 @Repository
-public class SystemRepositoryImpl implements SystemRepository {
+public class SystemRepositoryImpl extends AbstractJooqRepository implements SystemRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SystemRepositoryImpl.class);
 
-
-    private final DateTimeService dateTimeService;
-
-    private final DSLContext jooq;
-
     @Autowired
     public SystemRepositoryImpl(DateTimeService dateTimeService, DSLContext jooq) {
-        this.dateTimeService = dateTimeService;
-        this.jooq = jooq;
+        super(jooq, dateTimeService);
     }
 
     @Transactional
@@ -352,23 +343,6 @@ public class SystemRepositoryImpl implements SystemRepository {
         return findById(documentEntry.getId());
     }
 
-    @Transactional
-    @Override
-    public void setUser() {
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        LOGGER.trace("Current Remote User - ",request.getRemoteUser());
-        jooq.execute("SET my.username = '"+request.getRemoteUser()+"'");
-
-    }
-
-    @Transactional
-    @Override
-    public void setUser(String userName) {
-        LOGGER.trace("Current User - {}",userName);
-        jooq.execute("SET my.username = '"+userName+"'");
-
-        //jooq.execute("SELECT current_setting('my.username') FROM SYSTEM LIMIT 1;");
-    }
 
     private long findCountByLikeExpression(String likeExpression) {
         LOGGER.trace("entering findCountByLikeExpression(likeExpression={})", likeExpression);
