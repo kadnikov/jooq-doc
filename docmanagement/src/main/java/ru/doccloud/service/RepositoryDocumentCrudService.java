@@ -1,4 +1,4 @@
-package ru.doccloud.amazon.service;
+package ru.doccloud.service;
 
 import org.jtransfo.JTransfo;
 import org.slf4j.Logger;
@@ -16,7 +16,7 @@ import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.dto.LinkDTO;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
-import ru.doccloud.amazon.repository.DocumentRepository;
+import ru.doccloud.repository.DocumentRepository;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;

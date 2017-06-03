@@ -11,7 +11,8 @@ import org.springframework.context.annotation.ImportResource;
 @Configuration
 @ComponentScan({
 		"ru.doccloud.common.service",
-        "ru.doccloud.document.service",
+        "ru.doccloud.service",
+        "ru.doccloud.repository",
         "ru.doccloud.storage",
         "ru.doccloud.amazon",
         "ru.doccloud.filestorage",

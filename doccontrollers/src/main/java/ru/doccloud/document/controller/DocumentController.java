@@ -19,8 +19,8 @@ import ru.doccloud.common.util.VersionHelper;
 import ru.doccloud.storagemanager.StorageManager;
 import ru.doccloud.storagemanager.Storages;
 import ru.doccloud.document.dto.DocumentDTO;
-import ru.doccloud.amazon.service.DocumentCrudService;
-import ru.doccloud.amazon.service.DocumentSearchService;
+import ru.doccloud.service.DocumentCrudService;
+import ru.doccloud.service.DocumentSearchService;
 import ru.doccloud.storage.StorageActionsService;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
 

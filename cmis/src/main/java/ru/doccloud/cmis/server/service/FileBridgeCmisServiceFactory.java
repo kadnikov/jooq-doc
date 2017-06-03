@@ -41,7 +41,7 @@ import ru.doccloud.cmis.server.repository.FileBridgeRepository;
 import ru.doccloud.cmis.server.repository.FileBridgeRepositoryManager;
 import ru.doccloud.config.PersistenceContext;
 import ru.doccloud.storagemanager.StorageManager;
-import ru.doccloud.amazon.service.DocumentCrudService;
+import ru.doccloud.service.DocumentCrudService;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
 
 import java.math.BigInteger;

@@ -1,4 +1,4 @@
-package ru.doccloud.amazon.service;
+package ru.doccloud.service;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.model.Document;
-import ru.doccloud.amazon.repository.DocumentRepository;
+import ru.doccloud.repository.DocumentRepository;
 
 /**
  * @author Andrey Kadnikov

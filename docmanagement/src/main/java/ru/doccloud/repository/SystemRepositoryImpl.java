@@ -1,31 +1,10 @@
-package ru.doccloud.amazon.repository;
+package ru.doccloud.repository;
 
-
-import static ru.doccloud.document.jooq.db.tables.Documents.DOCUMENTS;
-import static ru.doccloud.document.jooq.db.tables.Links.LINKS;
-
-import java.io.IOException;
-import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.ParsePosition;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.jooq.Condition;
-import org.jooq.DSLContext;
-import org.jooq.DataType;
-import org.jooq.Field;
-import org.jooq.Record;
-import org.jooq.SQLDialect;
-import org.jooq.SelectField;
-import org.jooq.SortField;
-import org.jooq.TableField;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.jooq.*;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultDataType;
 import org.jooq.impl.SQLDataType;
@@ -40,30 +19,35 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.common.service.DateTimeService;
-import ru.doccloud.document.jooq.db.tables.Documents;
-import ru.doccloud.document.jooq.db.tables.Links;
-import ru.doccloud.document.jooq.db.tables.records.DocumentsRecord;
-import ru.doccloud.document.jooq.db.tables.records.LinksRecord;
-import ru.doccloud.document.model.Document;
+import ru.doccloud.document.jooq.db.tables.records.SystemRecord;
 import ru.doccloud.document.model.FilterBean;
-import ru.doccloud.document.model.Link;
 import ru.doccloud.document.model.QueryParam;
+import ru.doccloud.document.model.SystemDocument;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+
+import static ru.doccloud.document.jooq.db.tables.System.SYSTEM;
+
 
 /**
- * @author Andrey Kadnikov
+ * @author Ilya Ushakov
  */
 @Repository
-public class JOOQDocumentRepository implements DocumentRepository {
+public class SystemRepositoryImpl implements SystemRepository {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JOOQDocumentRepository.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SystemRepositoryImpl.class);
 
 
     private final DateTimeService dateTimeService;
@@ -71,97 +55,48 @@ public class JOOQDocumentRepository implements DocumentRepository {
     private final DSLContext jooq;
 
     @Autowired
-    public JOOQDocumentRepository(DateTimeService dateTimeService, DSLContext jooq) {
+    public SystemRepositoryImpl(DateTimeService dateTimeService, DSLContext jooq) {
         this.dateTimeService = dateTimeService;
         this.jooq = jooq;
     }
 
     @Transactional
     @Override
-    public Document add(Document documentEntry) {
+    public SystemDocument add(SystemDocument documentEntry) {
         LOGGER.trace("entering add(documentEntry= {})", documentEntry);
         String[] readers = {documentEntry.getAuthor(), "admins"};
         LOGGER.trace("add(): readers {}", readers);
-        DocumentsRecord persisted = jooq.insertInto(
-                DOCUMENTS, DOCUMENTS.SYS_DESC, DOCUMENTS.SYS_TITLE, DOCUMENTS.SYS_TYPE, DOCUMENTS.SYS_AUTHOR,
-                DOCUMENTS.SYS_READERS, DOCUMENTS.DATA, DOCUMENTS.SYS_FILE_LENGTH, DOCUMENTS.SYS_FILE_MIME_TYPE,
-                DOCUMENTS.SYS_FILE_NAME, DOCUMENTS.SYS_FILE_PATH, DOCUMENTS.SYS_VERSION)
+        SystemRecord persisted = jooq.insertInto(
+                SYSTEM, SYSTEM.SYS_DESC, SYSTEM.SYS_TITLE, SYSTEM.SYS_TYPE, SYSTEM.SYS_AUTHOR,
+                SYSTEM.SYS_READERS, SYSTEM.DATA, SYSTEM.SYS_FILE_LENGTH, SYSTEM.SYS_FILE_MIME_TYPE,
+                SYSTEM.SYS_FILE_NAME, SYSTEM.SYS_FILE_PATH, SYSTEM.SYS_VERSION, SYSTEM.SYS_SYMBOLIC_NAME)
                 .values(
                         documentEntry.getDescription(), documentEntry.getTitle(), documentEntry.getType(), documentEntry.getAuthor(),
                         readers, documentEntry.getData(), documentEntry.getFileLength(), documentEntry.getFileMimeType(),
-                        documentEntry.getFileName(), documentEntry.getFilePath(), documentEntry.getDocVersion())
+                        documentEntry.getFileName(), documentEntry.getFilePath(), documentEntry.getDocVersion(), documentEntry.getSymbolicName())
                 .returning()
                 .fetchOne();
-        Document returned = DocumentConverter.convertQueryResultToModelObject(persisted);
+        SystemDocument returned = SystemConverter.convertQueryResultToModelObject(persisted);
 
         LOGGER.trace("leaving add():  added document {}", returned);
 
         return returned;
     }
 
-    @Transactional
-    @Override
-    public Link addLink(Long headId, Long tailId) {
-        LOGGER.trace("entering addLink(headId = {}, tailId={})", headId, tailId);
-
-        LinksRecord persisted = jooq.insertInto(LINKS,LINKS.HEAD_ID,LINKS.TAIL_ID)
-                .values(headId.intValue(),tailId.intValue())
-                .returning()
-                .fetchOne();
-
-        Link returned = new Link(persisted.getHeadId().longValue(),persisted.getTailId().longValue());
-
-        LOGGER.trace("leaving addLink():  added link {}", returned);
-
-        return returned;
-    }
 
     @Transactional
     @Override
-    public Link deleteLink(Long headId, Long tailId) {
-        LOGGER.trace("entering deleteLink(headId = {}, tailId={})", headId, tailId);
-
-        int deleted = jooq.delete(LINKS)
-                .where(LINKS.HEAD_ID.equal(headId.intValue()).and(LINKS.TAIL_ID.equal(tailId.intValue())))
-                .execute();
-
-        LOGGER.trace("deleteLink(): {} link entry deleted", deleted);
-        Link returned = new Link(headId,tailId);
-
-        LOGGER.trace("leaving deleteLink():  deleted link {}", returned);
-        return returned;
-    }
-
-//    private DocumentsRecord createRecord(Document documentEntry) {
-//        LOGGER.trace("entering createRecord(documentEntry = {}", documentEntry);
-//        Timestamp currentTime = dateTimeService.getCurrentTimestamp();
-//        LOGGER.trace("createRecord(): The current time is: {}", currentTime);
-//
-//        DocumentsRecord record = new DocumentsRecord();
-//
-//        record.setSysDateCr(currentTime);
-//        record.setSysDesc(documentEntry.getDescription());
-//        record.setSysDateMod(currentTime);
-//        record.setSysTitle(documentEntry.getTitle());
-//        record.setSysType(documentEntry.getType());
-//
-//        LOGGER.trace("leaving createRecord():  created Document {}", record);
-//        return record;
-//    }
-
-    @Transactional
-    @Override
-    public Document delete(Long id) {
+    public SystemDocument delete(Long id) {
         LOGGER.trace("entering delete(id={})", id);
 
-        Document deleted = findById(id);
+        SystemDocument deleted = findById(id);
 
         LOGGER.trace("delete(): Document was found in database {}", deleted);
 
         if(deleted == null)
             throw new DocumentNotFoundException("The document with id was not found in database");
-        int deletedRecordCount = jooq.delete(DOCUMENTS)
-                .where(DOCUMENTS.ID.equal(id.intValue()))
+        int deletedRecordCount = jooq.delete(SYSTEM)
+                .where(SYSTEM.ID.equal(id.intValue()))
                 .execute();
 
         LOGGER.trace("delete(): {} document entries deleted", deletedRecordCount);
@@ -173,14 +108,14 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
     @Transactional(readOnly = true)
     @Override
-    public List<Document> findAll() {
+    public List<SystemDocument> findAll() {
         LOGGER.trace("entering findAll()");
 
-        List<DocumentsRecord> queryResults = jooq.selectFrom(DOCUMENTS).fetchInto(DocumentsRecord.class);
+        List<SystemRecord> queryResults = jooq.selectFrom(SYSTEM).fetchInto(SystemRecord.class);
 
         LOGGER.trace("findAll(): Found {} Document entries, they are going to convert to model objects", queryResults);
 
-        List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
+        List<SystemDocument> documentEntries = SystemConverter.convertQueryResultsToModelObjects(queryResults);
 
         LOGGER.trace("leaving findAll(): Found {} Document entries", documentEntries);
 
@@ -189,24 +124,24 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
     @Transactional(readOnly = true)
     @Override
-    public Page<Document> findAll(Pageable pageable, String query) {
+    public Page<SystemDocument> findAll(Pageable pageable, String query) {
 
         LOGGER.trace("entering findAll(pageSize = {}, pageNumber = {})", pageable.getPageSize(), pageable.getPageNumber());
         List<QueryParam> queryParams = getQueryParams(query);
         Condition cond = null;
         if (queryParams !=null){
-	        cond = DOCUMENTS.SYS_TYPE.isNotNull();
+	        cond = SYSTEM.SYS_TYPE.isNotNull();
 	        cond = extendConditions(cond, queryParams);
         }
-        List<DocumentsRecord> queryResults = jooq.selectFrom(DOCUMENTS)
+        List<SystemRecord> queryResults = jooq.selectFrom(SYSTEM)
         		.where(cond)
                 .orderBy(getSortFields(pageable.getSort()))
                 .limit(pageable.getPageSize()).offset(pageable.getOffset())
-                .fetchInto(DocumentsRecord.class);
+                .fetchInto(SystemRecord.class);
         
         LOGGER.trace("findAll(): Found {} Document entries, they are going to convert to model objects", queryResults);
 
-        List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
+        List<SystemDocument> documentEntries = SystemConverter.convertQueryResultsToModelObjects(queryResults);
 
         LOGGER.trace("findAll(): {} document entries for page: {} ",
                 documentEntries.size(),
@@ -228,59 +163,59 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
 
     @Override
-    public Page<Document> findAllByType(String type, String[] fields, Pageable pageable, String query) {
+    public Page<SystemDocument> findAllByType(String type, String[] fields, Pageable pageable, String query) {
         LOGGER.trace("entering findAllByType(type={}, fields={}, pageable={}, query={})", type, fields, pageable, query);
 
         ArrayList<SelectField<?>> selectedFields = new ArrayList<SelectField<?>>();
-        selectedFields.add(DOCUMENTS.ID);
-        selectedFields.add(DOCUMENTS.SYS_TITLE);
-        selectedFields.add(DOCUMENTS.SYS_AUTHOR);
-        selectedFields.add(DOCUMENTS.SYS_DATE_CR);
-        selectedFields.add(DOCUMENTS.SYS_DATE_MOD);
-        selectedFields.add(DOCUMENTS.SYS_DESC);
-        selectedFields.add(DOCUMENTS.SYS_MODIFIER);
-        selectedFields.add(DOCUMENTS.SYS_FILE_PATH);
-        selectedFields.add(DOCUMENTS.SYS_TYPE);
-        selectedFields.add(DOCUMENTS.SYS_FILE_NAME);
-        selectedFields.add(DOCUMENTS.SYS_VERSION);
-        selectedFields.add(DOCUMENTS.SYS_UUID);
-        selectedFields.add(DOCUMENTS.SYS_PARENT);
+        selectedFields.add(SYSTEM.ID);
+        selectedFields.add(SYSTEM.SYS_TITLE);
+        selectedFields.add(SYSTEM.SYS_AUTHOR);
+        selectedFields.add(SYSTEM.SYS_DATE_CR);
+        selectedFields.add(SYSTEM.SYS_DATE_MOD);
+        selectedFields.add(SYSTEM.SYS_DESC);
+        selectedFields.add(SYSTEM.SYS_MODIFIER);
+        selectedFields.add(SYSTEM.SYS_FILE_PATH);
+        selectedFields.add(SYSTEM.SYS_TYPE);
+        selectedFields.add(SYSTEM.SYS_FILE_NAME);
+        selectedFields.add(SYSTEM.SYS_VERSION);
+        selectedFields.add(SYSTEM.SYS_UUID);
+        selectedFields.add(SYSTEM.SYS_SYMBOLIC_NAME);
         if (fields!=null){
             for (String field : fields) {
-                selectedFields.add(jsonObject(DOCUMENTS.DATA, field).as(field));
+                selectedFields.add(jsonObject(SYSTEM.DATA, field).as(field));
             }
         }
         LOGGER.trace("findAllByType(): selectedFields: {}", selectedFields);
 
         List<QueryParam> queryParams = getQueryParams(query);
-        Condition cond = DOCUMENTS.SYS_TYPE.equal(type);
+        Condition cond = SYSTEM.SYS_TYPE.equal(type);
         cond = extendConditions(cond, queryParams);
-        List<Record> queryResults = jooq.select(selectedFields).from(DOCUMENTS)
+        List<Record> queryResults = jooq.select(selectedFields).from(SYSTEM)
                 .where(cond)
                 .orderBy(getSortFields(pageable.getSort()))
                 .limit(pageable.getPageSize()).offset(pageable.getOffset())
-                .fetch();//Into(DocumentsRecord.class);
+                .fetch();//Into(SystemRecord.class);
 
         LOGGER.trace("findAllByType(): Found {} Document entries, they are going to convert to model objects", queryResults);
 
-        List<Document> documentEntries = DocumentConverter.convertQueryResults(queryResults, fields);
+        List<SystemDocument> documentEntries = SystemConverter.convertQueryResults(queryResults, fields);
 
         long totalCount = findTotalCountByType(cond);
 
         LOGGER.trace("findAllByType(): {} document entries matches with the like expression: {}", totalCount);
 
-        LOGGER.trace("leaving findAllByType(): Found {} Documents", documentEntries);
+        LOGGER.trace("leaving findAllByType(): Found {} SYSTEM", documentEntries);
         return new PageImpl<>(documentEntries, pageable, totalCount);
 
     }
 
 	@Transactional(readOnly = true)
     @Override
-    public Document findById(Long id) {
+    public SystemDocument findById(Long id) {
         LOGGER.trace("entering findById(id = {})", id);
 
-        DocumentsRecord queryResult = jooq.selectFrom(DOCUMENTS)
-                .where(DOCUMENTS.ID.equal(id.intValue()))
+        SystemRecord queryResult = jooq.selectFrom(SYSTEM)
+                .where(SYSTEM.ID.equal(id.intValue()))
                 .fetchOne();
 
 
@@ -288,63 +223,81 @@ public class JOOQDocumentRepository implements DocumentRepository {
             throw new DocumentNotFoundException("No Document entry found with id: " + id);
         }
         LOGGER.trace("leaving findById(): Found {}", queryResult);
-        return DocumentConverter.convertQueryResultToModelObject(queryResult);
+        return SystemConverter.convertQueryResultToModelObject(queryResult);
     }
 
     @Transactional(readOnly = true)
     @Override
-    public Document findByUUID(String uuid) {
+    public SystemDocument findByUUID(String uuid) {
         LOGGER.debug("entering findByUUID(uuid = {})", uuid);
 
-        DocumentsRecord queryResult = jooq.selectFrom(DOCUMENTS)
-                .where(DOCUMENTS.SYS_UUID.equal( UUID.fromString(uuid)))
+        SystemRecord queryResult = jooq.selectFrom(SYSTEM)
+                .where(SYSTEM.SYS_UUID.equal( UUID.fromString(uuid)))
                 .fetchOne();
 
         if (queryResult == null) {
             throw new DocumentNotFoundException("No Document entry found with uuid: " + uuid);
         }
         LOGGER.trace("leaving findByUUID(): Found {}", queryResult);
-        return DocumentConverter.convertQueryResultToModelObject(queryResult);
+        return SystemConverter.convertQueryResultToModelObject(queryResult);
+    }
+    
+    @Transactional(readOnly = true)
+    @Override
+    public SystemDocument findBySymbolicName(String symbolic) {
+        LOGGER.debug("entering findBySymbolicName(symbolic = {})", symbolic);
+
+        SystemRecord queryResult = jooq.selectFrom(SYSTEM)
+                .where(SYSTEM.SYS_SYMBOLIC_NAME.equal(symbolic))
+                .fetchOne();
+
+        if (queryResult == null) {
+            throw new DocumentNotFoundException("No Document entry found with symbolic name: " + symbolic);
+        }
+        LOGGER.trace("leaving findBySymbolicName(): Found {}", queryResult);
+        return SystemConverter.convertQueryResultToModelObject(queryResult);
     }
 
 
+//    todo this method should be moved to another repository
     @Transactional(readOnly = true)
     @Override
-    public Document findSettings() {
+    public SystemDocument findSettings() {
         LOGGER.trace("entering findSettings(): try to find storage area settings in cache first");
 
+
             LOGGER.trace("storage area settings weren't found in cache. It will get from database");
-            DocumentsRecord record = jooq.selectFrom(DOCUMENTS)
-                    .where(DOCUMENTS.SYS_TYPE.equal("storage_area"))
+            SystemRecord record = jooq.selectFrom(SYSTEM)
+                    .where(SYSTEM.SYS_TYPE.equal("storage_area"))
                     .fetchOne();
             LOGGER.trace("findSettings(): settings record was found in db {}", record);
-        if (record == null) {
-            throw new DocumentNotFoundException("No Document entry found with type storageArea");
-        }
+            if (record == null) {
+                throw new DocumentNotFoundException("No Document entry found with type storageArea");
+            }
 
             LOGGER.trace("findSettings(): storage area settings has been added to cache");
 
 
         LOGGER.trace("leaving findSettings(): Got result: {}", record);
-        return DocumentConverter.convertQueryResultToModelObject(record);
+        return SystemConverter.convertQueryResultToModelObject(record);
     }
 
     @Transactional(readOnly = true)
     @Override
-    public Page<Document> findBySearchTerm(String searchTerm, Pageable pageable) {
+    public Page<SystemDocument> findBySearchTerm(String searchTerm, Pageable pageable) {
         LOGGER.trace("entering findBySearchTerm(searchTerm={}, pageable={})", searchTerm, pageable);
 
         String likeExpression = "%" + searchTerm + "%";
 
-        List<DocumentsRecord> queryResults = jooq.selectFrom(DOCUMENTS)
+        List<SystemRecord> queryResults = jooq.selectFrom(SYSTEM)
                 .where(createWhereConditions(likeExpression))
                 .orderBy(getSortFields(pageable.getSort()))
                 .limit(pageable.getPageSize()).offset(pageable.getOffset())
-                .fetchInto(DocumentsRecord.class);
+                .fetchInto(SystemRecord.class);
 
         LOGGER.trace("findBySearchTerm(): Found {} Document entries, they are going to convert to model objects", queryResults);
 
-        List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
+        List<SystemDocument> documentEntries = SystemConverter.convertQueryResultsToModelObjects(queryResults);
 
         long totalCount = findCountByLikeExpression(likeExpression);
         LOGGER.trace("findBySearchTerm(): {} document entries matches with the like expression: {}", totalCount);
@@ -355,25 +308,26 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
     @Transactional
     @Override
-    public Document update(Document documentEntry) {
+    public SystemDocument update(SystemDocument documentEntry) {
         LOGGER.trace("entering update(documentEntry={})", documentEntry);
 
         Timestamp currentTime = dateTimeService.getCurrentTimestamp();
         LOGGER.trace("update(): The current time is: {}", currentTime);
 
-        int updatedRecordCount = jooq.update(DOCUMENTS)
-                .set(DOCUMENTS.SYS_DESC, documentEntry.getDescription())
-                .set(DOCUMENTS.SYS_DATE_MOD, currentTime)
-                .set(DOCUMENTS.SYS_TITLE, documentEntry.getTitle())
-                .set(DOCUMENTS.SYS_MODIFIER, documentEntry.getModifier())
-                .set(DOCUMENTS.DATA, documentEntry.getData())
-                .set(DOCUMENTS.SYS_FILE_PATH, documentEntry.getFilePath())
-                .set(DOCUMENTS.SYS_FILE_LENGTH, documentEntry.getFileLength())
-                .set(DOCUMENTS.SYS_FILE_MIME_TYPE, documentEntry.getFileMimeType())
-                .set(DOCUMENTS.SYS_FILE_NAME, documentEntry.getFileName())
-                .set(DOCUMENTS.SYS_VERSION, documentEntry.getDocVersion())
-                .set(DOCUMENTS.SYS_TYPE, documentEntry.getType())
-                .where(DOCUMENTS.ID.equal(documentEntry.getId().intValue()))
+        int updatedRecordCount = jooq.update(SYSTEM)
+                .set(SYSTEM.SYS_DESC, documentEntry.getDescription())
+                .set(SYSTEM.SYS_DATE_MOD, currentTime)
+                .set(SYSTEM.SYS_TITLE, documentEntry.getTitle())
+                .set(SYSTEM.SYS_MODIFIER, documentEntry.getModifier())
+                .set(SYSTEM.SYS_SYMBOLIC_NAME, documentEntry.getSymbolicName())
+                .set(SYSTEM.DATA, documentEntry.getData())
+                .set(SYSTEM.SYS_FILE_PATH, documentEntry.getFilePath())
+                .set(SYSTEM.SYS_FILE_LENGTH, documentEntry.getFileLength())
+                .set(SYSTEM.SYS_FILE_MIME_TYPE, documentEntry.getFileMimeType())
+                .set(SYSTEM.SYS_FILE_NAME, documentEntry.getFileName())
+                .set(SYSTEM.SYS_VERSION, documentEntry.getDocVersion())
+                .set(SYSTEM.SYS_TYPE, documentEntry.getType())
+                .where(SYSTEM.ID.equal(documentEntry.getId().intValue()))
                 .execute();
 
         LOGGER.trace("leaving update(): Updated {}", updatedRecordCount);
@@ -386,39 +340,19 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
     @Transactional
     @Override
-    public Document updateFileInfo(Document documentEntry) {
+    public SystemDocument updateFileInfo(SystemDocument documentEntry) {
         LOGGER.trace("entering updateFileInfo(documentEntry={})", documentEntry);
 
         Timestamp currentTime = dateTimeService.getCurrentTimestamp();
 
-        int updatedRecordCount = jooq.update(DOCUMENTS)
-                .set(DOCUMENTS.SYS_FILE_PATH, documentEntry.getFilePath())
-                .set(DOCUMENTS.SYS_DATE_MOD, currentTime)
-                .set(DOCUMENTS.SYS_MODIFIER, documentEntry.getModifier())
-                .set(DOCUMENTS.SYS_FILE_LENGTH, documentEntry.getFileLength())
-                .set(DOCUMENTS.SYS_FILE_MIME_TYPE, documentEntry.getFileMimeType())
-                .set(DOCUMENTS.SYS_FILE_NAME, documentEntry.getFileName())
-                .where(DOCUMENTS.ID.equal(documentEntry.getId().intValue()))
-                .execute();
-
-        LOGGER.trace("leaving updateFileInfo(): Updated {} document entry", updatedRecordCount);
-        //If you are using Firebird or PostgreSQL databases, you can use the RETURNING
-        //clause in the update statement (and avoid the extra select clause):
-        //http://www.jooq.org/doc/3.2/manual/sql-building/sql-statements/update-statement/#N11102
-
-        return findById(documentEntry.getId());
-    }
-    
-    @Transactional
-    @Override
-    public Document setParent(Document documentEntry) {
-        LOGGER.trace("entering updateFileInfo(documentEntry={})", documentEntry);
-
-        Timestamp currentTime = dateTimeService.getCurrentTimestamp();
-
-        int updatedRecordCount = jooq.update(DOCUMENTS)
-                .set(DOCUMENTS.SYS_PARENT, documentEntry.getParent())
-                .where(DOCUMENTS.ID.equal(documentEntry.getId().intValue()))
+        int updatedRecordCount = jooq.update(SYSTEM)
+                .set(SYSTEM.SYS_FILE_PATH, documentEntry.getFilePath())
+                .set(SYSTEM.SYS_DATE_MOD, currentTime)
+                .set(SYSTEM.SYS_MODIFIER, documentEntry.getModifier())
+                .set(SYSTEM.SYS_FILE_LENGTH, documentEntry.getFileLength())
+                .set(SYSTEM.SYS_FILE_MIME_TYPE, documentEntry.getFileMimeType())
+                .set(SYSTEM.SYS_FILE_NAME, documentEntry.getFileName())
+                .where(SYSTEM.ID.equal(documentEntry.getId().intValue()))
                 .execute();
 
         LOGGER.trace("leaving updateFileInfo(): Updated {} document entry", updatedRecordCount);
@@ -438,76 +372,8 @@ public class JOOQDocumentRepository implements DocumentRepository {
         return DSL.field("{0}->>{1}", Object.class, field, DSL.inline(name));
     }
 
-    @Override
-    public List<Document> findAllByParent(Long parent) {
-
-        LOGGER.trace("entering findAllByParent(parent = {})", parent);
-        
-    	List<DocumentsRecord>  queryResults = jooq.selectFrom(DOCUMENTS)
-                .where(DOCUMENTS.SYS_PARENT.equal(parent.toString()))
-                .fetchInto(DocumentsRecord.class);
 
 
-        LOGGER.trace("findAllByParent(): Found {} Document entries, they are going to convert to model objects", queryResults);
-
-        List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
-
-        LOGGER.trace("leaving findAllByParent(): Found {}", documentEntries);
-
-        return documentEntries;
-    }
-
-    @Override
-    public List<Document> findAllByLinkParent(Long parent) {
-        LOGGER.trace("entering findAllByParent(parent = {})", parent);
-
-        Documents d = DOCUMENTS.as("d");
-        Links l = LINKS.as("l");
-        Documents t = DOCUMENTS.as("t");
-
-        List<DocumentsRecord> queryResults = jooq.select(d.ID, d.SYS_TITLE, d.SYS_AUTHOR, d.SYS_DATE_CR, d.SYS_DATE_MOD, d.SYS_DESC, d.SYS_MODIFIER, d.SYS_FILE_PATH, d.SYS_TYPE, d.SYS_FILE_NAME, d.SYS_UUID)
-                .from(d
-                        .join(l
-                                .join(t)
-                                .on(t.ID.equal(l.HEAD_ID)))
-                        .on(d.ID.equal(l.TAIL_ID)))
-                .where(t.ID.equal(parent.intValue()))
-                .fetchInto(DocumentsRecord.class);
-
-        LOGGER.trace("findAllByParent(): Found {} Document entries, they are going to convert to model objects", queryResults);
-
-        List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
-
-        LOGGER.trace("leaving findAllByParent(): Found {}", documentEntries);
-
-        return documentEntries;
-    }
-
-    @Override
-    public List<Document> findParents(Long docId) {
-        LOGGER.trace("entering findParents(docId = {})", docId);
-
-        Documents d = DOCUMENTS.as("d");
-        Links l = LINKS.as("l");
-        Documents t = DOCUMENTS.as("t");
-
-        List<DocumentsRecord> queryResults = jooq.select(d.ID, d.SYS_TITLE, d.SYS_AUTHOR, d.SYS_DATE_CR, d.SYS_DATE_MOD, d.SYS_DESC, d.SYS_MODIFIER, d.SYS_FILE_PATH, d.SYS_TYPE, d.SYS_FILE_NAME, d.SYS_UUID)
-                .from(d
-                        .join(l
-                                .join(t)
-                                .on(t.ID.equal(l.TAIL_ID)))
-                        .on(d.ID.equal(l.HEAD_ID)))
-                .where(t.ID.equal(docId.intValue()))
-                .fetchInto(DocumentsRecord.class);
-
-        LOGGER.trace("findParents(): Found {} Document entries, they are going to convert to model objects", queryResults);
-
-        List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
-
-        LOGGER.debug("leaving findParents(): Found: {}", documentEntries);
-
-        return documentEntries;
-    }
 
     @Transactional
     @Override
@@ -524,7 +390,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
         LOGGER.trace("Current User - {}",userName);
         jooq.execute("SET my.username = '"+userName+"'");
 
-        //jooq.execute("SELECT current_setting('my.username') FROM documents LIMIT 1;");
+        //jooq.execute("SELECT current_setting('my.username') FROM SYSTEM LIMIT 1;");
     }
 
     private long findCountByLikeExpression(String likeExpression) {
@@ -532,7 +398,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
         long resultCount = jooq.fetchCount(
                 jooq.select()
-                        .from(DOCUMENTS)
+                        .from(SYSTEM)
                         .where(createWhereConditions(likeExpression))
         );
 
@@ -545,7 +411,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
         LOGGER.trace("entering findTotalCount()");
 
         long resultCount = jooq.selectCount()
-        		   .from(DOCUMENTS)
+        		   .from(SYSTEM)
         		   .fetchOne(0, long.class);		
 
         LOGGER.trace("leaving findTotalCount(): Found search result count: {}", resultCount);
@@ -557,7 +423,7 @@ public class JOOQDocumentRepository implements DocumentRepository {
         LOGGER.trace("entering findTotalCountByType(cond={})", cond);
 
         long resultCount = jooq.fetchCount(
-                jooq.selectFrom(DOCUMENTS)
+                jooq.selectFrom(SYSTEM)
                         .where(cond)
         );
 
@@ -568,8 +434,8 @@ public class JOOQDocumentRepository implements DocumentRepository {
 
 
     private Condition createWhereConditions(String likeExpression) {
-        return DOCUMENTS.SYS_DESC.likeIgnoreCase(likeExpression)
-                .or(DOCUMENTS.SYS_TITLE.likeIgnoreCase(likeExpression));
+        return SYSTEM.SYS_DESC.likeIgnoreCase(likeExpression)
+                .or(SYSTEM.SYS_TITLE.likeIgnoreCase(likeExpression));
     }
 
     private List<QueryParam> getQueryParams(String query) {
@@ -682,12 +548,12 @@ public class JOOQDocumentRepository implements DocumentRepository {
         LOGGER.trace("entering getTableField(sortFieldName={})", sortFieldName);
         Field<Object> sortField = null;
         try {
-            java.lang.reflect.Field tableField = DOCUMENTS.getClass().getField(sortFieldName.toUpperCase());
-            sortField = (TableField) tableField.get(DOCUMENTS);
+            java.lang.reflect.Field tableField = SYSTEM.getClass().getField(sortFieldName.toUpperCase());
+            sortField = (TableField) tableField.get(SYSTEM);
             LOGGER.trace("getTableField(): sortField - {}", sortField);
         } catch (NoSuchFieldException | IllegalAccessException ex) {
             LOGGER.trace("getTableField(): Could not find table field: {}, Try to search in JSON data", sortFieldName);
-            sortField = jsonObject(DOCUMENTS.DATA, sortFieldName);
+            sortField = jsonObject(SYSTEM.DATA, sortFieldName);
             LOGGER.trace("getTableField(): sort field in  JSON data", sortField);
         }
 
@@ -698,21 +564,21 @@ public class JOOQDocumentRepository implements DocumentRepository {
     private Field<Object> getFilterField(QueryParam param) {
         Field<Object> sortField = null;
         try {
-            java.lang.reflect.Field tableField = DOCUMENTS.getClass().getField(param.getField().toUpperCase());
-            sortField = (TableField) tableField.get(DOCUMENTS);
+            java.lang.reflect.Field tableField = SYSTEM.getClass().getField(param.getField().toUpperCase());
+            sortField = (TableField) tableField.get(SYSTEM);
             LOGGER.trace("getFilterField(): sortField - {}", sortField);
         } catch (NoSuchFieldException | IllegalAccessException ex) {
         	try {
         		int intval = Integer.parseInt(param.getValue());
-        		sortField = jsonObject(DOCUMENTS.DATA, param.getField());
+        		sortField = jsonObject(SYSTEM.DATA, param.getField());
         	}catch (NumberFormatException exN){
         		try{
         			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         			 dateFormat.setLenient(false);
         			 java.util.Date dateval = parseFully(dateFormat,param.getValue());
-	        		sortField = jsonObject(DOCUMENTS.DATA, param.getField());
+	        		sortField = jsonObject(SYSTEM.DATA, param.getField());
         		}catch (ParseException exP){
-        			sortField = jsonText(DOCUMENTS.DATA, param.getField());
+        			sortField = jsonText(SYSTEM.DATA, param.getField());
         		}
         	}
             LOGGER.trace("getFilterField(): sort field in  JSON data", sortField);
@@ -744,8 +610,8 @@ public class JOOQDocumentRepository implements DocumentRepository {
         DataType<Object> timeType = new DefaultDataType<Object>(SQLDialect.POSTGRES, SQLDataType.OTHER, "timestamp");
         
         try {
-            java.lang.reflect.Field tableField = DOCUMENTS.getClass().getField(param.getField().toUpperCase());
-            Field<Object> sortField = (TableField) tableField.get(DOCUMENTS);
+            java.lang.reflect.Field tableField = SYSTEM.getClass().getField(param.getField().toUpperCase());
+            Field<Object> sortField = (TableField) tableField.get(SYSTEM);
             LOGGER.trace("getFieldValue(): Field {}, type {}", sortField, sortField.getDataType());
             
             if (sortField.getDataType().isNumeric()){
@@ -789,8 +655,8 @@ public class JOOQDocumentRepository implements DocumentRepository {
         }
     }
 
-    private static class DocumentConverter{
-        private static Document convertQueryResultToModelObject(Record queryResult, String[] fields) {
+    private static class SystemConverter {
+        private static SystemDocument convertQueryResultToModelObject(Record queryResult, String[] fields) {
             ObjectNode data = JsonNodeFactory.instance.objectNode();
             ObjectMapper mapper = new ObjectMapper();
             if (fields!=null){
@@ -804,25 +670,25 @@ public class JOOQDocumentRepository implements DocumentRepository {
                     }
                 }
             }
-            return  Document.getBuilder(queryResult.getValue(DOCUMENTS.SYS_TITLE))
-                    .description(queryResult.getValue(DOCUMENTS.SYS_DESC))
-                    .type(queryResult.getValue(DOCUMENTS.SYS_TYPE))
-                    .id(queryResult.getValue(DOCUMENTS.ID).longValue())
-                    .creationTime(queryResult.getValue(DOCUMENTS.SYS_DATE_CR))
-                    .modificationTime(queryResult.getValue(DOCUMENTS.SYS_DATE_MOD))
-                    .author(queryResult.getValue(DOCUMENTS.SYS_AUTHOR))
-                    .modifier(queryResult.getValue(DOCUMENTS.SYS_MODIFIER))
-                    .filePath(queryResult.getValue(DOCUMENTS.SYS_FILE_PATH))
-                    .fileName(queryResult.getValue(DOCUMENTS.SYS_FILE_NAME))
-                    .uuid(queryResult.getValue(DOCUMENTS.SYS_UUID))
-                    .parent(queryResult.getValue(DOCUMENTS.SYS_PARENT))
+            return  SystemDocument.getBuilder(queryResult.getValue(SYSTEM.SYS_TITLE))
+                    .description(queryResult.getValue(SYSTEM.SYS_DESC))
+                    .type(queryResult.getValue(SYSTEM.SYS_TYPE))
+                    .id(queryResult.getValue(SYSTEM.ID).longValue())
+                    .creationTime(queryResult.getValue(SYSTEM.SYS_DATE_CR))
+                    .modificationTime(queryResult.getValue(SYSTEM.SYS_DATE_MOD))
+                    .author(queryResult.getValue(SYSTEM.SYS_AUTHOR))
+                    .modifier(queryResult.getValue(SYSTEM.SYS_MODIFIER))
+                    .filePath(queryResult.getValue(SYSTEM.SYS_FILE_PATH))
+                    .fileName(queryResult.getValue(SYSTEM.SYS_FILE_NAME))
+                    .uuid(queryResult.getValue(SYSTEM.SYS_UUID))
+                    .symbolicName(queryResult.getValue(SYSTEM.SYS_SYMBOLIC_NAME))
                     .data(data)
                     .build();
         }
 
 
-        private static Document convertQueryResultToModelObject(DocumentsRecord queryResult) {
-            return Document.getBuilder(queryResult.getSysTitle())
+        private static SystemDocument convertQueryResultToModelObject(SystemRecord queryResult) {
+            return SystemDocument.getBuilder(queryResult.getSysTitle())
                     .creationTime(queryResult.getSysDateCr())
                     .description(queryResult.getSysDesc())
                     .type(queryResult.getSysType())
@@ -836,27 +702,27 @@ public class JOOQDocumentRepository implements DocumentRepository {
                     .fileLength(queryResult.getSysFileLength())
                     .fileName(queryResult.getSysFileName())
                     .docVersion(queryResult.getSysVersion())
-                    .parent(queryResult.getSysParent())
                     .uuid(queryResult.getSysUuid())
+                    .symbolicName(queryResult.getSysSymbolicName())
                     .build();
         }
 
-        private static List<Document> convertQueryResultsToModelObjects(List<DocumentsRecord> queryResults) {
-            List<Document> documentEntries = new ArrayList<>();
+        private static List<SystemDocument> convertQueryResultsToModelObjects(List<SystemRecord> queryResults) {
+            List<SystemDocument> documentEntries = new ArrayList<>();
 
-            for (DocumentsRecord queryResult : queryResults) {
-                Document documentEntry = DocumentConverter.convertQueryResultToModelObject(queryResult);
+            for (SystemRecord queryResult : queryResults) {
+                SystemDocument documentEntry = SystemConverter.convertQueryResultToModelObject(queryResult);
                 documentEntries.add(documentEntry);
             }
 
             return documentEntries;
         }
 
-        private static List<Document> convertQueryResults(List<Record> queryResults, String[] fields) {
-            List<Document> documentEntries = new ArrayList<>();
+        private static List<SystemDocument> convertQueryResults(List<Record> queryResults, String[] fields) {
+            List<SystemDocument> documentEntries = new ArrayList<>();
 
             for (Record queryResult : queryResults) {
-                documentEntries.add(DocumentConverter.convertQueryResultToModelObject(queryResult, fields));
+                documentEntries.add(SystemConverter.convertQueryResultToModelObject(queryResult, fields));
             }
 
             return documentEntries;

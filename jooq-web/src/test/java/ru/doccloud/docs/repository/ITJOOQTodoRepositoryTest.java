@@ -19,7 +19,7 @@ import org.springframework.test.context.transaction.TransactionalTestExecutionLi
 import ru.doccloud.config.PersistenceContext;
 import ru.doccloud.docs.IntegrationTestConstants;
 import ru.doccloud.document.model.Document;
-import ru.doccloud.amazon.repository.DocumentRepository;
+import ru.doccloud.repository.DocumentRepository;
 
 import java.util.List;
 

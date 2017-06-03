@@ -1,14 +1,13 @@
-package ru.doccloud.amazon.repository;
-
-import java.util.List;
+package ru.doccloud.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
 import org.springframework.transaction.annotation.Transactional;
 import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
+
+import java.util.List;
 
 /**
  * @author Andrey Kadnikov

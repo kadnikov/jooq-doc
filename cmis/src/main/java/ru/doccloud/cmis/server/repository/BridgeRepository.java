@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import ru.doccloud.cmis.server.FileBridgeTypeManager;
 import ru.doccloud.cmis.server.util.FileBridgeUtils;
 import ru.doccloud.document.dto.DocumentDTO;
-import ru.doccloud.amazon.service.DocumentCrudService;
+import ru.doccloud.service.DocumentCrudService;
 
 import java.io.File;
 import java.io.IOException;

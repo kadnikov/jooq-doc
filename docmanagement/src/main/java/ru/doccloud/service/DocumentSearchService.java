@@ -1,4 +1,4 @@
-package ru.doccloud.amazon.service;
+package ru.doccloud.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

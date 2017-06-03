@@ -13,7 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.doccloud.cmis.server.FileBridgeTypeManager;
-import ru.doccloud.amazon.service.DocumentCrudService;
+import ru.doccloud.service.DocumentCrudService;
 
 import java.io.File;
 import java.util.*;

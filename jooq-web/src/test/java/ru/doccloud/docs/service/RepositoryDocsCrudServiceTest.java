@@ -15,8 +15,8 @@ import ru.doccloud.docs.config.ServiceTestContext;
 import ru.doccloud.docs.dto.DocsDTOBuilder;
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.model.Document;
-import ru.doccloud.amazon.repository.DocumentRepository;
-import ru.doccloud.amazon.service.RepositoryDocumentCrudService;
+import ru.doccloud.repository.DocumentRepository;
+import ru.doccloud.service.RepositoryDocumentCrudService;
 
 import java.sql.Timestamp;
 import java.util.Arrays;
