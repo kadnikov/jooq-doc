@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
-import ru.doccloud.common.DateTimeConstants;
+import ru.doccloud.common.DateHelper;
 
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -18,7 +18,7 @@ import java.io.IOException;
  */
 public class CustomLocalDateTimeSerializer extends JsonSerializer<LocalDateTime> {
 
-    private final DateTimeFormatter dateTimeFormat = DateTimeFormat.forPattern(DateTimeConstants.TIMESTAMP_PATTERN);
+    private final DateTimeFormatter dateTimeFormat = DateTimeFormat.forPattern(DateHelper.TIMESTAMP_PATTERN);
 
     CustomLocalDateTimeSerializer() {
     }

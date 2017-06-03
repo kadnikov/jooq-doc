@@ -1,44 +1,34 @@
 package ru.doccloud.repository;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.jooq.*;
-import org.jooq.impl.DSL;
-import org.jooq.impl.DefaultDataType;
-import org.jooq.impl.SQLDataType;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.SelectField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.common.service.DateTimeService;
+import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.document.jooq.db.tables.records.SystemRecord;
-import ru.doccloud.document.model.FilterBean;
 import ru.doccloud.document.model.QueryParam;
 import ru.doccloud.document.model.SystemDocument;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
 import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.ParsePosition;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
 import static ru.doccloud.document.jooq.db.tables.System.SYSTEM;
+import static ru.doccloud.repository.util.DataQueryHelper.*;
 
 
 /**
@@ -131,11 +121,11 @@ public class SystemRepositoryImpl implements SystemRepository {
         Condition cond = null;
         if (queryParams !=null){
 	        cond = SYSTEM.SYS_TYPE.isNotNull();
-	        cond = extendConditions(cond, queryParams);
+	        cond = extendConditions(cond, queryParams, SYSTEM, SYSTEM.DATA);
         }
         List<SystemRecord> queryResults = jooq.selectFrom(SYSTEM)
         		.where(cond)
-                .orderBy(getSortFields(pageable.getSort()))
+                .orderBy(getSortFields(pageable.getSort(), SYSTEM, SYSTEM.DATA))
                 .limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .fetchInto(SystemRecord.class);
         
@@ -189,10 +179,10 @@ public class SystemRepositoryImpl implements SystemRepository {
 
         List<QueryParam> queryParams = getQueryParams(query);
         Condition cond = SYSTEM.SYS_TYPE.equal(type);
-        cond = extendConditions(cond, queryParams);
+        cond = extendConditions(cond, queryParams, SYSTEM, SYSTEM.DATA);
         List<Record> queryResults = jooq.select(selectedFields).from(SYSTEM)
                 .where(cond)
-                .orderBy(getSortFields(pageable.getSort()))
+                .orderBy(getSortFields(pageable.getSort(), SYSTEM, SYSTEM.DATA))
                 .limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .fetch();//Into(SystemRecord.class);
 
@@ -259,7 +249,6 @@ public class SystemRepositoryImpl implements SystemRepository {
     }
 
 
-//    todo this method should be moved to another repository
     @Transactional(readOnly = true)
     @Override
     public SystemDocument findSettings() {
@@ -290,8 +279,8 @@ public class SystemRepositoryImpl implements SystemRepository {
         String likeExpression = "%" + searchTerm + "%";
 
         List<SystemRecord> queryResults = jooq.selectFrom(SYSTEM)
-                .where(createWhereConditions(likeExpression))
-                .orderBy(getSortFields(pageable.getSort()))
+                .where(createWhereConditions(likeExpression, SYSTEM.SYS_DESC, SYSTEM.SYS_TITLE))
+                .orderBy(getSortFields(pageable.getSort(), SYSTEM, SYSTEM.DATA))
                 .limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .fetchInto(SystemRecord.class);
 
@@ -363,18 +352,6 @@ public class SystemRepositoryImpl implements SystemRepository {
         return findById(documentEntry.getId());
     }
 
-
-    private static Field<Object> jsonObject(Field<?> field, String name) {
-        return DSL.field("{0}->{1}", Object.class, field, DSL.inline(name));
-    }
-
-    private static Field<Object> jsonText(Field<?> field, String name) {
-        return DSL.field("{0}->>{1}", Object.class, field, DSL.inline(name));
-    }
-
-
-
-
     @Transactional
     @Override
     public void setUser() {
@@ -399,7 +376,7 @@ public class SystemRepositoryImpl implements SystemRepository {
         long resultCount = jooq.fetchCount(
                 jooq.select()
                         .from(SYSTEM)
-                        .where(createWhereConditions(likeExpression))
+                        .where(createWhereConditions(likeExpression, SYSTEM.SYS_DESC, SYSTEM.SYS_TITLE))
         );
 
         LOGGER.trace("leaving findCountByLikeExpression(): Found search result count: {}", resultCount);
@@ -432,244 +409,8 @@ public class SystemRepositoryImpl implements SystemRepository {
         return resultCount;
     }
 
-
-    private Condition createWhereConditions(String likeExpression) {
-        return SYSTEM.SYS_DESC.likeIgnoreCase(likeExpression)
-                .or(SYSTEM.SYS_TITLE.likeIgnoreCase(likeExpression));
-    }
-
-    private List<QueryParam> getQueryParams(String query) {
-    	FilterBean filter = null;
-        List<QueryParam> queryParams = null;
-        LOGGER.trace("Query for search - {}", query);
-        ObjectMapper mapper = new ObjectMapper();
-        if (query!=null){
-            try {
-                filter = mapper.readValue(query, new TypeReference<FilterBean>(){});
-                queryParams = filter.getMrules();
-                LOGGER.trace("findAllByType(): List of params - {} {}", queryParams.toString(), queryParams.size());
-            } catch (IOException e) {
-                LOGGER.error("Error parsing JSON {}",e.getLocalizedMessage());
-                e.printStackTrace();
-            }
-        }
-        return queryParams;
-	}
-
-	private Condition extendConditions(Condition cond, List<QueryParam> queryParams) {
-        if (queryParams !=null)
-            for (QueryParam param : queryParams) {
-                LOGGER.trace("extendConditions: Param {} {} {} ",param.getField(),param.getOperand(),param.getValue());
-                if (param.getOperand()!=null){
-                    
-//        	    // ['eq','ne','lt','le','gt','ge','bw','bn','in','ni','ew','en','cn','nc']
-//                    todo rewrite using enum implementation
-                    final String operand = param.getOperand().toLowerCase();
-
-                    LOGGER.trace("extendConditions: operand ",operand);
-                    switch (operand)
-                    {
-                        case "eq":
-                            cond = cond.and(getFilterField(param).equal(getFieldValue(param)));
-                            break;
-                        case "ne":
-                            cond = cond.and(getFilterField(param).notEqual(getFieldValue(param)));
-                            break;
-                        case "lt":
-                            cond = cond.and(getFilterField(param).lessThan(getFieldValue(param)));
-                            break;
-                        case "le":
-                            cond = cond.and(getFilterField(param).lessOrEqual(getFieldValue(param)));
-                            break;
-                        case "gt":
-                            cond = cond.and(getFilterField(param).greaterThan(getFieldValue(param)));
-                            break;
-                        case "ge":
-                            cond = cond.and(getFilterField(param).greaterOrEqual(getFieldValue(param)));
-                            break;
-                        case "bw":
-                            cond = cond.and(getFilterField(param).like(param.getValue()+"%"));
-                            break;
-                        case "bn":
-                            cond = cond.and(getFilterField(param).notLike(param.getValue()+"%"));
-                            break;
-                        case "in":
-                            cond = cond.and(getFilterField(param).in(getFieldValue(param)));
-                            break;
-                        case "ni":
-                            cond = cond.and(getFilterField(param).notIn(getFieldValue(param)));
-                            break;
-                        case "ew":
-                            cond = cond.and(getFilterField(param).like("%"+param.getValue()));
-                            break;
-                        case "en":
-                            cond = cond.and(getFilterField(param).notLike("%"+param.getValue()));
-                            break;
-                        case "cn":
-                            cond = cond.and(getFilterField(param).like("%"+param.getValue()+"%"));
-                            break;
-                        case "nc":
-                            cond = cond.and(getFilterField(param).notLike("%"+param.getValue()+"%"));
-                            break;
-                    }
-                }
-            }
-        return cond;
-	}
-
-
-    private Collection<SortField<?>> getSortFields(Sort sortSpecification) {
-        LOGGER.trace("entering getSortFields(sortSpecification={})", sortSpecification);
-        Collection<SortField<?>> querySortFields = new ArrayList<>();
-
-        if (sortSpecification == null) {
-            LOGGER.trace("getSortFields(): No sort specification found. Returning empty collection -> no sorting is done.");
-            return querySortFields;
-        }
-
-        for (Sort.Order specifiedField : sortSpecification) {
-            String sortFieldName = specifiedField.getProperty();
-            Sort.Direction sortDirection = specifiedField.getDirection();
-            LOGGER.trace("getSortFields(): Getting sort field with name: {} and direction: {}", sortFieldName, sortDirection);
-
-            Field<Object> tableField = getTableField(sortFieldName);
-            SortField<?> querySortField = convertTableFieldToSortField(tableField, sortDirection);
-
-            LOGGER.trace("getSortFields(): tableField: {} and querySortField: {}", tableField, querySortField);
-            querySortFields.add(querySortField);
-        }
-
-        LOGGER.trace("leaving getSortFields(): querySortFields {}", querySortFields);
-
-        return querySortFields;
-    }
-
-    private Field<Object> getTableField(String sortFieldName) {
-        LOGGER.trace("entering getTableField(sortFieldName={})", sortFieldName);
-        Field<Object> sortField = null;
-        try {
-            java.lang.reflect.Field tableField = SYSTEM.getClass().getField(sortFieldName.toUpperCase());
-            sortField = (TableField) tableField.get(SYSTEM);
-            LOGGER.trace("getTableField(): sortField - {}", sortField);
-        } catch (NoSuchFieldException | IllegalAccessException ex) {
-            LOGGER.trace("getTableField(): Could not find table field: {}, Try to search in JSON data", sortFieldName);
-            sortField = jsonObject(SYSTEM.DATA, sortFieldName);
-            LOGGER.trace("getTableField(): sort field in  JSON data", sortField);
-        }
-
-        LOGGER.trace("leaving getTableField()", sortField);
-        return sortField;
-    }
-    
-    private Field<Object> getFilterField(QueryParam param) {
-        Field<Object> sortField = null;
-        try {
-            java.lang.reflect.Field tableField = SYSTEM.getClass().getField(param.getField().toUpperCase());
-            sortField = (TableField) tableField.get(SYSTEM);
-            LOGGER.trace("getFilterField(): sortField - {}", sortField);
-        } catch (NoSuchFieldException | IllegalAccessException ex) {
-        	try {
-        		int intval = Integer.parseInt(param.getValue());
-        		sortField = jsonObject(SYSTEM.DATA, param.getField());
-        	}catch (NumberFormatException exN){
-        		try{
-        			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        			 dateFormat.setLenient(false);
-        			 java.util.Date dateval = parseFully(dateFormat,param.getValue());
-	        		sortField = jsonObject(SYSTEM.DATA, param.getField());
-        		}catch (ParseException exP){
-        			sortField = jsonText(SYSTEM.DATA, param.getField());
-        		}
-        	}
-            LOGGER.trace("getFilterField(): sort field in  JSON data", sortField);
-        }
-
-        LOGGER.trace("leaving getTableField()", sortField);
-        return sortField;
-    }
-    
-    private static java.util.Date parseFully(DateFormat format, String text) 
-            throws ParseException {
-          ParsePosition position = new ParsePosition(0);
-          java.util.Date date = format.parse(text, position);
-          if (position.getIndex() == text.length()) {
-              return date;
-          }
-          if (date == null) {
-              throw new ParseException("Date could not be parsed: " + text,
-                                       position.getErrorIndex());
-          }
-          throw new ParseException("Date was parsed incompletely: " + text,
-                                   position.getIndex());
-      }
-    
-    private Field<Object> getFieldValue(QueryParam param) {
-    	Field<Object> result = null;
-        DataType<Object> JSONB = new DefaultDataType<Object>(SQLDialect.POSTGRES, SQLDataType.OTHER, "jsonb");
-        DataType<Object> intType = new DefaultDataType<Object>(SQLDialect.POSTGRES, SQLDataType.OTHER, "int");
-        DataType<Object> timeType = new DefaultDataType<Object>(SQLDialect.POSTGRES, SQLDataType.OTHER, "timestamp");
-        
-        try {
-            java.lang.reflect.Field tableField = SYSTEM.getClass().getField(param.getField().toUpperCase());
-            Field<Object> sortField = (TableField) tableField.get(SYSTEM);
-            LOGGER.trace("getFieldValue(): Field {}, type {}", sortField, sortField.getDataType());
-            
-            if (sortField.getDataType().isNumeric()){
-            	 LOGGER.trace("getFieldValue(): integer");
-            	result = DSL.val(param.getValue()).cast(intType);
-            }else if(sortField.getDataType().isDateTime()){
-            	 LOGGER.trace("getFieldValue(): Timestamp");
-            	result = DSL.val(param.getValue()).cast(timeType);
-            }else{
-            	result = DSL.val(param.getValue());
-            }
-            
-        } catch (NoSuchFieldException | IllegalAccessException ex) {
-            LOGGER.trace("getFieldValue(): Could not find table field: {}, Cast to JSONB", param);
-            try {
-        		int intval = Integer.parseInt(param.getValue());
-        		result =  DSL.val(param.getValue()).cast(JSONB);
-        	}catch (NumberFormatException exN){
-        		try{
-        			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        			 dateFormat.setLenient(false);
-        			 java.util.Date dateval = parseFully(dateFormat,param.getValue());
-        			 result =  DSL.val(param.getValue()).cast(JSONB);
-        		}catch (ParseException exP){
-        			result =  DSL.val(param.getValue());
-        		}
-        	}
-            
-        }
-        LOGGER.trace("getFieldValue(): Result {}", result);
-        return result;
-    }
-    
-
-    private SortField<?> convertTableFieldToSortField(Field<Object> tableField, Sort.Direction sortDirection) {
-        if (sortDirection == Sort.Direction.ASC) {
-            return tableField.asc();
-        }
-        else {
-            return tableField.desc();
-        }
-    }
-
     private static class SystemConverter {
         private static SystemDocument convertQueryResultToModelObject(Record queryResult, String[] fields) {
-            ObjectNode data = JsonNodeFactory.instance.objectNode();
-            ObjectMapper mapper = new ObjectMapper();
-            if (fields!=null){
-                for (String field : fields) {
-                    if (queryResult.getValue(field)!=null){
-                        try {
-                            data.put(field,mapper.readTree(queryResult.getValue(field).toString()));
-                        } catch (IllegalArgumentException | IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }
             return  SystemDocument.getBuilder(queryResult.getValue(SYSTEM.SYS_TITLE))
                     .description(queryResult.getValue(SYSTEM.SYS_DESC))
                     .type(queryResult.getValue(SYSTEM.SYS_TYPE))
@@ -682,7 +423,7 @@ public class SystemRepositoryImpl implements SystemRepository {
                     .fileName(queryResult.getValue(SYSTEM.SYS_FILE_NAME))
                     .uuid(queryResult.getValue(SYSTEM.SYS_UUID))
                     .symbolicName(queryResult.getValue(SYSTEM.SYS_SYMBOLIC_NAME))
-                    .data(data)
+                    .data(JsonNodeParser.buildObjectNode(queryResult, fields))
                     .build();
         }
 
