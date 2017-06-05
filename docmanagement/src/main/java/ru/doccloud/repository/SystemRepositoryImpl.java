@@ -130,9 +130,9 @@ public class SystemRepositoryImpl extends AbstractJooqRepository implements Syst
         );
         long totalCount = 0;
         if (queryParams !=null){
-        	totalCount = findTotalCountByType(cond);
+        	totalCount = findTotalCountByType(cond, SYSTEM);
         }else{
-        	totalCount = findTotalCount();
+        	totalCount = findTotalCount(SYSTEM);
         }
 
         LOGGER.trace("findAll(): {} document entries matches with the like expression: {}", totalCount);
@@ -181,7 +181,7 @@ public class SystemRepositoryImpl extends AbstractJooqRepository implements Syst
 
         List<SystemDocument> documentEntries = SystemConverter.convertQueryResults(queryResults, fields);
 
-        long totalCount = findTotalCountByType(cond);
+        long totalCount = findTotalCountByType(cond, SYSTEM);
 
         LOGGER.trace("findAllByType(): {} document entries matches with the like expression: {}", totalCount);
 
@@ -354,31 +354,6 @@ public class SystemRepositoryImpl extends AbstractJooqRepository implements Syst
         );
 
         LOGGER.trace("leaving findCountByLikeExpression(): Found search result count: {}", resultCount);
-
-        return resultCount;
-    }
-
-    private long findTotalCount() {
-        LOGGER.trace("entering findTotalCount()");
-
-        long resultCount = jooq.selectCount()
-        		   .from(SYSTEM)
-        		   .fetchOne(0, long.class);		
-
-        LOGGER.trace("leaving findTotalCount(): Found search result count: {}", resultCount);
-
-        return resultCount;
-    }
-
-    private long findTotalCountByType(Condition cond) {
-        LOGGER.trace("entering findTotalCountByType(cond={})", cond);
-
-        long resultCount = jooq.fetchCount(
-                jooq.selectFrom(SYSTEM)
-                        .where(cond)
-        );
-
-        LOGGER.trace("leaving findTotalCountByType(): Found search result count: {}", resultCount);
 
         return resultCount;
     }

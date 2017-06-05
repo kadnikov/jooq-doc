@@ -1,7 +1,5 @@
 package ru.doccloud.service;
 
-import java.util.List;
-
 import org.jtransfo.JTransfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,10 +10,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.repository.DocumentRepository;
+
+import java.util.List;
 
 /**
  * @author Andrey Kadnikov
@@ -45,7 +44,6 @@ public class RepositoryDocumentSearchService implements DocumentSearchService {
         );
 
         Page<Document> searchResults = repository.findBySearchTerm(searchTerm, pageable);
-
 
         List<DocumentDTO> dtos = transformer.convertList(searchResults.getContent(), DocumentDTO.class);
 

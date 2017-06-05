@@ -102,22 +102,6 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
         return returned;
     }
 
-//    private DocumentsRecord createRecord(Document documentEntry) {
-//        LOGGER.trace("entering createRecord(documentEntry = {}", documentEntry);
-//        Timestamp currentTime = dateTimeService.getCurrentTimestamp();
-//        LOGGER.trace("createRecord(): The current time is: {}", currentTime);
-//
-//        DocumentsRecord record = new DocumentsRecord();
-//
-//        record.setSysDateCr(currentTime);
-//        record.setSysDesc(documentEntry.getDescription());
-//        record.setSysDateMod(currentTime);
-//        record.setSysTitle(documentEntry.getTitle());
-//        record.setSysType(documentEntry.getType());
-//
-//        LOGGER.trace("leaving createRecord():  created Document {}", record);
-//        return record;
-//    }
 
     @Transactional
     @Override
@@ -184,9 +168,9 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
         );
         long totalCount = 0;
         if (queryParams !=null){
-        	totalCount = findTotalCountByType(cond);
+        	totalCount = findTotalCountByType(cond, DOCUMENTS);
         }else{
-        	totalCount = findTotalCount();
+        	totalCount = findTotalCount(DOCUMENTS);
         }
 
         LOGGER.trace("findAll(): {} document entries matches with the like expression: {}", totalCount);
@@ -235,7 +219,7 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
 
         List<Document> documentEntries = DocumentConverter.convertQueryResults(queryResults, fields);
 
-        long totalCount = findTotalCountByType(cond);
+        long totalCount = findTotalCountByType(cond, DOCUMENTS);
 
         LOGGER.trace("findAllByType(): {} document entries matches with the like expression: {}", totalCount);
 
@@ -495,30 +479,7 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
         return resultCount;
     }
 
-    private long findTotalCount() {
-        LOGGER.trace("entering findTotalCount()");
 
-        long resultCount = jooq.selectCount()
-        		   .from(DOCUMENTS)
-        		   .fetchOne(0, long.class);		
-
-        LOGGER.trace("leaving findTotalCount(): Found search result count: {}", resultCount);
-
-        return resultCount;
-    }
-
-    private long findTotalCountByType(Condition cond) {
-        LOGGER.trace("entering findTotalCountByType(cond={})", cond);
-
-        long resultCount = jooq.fetchCount(
-                jooq.selectFrom(DOCUMENTS)
-                        .where(cond)
-        );
-
-        LOGGER.trace("leaving findTotalCountByType(): Found search result count: {}", resultCount);
-
-        return resultCount;
-    }
 
 
     private static class DocumentConverter{

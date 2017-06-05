@@ -110,7 +110,6 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         LOGGER.debug("entering findAll(pageable = {})", pageable);
 
         Page<Document> searchResults = repository.findAll(pageable, query);
-
         List<DocumentDTO> dtos = transformer.convertList(searchResults.getContent(), DocumentDTO.class);
 
         LOGGER.debug("leaving findAll(): Found {} Documents", searchResults.getNumber());
@@ -131,7 +130,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         return docEntries == null ? null : transformer.convertList(docEntries, DocumentDTO.class);
     }
 
-
+//todo remove this use only RepositoryDocumentSearchService
     @Transactional(readOnly = true)
     @Override
     public List<DocumentDTO> findBySearchTerm(String searchTerm, Pageable pageable){
