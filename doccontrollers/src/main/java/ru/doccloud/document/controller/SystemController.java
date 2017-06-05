@@ -1,7 +1,5 @@
 package ru.doccloud.document.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,44 +12,32 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.common.util.VersionHelper;
 import ru.doccloud.document.dto.SystemDTO;
 import ru.doccloud.service.SystemCrudService;
-import ru.doccloud.storage.StorageActionsService;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
 import ru.doccloud.storagemanager.StorageManager;
-import ru.doccloud.storagemanager.Storages;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.io.IOException;
-import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.UUID;
 
 /**
  * @author Andrey Kadnikov
  */
 @RestController
 @RequestMapping("/api/system")
-public class SystemController  {
+public class SystemController  extends AbstractController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SystemController.class);
 
     private final SystemCrudService crudService;
 
-    private final StorageActionsService storageActionsService;
-
-    private JsonNode settingsNode;
-
     @Autowired
     public SystemController(SystemCrudService crudService, StorageAreaSettings storageAreaSettings, StorageManager storageManager) throws Exception {
+        super(storageAreaSettings, storageManager);
         LOGGER.info("SystemController(crudService={}, storageAreaSettings= {}, storageManager={})", crudService, storageAreaSettings, storageManager);
         this.crudService = crudService;
-        settingsNode = (JsonNode) storageAreaSettings.getStorageSetting();
-        LOGGER.info("SystemController(): storage settings {}", settingsNode);
-        this.storageActionsService = storageManager.getStorageService(getDefaultStorage());
     }
 
     @RequestMapping(method = RequestMethod.POST)
@@ -67,29 +53,15 @@ public class SystemController  {
     public SystemDTO addContent(MultipartHttpServletRequest request) throws Exception {
 
         LOGGER.info("addContent... add new document from request uri {}", request.getRequestURI());
-        Enumeration<String> headerNames = request.getParameterNames();//.getAttribute("data");
-        
-        if (headerNames != null) {
-            while (headerNames.hasMoreElements()) {
-				String headerName = headerNames.nextElement();
-				LOGGER.debug("Header: "+ headerName+ " - " + request.getHeader(headerName));
-		            }
-		    }
         SystemDTO dto = new SystemDTO();
-        String data = (String) request.getParameter("data");
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode jdata = mapper.readTree(data);
-        String title = jdata.get("title").asText();
-        String type = jdata.get("type").asText();
-        dto.setTitle(title);
-        dto.setType(type);
         Iterator<String> itr =  request.getFileNames();
         if(!itr.hasNext())
             return addDoc(dto, request.getRemoteUser());
-        MultipartFile mpf = request.getFile(itr.next());
-        initFileParamsFromRequest(dto, mpf);
+        final MultipartFile mpf = request.getFile(itr.next());
 
-       return writeContent(addDoc(dto, request.getRemoteUser()), mpf, request.getRemoteUser());
+        populateFilePartDto(dto, request, mpf);
+
+        return writeContent(addDoc(dto, request.getRemoteUser()), mpf, request.getRemoteUser());
     }
 
 
@@ -233,23 +205,12 @@ public class SystemController  {
         return crudService.add(dto, user);
     }
 
-    private void initFileParamsFromRequest(SystemDTO dto, MultipartFile mpf) throws Exception {
-        dto.setFileLength((long) mpf.getBytes().length);
-        dto.setFileMimeType(mpf.getContentType());
-        dto.setFileName(mpf.getOriginalFilename());
-    }
-
-    private String writeContent(UUID uuid, byte[] bytes) throws Exception {
-        return storageActionsService.writeFile(getRootName(), uuid, bytes);
-    }
-
 
     private SystemDTO writeContent(SystemDTO dto, MultipartFile mpf, String user) throws Exception {
         try {
             if(!checkMultipartFile(mpf))
                 throw new Exception("The multipart file contains either empty content type or empty filename or does not contain data");
             LOGGER.debug("the document: {} has been added", dto);
-            LOGGER.debug("start adding file to FS");
             dto.setFilePath(writeContent(dto.getUuid(), mpf.getBytes()));
             SystemDTO updated = crudService.update(dto, user);
             LOGGER.debug("Dto object has been updated: {}", updated);
@@ -264,29 +225,6 @@ public class SystemController  {
         }
     }
 
-    private boolean checkMultipartFile(MultipartFile mpf ) throws IOException {
-        return !StringUtils.isBlank(mpf.getOriginalFilename()) &&
-                !StringUtils.isBlank(mpf.getContentType()) &&
-                mpf.getBytes().length > 0;
-    }
 
-    private Storages getDefaultStorage() throws Exception {
-
-        String currentStorageId = JsonNodeParser.getValueJsonNode(settingsNode, "currentStorageID");
-
-        LOGGER.debug("getDefaultStorage(): currentStorageId: {} ", currentStorageId);
-        if(StringUtils.isBlank(currentStorageId))
-            throw new Exception("StorageId is not set up");
-
-        Storages storages = Storages.getStorageByName(currentStorageId);
-        LOGGER.debug("getDefaultStorage(): Storages: {} ", storages);
-        return storages;
-    }
-
-    private String getRootName () throws Exception {
-        Storages currentStorage = getDefaultStorage();
-
-        return JsonNodeParser.getValueJsonNode(settingsNode, currentStorage.equals(Storages.AMAZONSTORAGE) ? "bucketName": "repository");
-    }
 
 }

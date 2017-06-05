@@ -1,7 +1,5 @@
 package ru.doccloud.document.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,30 +12,24 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.common.util.VersionHelper;
-import ru.doccloud.storagemanager.StorageManager;
-import ru.doccloud.storagemanager.Storages;
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.service.DocumentCrudService;
 import ru.doccloud.service.DocumentSearchService;
-import ru.doccloud.storage.StorageActionsService;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
+import ru.doccloud.storagemanager.StorageManager;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.io.IOException;
-import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * @author Andrey Kadnikov
  */
 @RestController
 @RequestMapping("/api/docs")
-public class DocumentController  {
+public class DocumentController  extends AbstractController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DocumentController.class);
 
@@ -45,19 +37,16 @@ public class DocumentController  {
 
     private final DocumentSearchService searchService;
 
-    private final StorageActionsService storageActionsService;
-
-    private JsonNode settingsNode;
-
-
     @Autowired
-    public DocumentController(DocumentCrudService crudService, DocumentSearchService searchService, StorageAreaSettings storageAreaSettings, StorageManager storageManager) throws Exception {
+    public DocumentController(DocumentCrudService crudService, DocumentSearchService searchService,
+                              StorageAreaSettings storageAreaSettings, StorageManager storageManager) throws Exception {
+        super(storageAreaSettings, storageManager);
         LOGGER.info("DocumentController(crudService={}, searchService = {}, storageAreaSettings= {}, storageManager={})", crudService, searchService, storageAreaSettings, storageManager);
         this.crudService = crudService;
         this.searchService = searchService;
-        settingsNode = (JsonNode) storageAreaSettings.getStorageSetting();
+
         LOGGER.info("DocumentController(): storage settings {}", settingsNode);
-        this.storageActionsService = storageManager.getStorageService(getDefaultStorage());
+
     }
 
     @RequestMapping(method = RequestMethod.POST)
@@ -73,30 +62,13 @@ public class DocumentController  {
     public DocumentDTO addContent(MultipartHttpServletRequest request) throws Exception {
 
         LOGGER.info("addContent(): add new document from request uri {}", request.getRequestURI());
-        Enumeration<String> headerNames = request.getParameterNames();//.getAttribute("data");
-        
-        if (headerNames != null) {
-            while (headerNames.hasMoreElements()) {
-				String headerName = headerNames.nextElement();
-				LOGGER.debug("Header: "+ headerName+ " - " + request.getHeader(headerName));
-		            }
-		    }
         DocumentDTO dto = new DocumentDTO();
-        String data = (String) request.getParameter("data");
-        LOGGER.info("addContent(): data from request {}", data);
-        if(StringUtils.isBlank(data))
-            throw new Exception("data is empty");
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode jdata = mapper.readTree(data);
-        String title = jdata.get("title").asText();
-        String type = jdata.get("type").asText();
-        dto.setTitle(title);
-        dto.setType(type);
         Iterator<String> itr =  request.getFileNames();
         if(!itr.hasNext())
             return addDoc(dto, request.getRemoteUser());
-        MultipartFile mpf = request.getFile(itr.next());
-        initFileParamsFromRequest(dto, mpf);
+        final MultipartFile mpf = request.getFile(itr.next());
+
+        populateFilePartDto(dto, request, mpf);
 
        return writeContent(addDoc(dto, request.getRemoteUser()), mpf, request.getRemoteUser());
     }
@@ -145,17 +117,7 @@ public class DocumentController  {
         return crudService.delete(id);
     }
 
-    /**@RequestMapping(method = RequestMethod.GET)
-    public List<DocumentDTO> findAll() {
-        LOGGER.info("Finding all Document entries");
 
-        List<DocumentDTO> documentEntries = crudService.findAll();
-
-        LOGGER.info("Found {} Document entries.");
-
-        return documentEntries;
-    }*/
-    
     @RequestMapping(method = RequestMethod.GET)
     public Page<DocumentDTO> findAll(Pageable pageable, @RequestParam(value = "filters",required=false) String query) {
         LOGGER.info("findAll(pageSize= {}, pageNumber = {}) ",
@@ -238,17 +200,6 @@ public class DocumentController  {
         return crudService.add(dto, user);
     }
 
-    private void initFileParamsFromRequest(DocumentDTO dto, MultipartFile mpf) throws Exception {
-        dto.setFileLength((long) mpf.getBytes().length);
-        dto.setFileMimeType(mpf.getContentType());
-        dto.setFileName(mpf.getOriginalFilename());
-    }
-
-    private String writeContent(UUID uuid, byte[] bytes) throws Exception {
-        return storageActionsService.writeFile(getRootName(), uuid, bytes);
-    }
-
-
     private DocumentDTO writeContent(DocumentDTO dto, MultipartFile mpf, String user) throws Exception {
         try {
             if(!checkMultipartFile(mpf))
@@ -267,31 +218,6 @@ public class DocumentController  {
             crudService.delete(dto.getId());
             throw new Exception("Error has been occured " + e.getMessage());
         }
-    }
-
-    private boolean checkMultipartFile(MultipartFile mpf ) throws IOException {
-        return !StringUtils.isBlank(mpf.getOriginalFilename()) &&
-                !StringUtils.isBlank(mpf.getContentType()) &&
-                mpf.getBytes().length > 0;
-    }
-
-    private Storages getDefaultStorage() throws Exception {
-
-        String currentStorageId = JsonNodeParser.getValueJsonNode(settingsNode, "currentStorageID");
-
-        LOGGER.debug("getDefaultStorage(): currentStorageId: {} ", currentStorageId);
-        if(StringUtils.isBlank(currentStorageId))
-            throw new Exception("StorageId is not set up");
-
-        Storages storages = Storages.getStorageByName(currentStorageId);
-        LOGGER.debug("getDefaultStorage(): Storages: {} ", storages);
-        return storages;
-    }
-
-    private String getRootName () throws Exception {
-        Storages currentStorage = getDefaultStorage();
-
-        return JsonNodeParser.getValueJsonNode(settingsNode, currentStorage.equals(Storages.AMAZONSTORAGE) ? "bucketName": "repository");
     }
 
 }

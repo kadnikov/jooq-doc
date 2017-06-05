@@ -25,15 +25,14 @@ import org.springframework.data.domain.Pageable;
 import ru.doccloud.cmis.server.FileBridgeTypeManager;
 import ru.doccloud.cmis.server.util.FileBridgeUtils;
 import ru.doccloud.common.exception.DocumentNotFoundException;
-import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.common.util.VersionHelper;
-import ru.doccloud.storagemanager.StorageManager;
-import ru.doccloud.storagemanager.Storages;
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.dto.LinkDTO;
 import ru.doccloud.service.DocumentCrudService;
 import ru.doccloud.storage.StorageActionsService;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
+import ru.doccloud.storagemanager.StorageManager;
+import ru.doccloud.storagemanager.Storages;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -55,17 +54,20 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
     private final StorageActionsService storageActionsService;
 
     private JsonNode settingsNode;
+    
+    private final StorageManager storageManager;
 
     public FileBridgeRepository(final String repositoryId, final String rootPath,
                                 final FileBridgeTypeManager typeManager, DSLContext jooq, DocumentCrudService crudService, StorageAreaSettings storageAreaSettings, StorageManager storageManager) throws Exception {
         super(repositoryId, rootPath, crudService, typeManager);
 
-        LOGGER.info("FileBridgeRepository(repositoryId={}, rootPath={}, typeManager={}, jooq={}, crudService= {}, storageAreaSettings = {}, storageManager={})",repositoryId, rootPath, typeManager, jooq, crudService, storageAreaSettings, storageManager);
+        LOGGER.trace("FileBridgeRepository(repositoryId={}, rootPath={}, typeManager={}, jooq={}, crudService= {}, storageAreaSettings = {}, storageManager={})",repositoryId, rootPath, typeManager, jooq, crudService, storageAreaSettings, storageManager);
 
+        this.storageManager = storageManager;
         settingsNode = (JsonNode) storageAreaSettings.getStorageSetting();
 
-        Storages defaultStorage = getDefaultStorage();
-        LOGGER.info("FileBridgeRepository( defaultStorage = {})", defaultStorage);
+        Storages defaultStorage = storageManager.getDefaultStorage(settingsNode);
+        LOGGER.trace("FileBridgeRepository( defaultStorage = {})", defaultStorage);
 
         storageActionsService = storageManager.getStorageService(defaultStorage);
     }
@@ -146,7 +148,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
      */
     private DocumentDTO createDocument(CallContext context, Properties properties, String folderId,
                                  ContentStream contentStream, VersioningState versioningState, TypeDefinition type) throws Exception {
-        LOGGER.info("entering createDocument(context={}, properties = {}, folderId={}, versionState={}, type= {})", context, properties, folderId, versioningState, type);
+        LOGGER.trace("entering createDocument(context={}, properties = {}, folderId={}, versionState={}, type= {})", context, properties, folderId, versioningState, type);
         checkUser(context, true);
 
         // check versioning state
@@ -156,7 +158,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
         // get parent
         DocumentDTO parent = getDocument(folderId);
-        LOGGER.info("createDocument(): parent is {}", parent);
+        LOGGER.trace("createDocument(): parent is {}", parent);
         if (!isFolder(parent.getType())) {
             throw new CmisObjectNotFoundException("Parent is not a folder!");
         }
@@ -166,13 +168,13 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
             final String name = FileBridgeUtils.getStringProperty(properties, PropertyIds.NAME);
 
-            LOGGER.info("createDocument(): name is {}", name);
+            LOGGER.trace("createDocument(): name is {}", name);
 
             doc = new DocumentDTO(name, "document", context.getUsername());
             doc.setDocVersion(VersionHelper.generateMinorDocVersion(doc.getDocVersion()));
             doc = crudService.add(doc, context.getUsername());
 
-            LOGGER.info("createDocument(): Document has been created {}", doc);
+            LOGGER.trace("createDocument(): Document has been created {}", doc);
             crudService.addToFolder(doc, parent.getId());
 
 
@@ -485,9 +487,9 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
      */
     private String writeContent(DocumentDTO doc, InputStream stream) throws Exception {
         try {
-            LOGGER.info("entering writeContent(doc={})", doc);
-            LOGGER.info("writeContent(): settingsNode {}, storageSettingsNode {}", settingsNode, storageActionsService != null ? storageActionsService.getClass() : null);
-            final String filePath = storageActionsService.writeFile(getRootName(),  doc.getUuid(), org.apache.commons.io.IOUtils.toByteArray(stream));
+            LOGGER.trace("entering writeContent(doc={})", doc);
+            LOGGER.trace("writeContent(): settingsNode {}, storageSettingsNode {}", settingsNode, storageActionsService != null ? storageActionsService.getClass() : null);
+            final String filePath = storageActionsService.writeFile(storageManager.getRootName(settingsNode),  doc.getUuid(), org.apache.commons.io.IOUtils.toByteArray(stream));
             LOGGER.debug("writeContent(): File has been saved on the disc, path to file {}", filePath);
             doc.setFilePath(filePath);
 
@@ -1127,26 +1129,6 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         LOGGER.debug("Found Document entry: {}", found);
 
         return found;
-    }
-
-
-    private Storages getDefaultStorage() throws Exception {
-
-        String currentStorageId = JsonNodeParser.getValueJsonNode(settingsNode, "currentStorageID");
-
-        LOGGER.debug("getDefaultStorage(): currentStorageId: {} ", currentStorageId);
-        if(StringUtils.isBlank(currentStorageId))
-            throw new Exception("StorageId is not set up");
-
-        Storages storages = Storages.getStorageByName(currentStorageId);
-        LOGGER.debug("getDefaultStorage(): Storages: {} ", storages);
-        return storages;
-    }
-
-    private String getRootName () throws Exception {
-        Storages currentStorage = getDefaultStorage();
-
-        return JsonNodeParser.getValueJsonNode(settingsNode, currentStorage.equals(Storages.AMAZONSTORAGE) ? "bucketName": "repository");
     }
 
 
