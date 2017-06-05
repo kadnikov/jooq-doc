@@ -49,7 +49,7 @@
 
         <dependency>
             <groupId>ru.doccloud</groupId>
-            <artifactId>docmanagement</artifactId>
+            <artifactId>docservices</artifactId>
             <version>0.1</version>
         </dependency>
 

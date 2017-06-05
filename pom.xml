@@ -39,6 +39,7 @@
         <module>filestorage</module>
         <module>config</module>
         <module>cmis</module>
+	<module>docservices</module>
         <module>docmanagement</module>
         <module>doccontrollers</module>
         <module>jooq-web</module>

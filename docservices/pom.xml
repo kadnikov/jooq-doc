@@ -3,9 +3,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>doccontrollers</artifactId>
+    <artifactId>docservices</artifactId>
     <packaging>jar</packaging>
-    <name>doccontrollers</name>
+    <name>docservices</name>
 
     <version>0.1</version>
 
@@ -55,23 +55,19 @@
     <dependencies>
 
 
-	    <dependency>
-            <groupId>ru.doccloud</groupId>
-            <artifactId>docservices</artifactId>
-            <version>0.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>ru.doccloud</groupId>
-            <artifactId>storagemanager</artifactId>
-            <version>0.1</version>
-        </dependency>
-
         <dependency>
             <groupId>ru.doccloud</groupId>
             <artifactId>common</artifactId>
             <version>0.1</version>
         </dependency>
+
+	<dependency>
+            <groupId>ru.doccloud</groupId>
+            <artifactId>docmanagement</artifactId>
+            <version>0.1</version>
+        </dependency>
+        
+
 
         <dependency>
             <groupId>org.springframework</groupId>
@@ -150,6 +146,53 @@
             <artifactId>commons-io</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>commons-fileupload</groupId>
+            <artifactId>commons-fileupload</artifactId>
+        </dependency>
+        <!-- Jackson -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.jtransfo</groupId>
+            <artifactId>jtransfo-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jtransfo</groupId>
+            <artifactId>jtransfo-joda-time</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jtransfo</groupId>
+            <artifactId>jtransfo-spring</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+
+        </dependency>
+
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+        </dependency>
 
         <!-- Logging -->
         <dependency>
@@ -165,6 +208,13 @@
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
+
+        </dependency>
+
+        <!-- jOOQ -->
+        <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq</artifactId>
 
         </dependency>
 
@@ -186,6 +236,19 @@
 
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.abdera</groupId>
+            <artifactId>abdera-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.abdera</groupId>
+            <artifactId>abdera-parser</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.abdera</groupId>
+            <artifactId>abdera-client</artifactId>
+        </dependency>
 
     </dependencies>
 </project>
