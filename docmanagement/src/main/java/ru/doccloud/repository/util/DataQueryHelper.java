@@ -13,7 +13,7 @@ import org.springframework.data.domain.Sort;
 import ru.doccloud.common.DateHelper;
 import ru.doccloud.document.model.FilterBean;
 import ru.doccloud.document.model.QueryParam;
-import ru.doccloud.repository.SystemRepositoryImpl;
+import ru.doccloud.repository.impl.SystemRepositoryImpl;
 
 import java.io.IOException;
 import java.text.DateFormat;

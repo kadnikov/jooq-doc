@@ -1,4 +1,4 @@
-package ru.doccloud.service;
+package ru.doccloud.service.impl;
 
 import org.jtransfo.JTransfo;
 import org.slf4j.Logger;
@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.doccloud.document.dto.DocumentDTO;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.repository.DocumentRepository;
+import ru.doccloud.service.DocumentSearchService;
 
 import java.util.List;
 

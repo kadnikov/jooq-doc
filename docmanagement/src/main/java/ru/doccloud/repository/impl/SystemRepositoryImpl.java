@@ -1,4 +1,4 @@
-package ru.doccloud.repository;
+package ru.doccloud.repository.impl;
 
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -18,6 +18,7 @@ import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.document.jooq.db.tables.records.SystemRecord;
 import ru.doccloud.document.model.QueryParam;
 import ru.doccloud.document.model.SystemDocument;
+import ru.doccloud.repository.SystemRepository;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;

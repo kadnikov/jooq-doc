@@ -1,4 +1,4 @@
-package ru.doccloud.service;
+package ru.doccloud.service.impl;
 
 import org.jtransfo.JTransfo;
 import org.slf4j.Logger;
@@ -17,6 +17,7 @@ import ru.doccloud.document.dto.LinkDTO;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
 import ru.doccloud.repository.DocumentRepository;
+import ru.doccloud.service.DocumentCrudService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;

@@ -41,9 +41,7 @@ public class SystemController  {
 
     private final SystemCrudService crudService;
 
-    private final StorageAreaSettings storageAreaSettings;
     private final StorageActionsService storageActionsService;
-    private final StorageManager storageManager;
 
     private JsonNode settingsNode;
 
@@ -51,10 +49,8 @@ public class SystemController  {
     public SystemController(SystemCrudService crudService, StorageAreaSettings storageAreaSettings, StorageManager storageManager) throws Exception {
         LOGGER.info("SystemController(crudService={}, storageAreaSettings= {}, storageManager={})", crudService, storageAreaSettings, storageManager);
         this.crudService = crudService;
-        this.storageAreaSettings = storageAreaSettings;
         settingsNode = (JsonNode) storageAreaSettings.getStorageSetting();
         LOGGER.info("SystemController(): storage settings {}", settingsNode);
-        this.storageManager = storageManager;
         this.storageActionsService = storageManager.getStorageService(getDefaultStorage());
     }
 

@@ -47,10 +47,6 @@ public class DocumentController  {
 
     private final StorageActionsService storageActionsService;
 
-    private final StorageAreaSettings storageAreaSettings;
-
-    private final StorageManager storageManager;
-
     private JsonNode settingsNode;
 
 
@@ -59,10 +55,8 @@ public class DocumentController  {
         LOGGER.info("DocumentController(crudService={}, searchService = {}, storageAreaSettings= {}, storageManager={})", crudService, searchService, storageAreaSettings, storageManager);
         this.crudService = crudService;
         this.searchService = searchService;
-        this.storageAreaSettings = storageAreaSettings;
         settingsNode = (JsonNode) storageAreaSettings.getStorageSetting();
         LOGGER.info("DocumentController(): storage settings {}", settingsNode);
-        this.storageManager = storageManager;
         this.storageActionsService = storageManager.getStorageService(getDefaultStorage());
     }
 

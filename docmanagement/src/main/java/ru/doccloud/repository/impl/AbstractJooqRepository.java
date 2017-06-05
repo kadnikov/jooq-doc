@@ -1,4 +1,4 @@
-package ru.doccloud.repository;
+package ru.doccloud.repository.impl;
 
 import org.jooq.Condition;
 import org.jooq.DSLContext;

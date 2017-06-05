@@ -1,4 +1,4 @@
-package ru.doccloud.repository;
+package ru.doccloud.repository.impl;
 
 
 import org.jooq.*;
@@ -21,6 +21,7 @@ import ru.doccloud.document.jooq.db.tables.records.LinksRecord;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
 import ru.doccloud.document.model.QueryParam;
+import ru.doccloud.repository.DocumentRepository;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
