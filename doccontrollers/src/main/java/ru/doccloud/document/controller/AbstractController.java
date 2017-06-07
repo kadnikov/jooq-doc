@@ -36,7 +36,7 @@ abstract class AbstractController {
         this.storageActionsService = storageManager.getStorageService(storageManager.getDefaultStorage(settingsNode));
     }
 
-    void initFileParamsFromRequest(AbstractDocumentDTO dto, MultipartFile mpf) throws Exception {
+    private void initFileParamsFromRequest(AbstractDocumentDTO dto, MultipartFile mpf) throws Exception {
         dto.setFileLength((long) mpf.getBytes().length);
         dto.setFileMimeType(mpf.getContentType());
         dto.setFileName(mpf.getOriginalFilename());

@@ -17,6 +17,7 @@ import org.springframework.context.annotation.ImportResource;
         "ru.doccloud.amazon",
         "ru.doccloud.filestorage",
 		"ru.doccloud.storagemanager",
+        "com.amazonaws",
         "ru.doccloud.cmis.server"
 })
 @Import({

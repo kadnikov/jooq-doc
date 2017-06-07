@@ -19,9 +19,8 @@ public class AmazonAdminServiceImpl implements AmazonAdminService {
         this.amazonRepository = amazonRepository;
     }
 
-
     @Override
-    public String createBucket(String bucketName) {
+    public String createBucket(String bucketName) throws Exception {
        return amazonRepository.createBucket(bucketName);
     }
 

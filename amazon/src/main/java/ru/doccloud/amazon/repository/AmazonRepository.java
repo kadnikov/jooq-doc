@@ -8,11 +8,11 @@ import java.util.UUID;
 
 public interface AmazonRepository {
 
-    public String uploadFile(String rootName, UUID uuid, byte[] fileArr);
+    public String uploadFile(String rootName, UUID uuid, byte[] fileArr) throws Exception;
 
     public byte[] readFile(String key) throws Exception;
 
-    public String createBucket(final String bucketName);
+    public String createBucket(final String bucketName) throws Exception;
     public void deleteBucket(final String bucketName);
 
 }

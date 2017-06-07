@@ -57,4 +57,5 @@ public class StorageManagerImpl implements StorageManager {
         LOGGER.debug("getDefaultStorage(): Storages: {} ", storages);
         return storages;
     }
+
 }
