@@ -3,16 +3,19 @@ package ru.doccloud.document.model;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.joda.time.LocalDateTime;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.UUID;
 
 /**
  * @author Andrey Kadnikov
  */
-public class Document extends AbstractDocument {
+public class Document extends AbstractDocument implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 
-    private Document(Builder builder) {
+	private Document(Builder builder) {
         this.id = builder.id;
 
         LocalDateTime creationTime = null;

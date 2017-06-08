@@ -21,7 +21,7 @@ public class DoccloudApplicationConfig implements WebApplicationInitializer {
         //If you want to use the XML configuration, comment the following two lines out.
         AnnotationConfigWebApplicationContext rootContext = new AnnotationConfigWebApplicationContext();
         rootContext.register(DoccloudApplicationContext.class);
-
+        
         //If you want to use the XML configuration, uncomment the following lines.
         //XmlWebApplicationContext rootContext = new XmlWebApplicationContext();
         //rootContext.setConfigLocation("classpath:exampleApplicationContext.xml");

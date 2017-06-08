@@ -1,15 +1,26 @@
 package ru.doccloud.document.model;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.UUID;
+
 import org.joda.time.LocalDateTime;
 
-import java.util.UUID;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Created by ilya on 5/27/17.
  */
-public abstract class AbstractDocument {
-    protected  Long id;
+public abstract class AbstractDocument  implements Serializable{
+
+	private static final long serialVersionUID = 1L;
+
+	protected  Long id;
 
     protected  LocalDateTime creationTime;
 
@@ -37,10 +48,26 @@ public abstract class AbstractDocument {
 
     protected  String docVersion;
 
-    protected  JsonNode data;
+    protected  transient JsonNode data;
 
     protected  UUID uuid;
 
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        if(this.data == null){
+            out.writeBoolean(false);
+        } else {
+            out.writeBoolean(true);
+            new ObjectMapper().configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false).writeValue(out, this.data);
+        }
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        if(in.readBoolean()){
+            this.data = new ObjectMapper().configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false).readValue(in, JsonNode.class);
+        }     
+    }
 
     public Long getId() {
         return id;

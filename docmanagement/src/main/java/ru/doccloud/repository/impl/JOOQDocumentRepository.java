@@ -1,16 +1,34 @@
 package ru.doccloud.repository.impl;
 
 
-import org.jooq.*;
+import static ru.doccloud.document.jooq.db.tables.Documents.DOCUMENTS;
+import static ru.doccloud.document.jooq.db.tables.Links.LINKS;
+import static ru.doccloud.repository.util.DataQueryHelper.createWhereConditions;
+import static ru.doccloud.repository.util.DataQueryHelper.extendConditions;
+import static ru.doccloud.repository.util.DataQueryHelper.getQueryParams;
+import static ru.doccloud.repository.util.DataQueryHelper.getSortFields;
+
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.Field;
+import org.jooq.Record;
+import org.jooq.SelectField;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+
 import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.common.service.DateTimeService;
 import ru.doccloud.common.util.JsonNodeParser;
@@ -22,15 +40,6 @@ import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
 import ru.doccloud.document.model.QueryParam;
 import ru.doccloud.repository.DocumentRepository;
-
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import static ru.doccloud.document.jooq.db.tables.Documents.DOCUMENTS;
-import static ru.doccloud.document.jooq.db.tables.Links.LINKS;
-import static ru.doccloud.repository.util.DataQueryHelper.*;
 
 /**
  * @author Andrey Kadnikov
@@ -183,6 +192,7 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
 
 
     @Override
+    @Cacheable(value = "docsByType", cacheManager = "springCM")
     public Page<Document> findAllByType(String type, String[] fields, Pageable pageable, String query) {
         LOGGER.trace("entering findAllByType(type={}, fields={}, pageable={}, query={})", type, fields, pageable, query);
 
