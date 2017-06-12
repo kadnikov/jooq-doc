@@ -13,6 +13,6 @@ public interface AmazonRepository {
     public byte[] readFile(String key) throws Exception;
 
     public String createBucket(final String bucketName) throws Exception;
-    public void deleteBucket(final String bucketName);
+    public void deleteBucket(final String bucketName) throws Exception;
 
 }

@@ -25,7 +25,7 @@ public class AmazonAdminServiceImpl implements AmazonAdminService {
     }
 
     @Override
-    public void deleteBucket(String bucketName) {
+    public void deleteBucket(String bucketName) throws Exception {
         amazonRepository.deleteBucket(bucketName);
     }
 }

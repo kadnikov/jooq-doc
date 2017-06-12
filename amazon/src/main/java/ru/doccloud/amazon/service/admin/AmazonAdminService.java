@@ -6,5 +6,5 @@ package ru.doccloud.amazon.service.admin;
  */
 public interface AmazonAdminService {
     public String createBucket(final String bucketName) throws Exception;
-    public void deleteBucket(final String bucketName);
+    public void deleteBucket(final String bucketName) throws Exception;
 }
