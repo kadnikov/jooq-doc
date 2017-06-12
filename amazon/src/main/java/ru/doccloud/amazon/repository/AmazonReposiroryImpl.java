@@ -1,16 +1,22 @@
 package ru.doccloud.amazon.repository;
 
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.*;
-import org.apache.commons.io.IOUtils;
+import com.amazonaws.services.s3.S3ClientOptions;
+import com.amazonaws.services.s3.model.Bucket;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.doccloud.common.util.JsonNodeParser;
+import ru.doccloud.storage.storagesettings.StorageAreaSettings;
 
-import javax.activation.MimetypesFileTypeMap;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.UUID;
@@ -23,95 +29,100 @@ import java.util.UUID;
 public class AmazonReposiroryImpl implements AmazonRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AmazonReposiroryImpl.class);
+    private static final String AMZON_ENDPOINT_PARAM = "awsEndpoint";
+    private static final String AMAZON_ACCESS_KEY_PARAM = "awsAccessKey";
+    private static final String AMAZON_ACCESS_SECRET_KEY_PARAM = "awsSecretAccessKey";
+    private static final String AMAZON_BUCKET_NAME_PARAM = "bucketName";
 
+    private final AmazonS3 amazonS3;
 
-    private AmazonS3 amazonS3;
+    private JsonNode settingsNode;
 
-//    todo add autowired after keys generation
-//    public AmazonReposiroryImpl() {
-////        this.amazonS3 = amazonS3(basicAWSCredentials());
-//        this.amazonS3 = null;
-//    }
-
-
-    private String formatObjectPathKey(String objectKey, UUID uuid) {
-        return uuid + "/" + objectKey;
+    @Autowired
+    public AmazonReposiroryImpl(StorageAreaSettings storageAreaSettings) throws Exception {
+        this.settingsNode = (JsonNode) storageAreaSettings.getStorageSetting();
+        this.amazonS3 = amazonS3(basicAWSCredentials());
     }
 
     @Override
-    public String uploadFile(String rootName, UUID uuid, byte[] fileArr) {
-        LOGGER.trace("entering uploadFile(rootNAme={}, uuid={}, byte.lenght={})", rootName, uuid, fileArr.length);
+    public String uploadFile(String bucketName, UUID uuid, byte[] fileArr) throws Exception {
+        LOGGER.trace("entering uploadFile(bucketName={}, uuid={}, byte.lenght={})", bucketName, uuid, fileArr.length);
 
-        final String bucketName = getBucketName();
-        final MimetypesFileTypeMap map = new MimetypesFileTypeMap();
-        ObjectMetadata metadata = new ObjectMetadata();
-        metadata.setContentLength(fileArr.length);
+        final String mime = "application/octet-stream";
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(fileArr);
+        final String key = uploadFile(bucketName, inputStream, (long) inputStream.available(), mime, uuid);
 
-        PutObjectResult putObjectResult = getAmazonS3().putObject(bucketName, formatObjectPathKey(rootName, uuid), new ByteArrayInputStream(fileArr), metadata);
-        LOGGER.trace("leaving uploadFile(): putObjectResult={}", putObjectResult);
-        return putObjectResult.getETag();
+        LOGGER.trace("leaving uploadFile(): objectKey {}", key);
+        return key;
     }
 
     @Override
     public byte[] readFile(String key) throws Exception {
         LOGGER.trace("entering readFile(key={})", key);
-        String bucketName = getBucketName();
-        LOGGER.trace("readFile(): bucketName={}", bucketName);
-                InputStream objectData = null;
-        try {
-            GetObjectRequest rangeObjectRequest = new GetObjectRequest(
-                    bucketName, key);
-            rangeObjectRequest.setRange(0, 10); // retrieve 1st 11 bytes.
-            S3Object objectPortion = getAmazonS3().getObject(rangeObjectRequest);
+        final String bucketName = getBucketName();
 
-             objectData = objectPortion.getObjectContent();
-            byte[] fileArr =  IOUtils.toByteArray(objectData);
+        LOGGER.trace("readFile(): bucketName", bucketName);
+        final S3Object s3Object = amazonS3.getObject(bucketName, key);
 
-            LOGGER.trace("leaving readFile()", fileArr != null ? fileArr.length : null);
-            return fileArr;
-        }
-        finally {
-        // Process the objectData stream.
-            if(objectData != null)
-                objectData.close();
-        }
+        byte[] fileArr = com.amazonaws.util.IOUtils.toByteArray(s3Object.getObjectContent());
+
+        LOGGER.trace("leaving readFile()", fileArr != null ? fileArr.length : null);
+        return fileArr;
     }
 
     @Override
-    public String createBucket(String bucketName) {
-        Bucket bucket  = getAmazonS3().createBucket(bucketName);
+    public String createBucket(String bucketName) throws Exception {
+        LOGGER.trace("entering createBucket(bucketName={})", bucketName);
+        Bucket bucket  = amazonS3.createBucket(bucketName);
+        LOGGER.trace("leaving createBucket(): bucketName {}", bucket.getName());
         return bucket.getName();
     }
 
     @Override
-    public void deleteBucket(String bucketName) {
-        getAmazonS3().deleteBucket(bucketName);
+    public void deleteBucket(String bucketName) throws Exception {
+        LOGGER.trace("entering deleteBucket(bucketName={})", bucketName);
+        amazonS3.deleteBucket(bucketName);
+        LOGGER.trace("leaving deleteBucket(): bucket was deleted");
     }
 
-    private String getBucketName(){
-//        todo returns bucketName from database
+    private String getBucketName() throws Exception {
+        final String bucketName = JsonNodeParser.getValueJsonNode(settingsNode, AMAZON_BUCKET_NAME_PARAM);
+        if(StringUtils.isBlank(bucketName))
+            throw new Exception("Bucket name was not found in settings");
 
-        return "";
+        return bucketName;
     }
 
-    private BasicAWSCredentials basicAWSCredentials() {
 
-        String awsAccessKeyId = "";
-        String awsSecretAccessKey = "";
+    private String uploadFile(String bucketName, InputStream inputStream, Long contentLength, String mimeType, UUID uuid) {
+
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(contentLength);
+        metadata.setContentType(mimeType);
+
+        String objectPathKey = formatObjectPathKey(uuid);
+
+        amazonS3.putObject(
+                new PutObjectRequest(bucketName, objectPathKey, inputStream, metadata));
+
+        return objectPathKey;
+    }
+
+    private String formatObjectPathKey(UUID uuid) {
+        return uuid.toString();
+    }
+
+    private BasicAWSCredentials basicAWSCredentials() throws Exception {
+
+        final String awsAccessKeyId = JsonNodeParser.getValueJsonNode(settingsNode, AMAZON_ACCESS_KEY_PARAM);
+        final String awsSecretAccessKey =  JsonNodeParser.getValueJsonNode(settingsNode, AMAZON_ACCESS_SECRET_KEY_PARAM);
         return new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey);
     }
 
-    private AmazonS3 amazonS3(BasicAWSCredentials basicAWSCredentials) {
-        String awsRegion = "";
+    private AmazonS3 amazonS3(BasicAWSCredentials basicAWSCredentials) throws Exception {
         AmazonS3 amazonS3 = new AmazonS3Client(basicAWSCredentials);
-        amazonS3.setRegion(com.amazonaws.regions.Region.getRegion(Regions.fromName(awsRegion)));
-        return amazonS3;
-    }
-
-    private AmazonS3 getAmazonS3(){
-        if (amazonS3 == null)
-            return amazonS3(basicAWSCredentials());
-
+        amazonS3.setEndpoint(JsonNodeParser.getValueJsonNode(settingsNode, AMZON_ENDPOINT_PARAM));
+        amazonS3.setS3ClientOptions(S3ClientOptions.builder().setPathStyleAccess(true).build());
         return amazonS3;
     }
 }
