@@ -193,7 +193,7 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
 
     @Override
     @Cacheable(value = "docsByType", cacheManager = "springCM")
-    public Page<Document> findAllByType(String type, String[] fields, Pageable pageable, String query) {
+    public Page<Document> findAllByType(String type, String[] fields, Pageable pageable, String query, String userName) {
         LOGGER.trace("entering findAllByType(type={}, fields={}, pageable={}, query={})", type, fields, pageable, query);
 
         ArrayList<SelectField<?>> selectedFields = new ArrayList<SelectField<?>>();

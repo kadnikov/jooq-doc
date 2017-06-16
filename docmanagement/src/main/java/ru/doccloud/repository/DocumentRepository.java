@@ -77,7 +77,7 @@ public interface DocumentRepository extends CommonRepository {
 
 	public Page<Document> findAll(Pageable pageable, String query);
 
-	public Page<Document> findAllByType(String type, String[] fields, Pageable pageable, String query);
+	public Page<Document> findAllByType(String type, String[] fields, Pageable pageable, String query, String userName);
 
 	public Document setParent(Document documentEntry);
 

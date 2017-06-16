@@ -222,10 +222,15 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     @Override
     public void setUser() {
         LOGGER.debug("entering setUser()");
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        LOGGER.info("leaving setUser(): user {} ", request.getRemoteUser());
-        repository.setUser(request.getRemoteUser());
+        repository.setUser(getRequestUser());
 
+    }
+    
+    private String getRequestUser(){
+    	HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        LOGGER.info("leaving setUser(): user {} ", request.getRemoteUser());
+		return request.getRemoteUser();
+        
     }
 
     @Transactional
@@ -239,7 +244,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     public Page<DocumentDTO> findAllByType(final String type, final String[] fields, final Pageable pageable, final String query) {
 
         LOGGER.debug("entering findAllByType(type={}, fields={}, pageable={}, query={})", type, fields, pageable, query);
-        Page<Document> searchResults = repository.findAllByType(type, fields, pageable, query);
+        Page<Document> searchResults = repository.findAllByType(type, fields, pageable, query, getRequestUser());
 
         List<DocumentDTO> dtos = transformer.convertList(searchResults.getContent(), DocumentDTO.class);
 
