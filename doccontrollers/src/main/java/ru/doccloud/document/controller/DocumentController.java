@@ -90,7 +90,7 @@ public class DocumentController  extends AbstractController {
         return writeContent(dto, mpf, request.getRemoteUser());
     }
 
-    @RequestMapping(value="/getcontent/{id}",headers="content-type=multipart/*",method=RequestMethod.GET)
+    @RequestMapping(value="/getcontent/{id}",method=RequestMethod.GET)
     public byte[] getContent( @PathVariable("id") Long id) throws Exception {
 
         LOGGER.info("getContent (id = {})", id);
