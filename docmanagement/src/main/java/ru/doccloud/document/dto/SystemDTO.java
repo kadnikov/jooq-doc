@@ -11,7 +11,16 @@ public class SystemDTO extends AbstractDocumentDTO{
 
 
     private String symbolicName;
-    public SystemDTO() {
+    
+    public String getSymbolicName() {
+		return symbolicName;
+	}
+
+	public void setSymbolicName(String symbolicName) {
+		this.symbolicName = symbolicName;
+	}
+
+	public SystemDTO() {
 
     }
 

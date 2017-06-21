@@ -50,6 +50,7 @@ public class SystemDocument extends AbstractDocument {
         this.data = builder.data;
         this.docVersion = builder.docVersion;
         this.uuid = builder.uuid;
+        this.symbolicName = builder.symbolicName;
     }
 
     public static Builder getBuilder(String title) {
