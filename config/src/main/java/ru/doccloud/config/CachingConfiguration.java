@@ -21,7 +21,7 @@ public class CachingConfiguration extends CachingConfigurerSupport {
     public CacheManager cacheManager() {
         ClientConfig config = new ClientConfig(); 
         ClientNetworkConfig networkConfig = config.getNetworkConfig();
-        networkConfig.addAddress("doccloud.ru");
+        networkConfig.addAddress("doccloud.ru"); 
         networkConfig.setConnectionAttemptLimit(20);
         networkConfig.setConnectionAttemptPeriod(10000);
         networkConfig.setConnectionTimeout(5000);
