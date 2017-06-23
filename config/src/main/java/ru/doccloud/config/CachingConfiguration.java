@@ -22,6 +22,10 @@ public class CachingConfiguration extends CachingConfigurerSupport {
         ClientConfig config = new ClientConfig(); 
         ClientNetworkConfig networkConfig = config.getNetworkConfig();
         networkConfig.addAddress("doccloud.ru");
+        networkConfig.setConnectionAttemptLimit(20);
+        networkConfig.setConnectionAttemptPeriod(10000);
+        networkConfig.setConnectionTimeout(5000);
+        
         HazelcastInstance client = HazelcastClient.newHazelcastClient(config);
         return new HazelcastCacheManager(client); 
     } 
