@@ -57,6 +57,9 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
     
     private final StorageManager storageManager;
 
+//    todo make local cache with objectId and appropriate dto object to avoid redundant calls of getDocument method
+//    private final Map<String, DocumentDTO> localDocumentDtoCache;
+
     public FileBridgeRepository(final String repositoryId, final String rootPath,
                                 final FileBridgeTypeManager typeManager, DSLContext jooq, DocumentCrudService crudService, StorageAreaSettings storageAreaSettings, StorageManager storageManager) throws Exception {
         super(repositoryId, rootPath, crudService, typeManager);
@@ -70,6 +73,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         LOGGER.trace("FileBridgeRepository( defaultStorage = {})", defaultStorage);
 
         storageActionsService = storageManager.getStorageService(defaultStorage);
+//        localDocumentDtoCache = new ConcurrentHashMap<>();
     }
 
     /**
@@ -240,25 +244,25 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
             LOGGER.debug("createDocumentFromSource(): source document is {}", source);
 
             // check properties
-            final String typeId = getObjectTypeId(properties);
+//            final String typeId = getObjectTypeId(properties);
+//
+//            LOGGER.debug("createDocumentFromSource(): typeId is {}", typeId);
+//            if (StringUtils.isBlank(typeId)) {
+//                throw new CmisInvalidArgumentException("Type Id is not set!");
+//            }
+//            TypeDefinition type = getTypeDefinitionByTypeId(typeId);
+//            checkCopyProperties(properties, BaseTypeId.CMIS_DOCUMENT.value(), type);
+//
+//            // check the name
+//            String name = null;
+//            if (properties != null && properties.getProperties() != null) {
+//                name = FileBridgeUtils.getStringProperty(properties, PropertyIds.NAME);
+//            }
+//            if (name == null) {
+//                name = source.getTitle();
+//            }
 
-            LOGGER.debug("createDocumentFromSource(): typeId is {}", typeId);
-            if (StringUtils.isBlank(typeId)) {
-                throw new CmisInvalidArgumentException("Type Id is not set!");
-            }
-            TypeDefinition type = getTypeDefinitionByTypeId(typeId);
-            checkCopyProperties(properties, BaseTypeId.CMIS_DOCUMENT.value(), type);
-
-            // check the name
-            String name = null;
-            if (properties != null && properties.getProperties() != null) {
-                name = FileBridgeUtils.getStringProperty(properties, PropertyIds.NAME);
-            }
-            if (name == null) {
-                name = source.getTitle();
-            }
-
-            doc = crudService.add(new DocumentDTO(name, "document", context.getUsername()), context.getUsername());
+            doc = crudService.add(new DocumentDTO(source.getTitle(), "document", context.getUsername()), context.getUsername());
 
             LOGGER.debug("createDocumentFromSource(): Document has been created {}", doc);
             crudService.addToFolder(doc, parent.getId());
@@ -332,7 +336,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
      */
     public ObjectData moveObject(CallContext context, Holder<String> objectId, String targetFolderId,
                                  ObjectInfoHandler objectInfos) {
-        LOGGER.debug("entering moveObject(context={}, objectId={}, targetFolderId={})", context, objectId, targetFolderId);
+        LOGGER.debug("entering moveObject(context={}, objectId={}, targetFolderId={}, objectInfos = {})", context, objectId, targetFolderId, objectInfos);
         boolean userReadOnly = checkUser(context, true);
 
         if (objectId == null) {
@@ -340,24 +344,26 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         }
 
         // get the file and parent
-        DocumentDTO doc = getDocument(objectId.getValue());
+        final DocumentDTO doc = getDocument(objectId.getValue());
 
         LOGGER.debug(" moveObject(): document for move {}", doc);
+        if(doc == null || doc.getId() == null)
+            throw new IllegalStateException(String.format("Document with id %s was not found", objectId));
 
-        DocumentDTO parent = getDocument(doc.getParent());//getFirstParent(doc.getId());
-        
+        final DocumentDTO parent = getDocument(doc.getParent());//getFirstParent(doc.getId());
 
         LOGGER.debug(" moveObject(): parent document {}", parent);
 
         if (parent!=null){
 
+            LOGGER.debug("moveObject(): removing exiting link with headId {} and tailId {}", parent.getId(), doc.getId());
             LinkDTO deletedLink = crudService.deleteLink(parent.getId(), doc.getId());
             LOGGER.debug("moveObject(): existing link {} has been deleted", deletedLink);
         }
         LinkDTO link = crudService.addLink(Long.parseLong(targetFolderId), doc.getId());
         doc.setParent(parent.getId().toString());
         crudService.setParent(doc);
-        
+//        localDocumentDtoCache.put(objectId.getValue(), doc);
         LOGGER.debug("leaving moveObject(): new link {} has been created for object {}", link, doc);
 
         return compileObjectData(context, doc, null, false, false, userReadOnly, objectInfos);
@@ -368,6 +374,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
      */
     public void changeContentStream(CallContext context, Holder<String> objectId, Boolean overwriteFlag,
                                     ContentStream contentStream, boolean append) {
+        LOGGER.debug("entering changeContentStream(context={}, objectId={}, overwriteFlag={}, contentStream = {}, append = {})", context, objectId, overwriteFlag, contentStream, append);
         checkUser(context, true);
 
         if (objectId == null) {
@@ -376,12 +383,14 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
         // get the file
         File file = getFile(objectId.getValue());
+        LOGGER.debug("changeContentStream(): file {} ", file.getName() );
         if (!file.isFile()) {
             throw new CmisStreamNotSupportedException("Not a file!");
         }
 
         // check overwrite
         boolean owf = FileBridgeUtils.getBooleanParameter(overwriteFlag, true);
+        LOGGER.debug("changeContentStream(): isOverwrite ? {} ", owf );
         if (!owf && file.length() > 0) {
             throw new CmisContentAlreadyExistsException("Content already exists!");
         }
@@ -607,38 +616,56 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
      */
     public ObjectData updateProperties(CallContext context, Holder<String> objectId, Properties properties,
                                        ObjectInfoHandler objectInfos) {
+        LOGGER.debug("entering updateProperties(context={}, objectId={}, properties={}, objectInfos ={})", context, objectId, properties, objectInfos);
         boolean userReadOnly = checkUser(context, true);
 
         // check object id
         if (objectId == null || objectId.getValue() == null) {
             throw new CmisInvalidArgumentException("Id is not valid!");
         }
-
+        if(properties == null)
+            throw new CmisInvalidArgumentException("Properties is null");
         // get the file or folder
         DocumentDTO doc = getDocument(objectId.getValue());
 
+        LOGGER.debug("updateProperties(): document for update: {}", doc);
+
         // check the properties
         String typeId = (isFolder(doc.getType()) ? BaseTypeId.CMIS_FOLDER.value() : BaseTypeId.CMIS_DOCUMENT.value());
+
+        LOGGER.debug("updateProperties(): typeId is : {}", typeId);
 
         if (StringUtils.isBlank(typeId)) {
             throw new CmisInvalidArgumentException("Type Id is not set!");
         }
         TypeDefinition type = getTypeDefinitionByTypeId(typeId);
-        checkCopyProperties(properties, BaseTypeId.CMIS_DOCUMENT.value(), type);
+
+        LOGGER.debug("updateProperties(): type definition is : {}", type);
         checkUpdateProperties(properties, typeId, type);
 
         // get and check the new name
-        String newName = FileBridgeUtils.getStringProperty(properties, PropertyIds.NAME);
-        boolean isRename = (newName != null) && (!doc.getTitle().equals(newName));
-        if (isRename && !isValidName(newName)) {
-            throw new CmisNameConstraintViolationException("Name is not valid!");
-        }
+        final String newName = FileBridgeUtils.getStringProperty(properties, PropertyIds.NAME);
+        LOGGER.debug("updateProperties(): new name : {}", newName);
 
+        final String description = FileBridgeUtils.getStringProperty(properties, PropertyIds.DESCRIPTION);
+        LOGGER.debug("updateProperties(): new description : {}", description);
+        boolean isRename = (newName != null) && (!newName.equals(doc.getTitle()));
+        boolean isUpdateDescription = description != null && !description.equals(doc.getDescription());
+
+        boolean isUpdate = false;
         if (isRename) {
             doc.setTitle(newName);
-            crudService.update(doc ,context.getUsername());
+            isUpdate = true;
         }
+        if(isUpdateDescription){
+            doc.setDescription(description);
+            isUpdate = true;
+        }
+        if (isUpdate)
+            crudService.update(doc ,context.getUsername());
 
+//        localDocumentDtoCache.put(objectId.getValue(), doc);
+        LOGGER.debug("leaving updateProperties(context={}, objectId={}, properties={}, objectInfos ={})", context, objectId, properties, objectInfos);
         return compileObjectData(context, doc, null, false, false, userReadOnly, objectInfos);
     }
 
@@ -1119,13 +1146,30 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
 
     private DocumentDTO getDocument(String objectId) {
+
+        LOGGER.debug("entering getDocument(objectId ={})", objectId);
+
+
         if(StringUtils.isBlank(objectId))
             throw new IllegalArgumentException("Object id is null");
 
+        LOGGER.debug("try to find in local cache first");
+//        DocumentDTO found = localDocumentDtoCache.get(objectId);
+
         DocumentDTO found = crudService.findById(Long.parseLong(objectId));
-        if(found == null)
+
+
+        if (found == null)
             throw new DocumentNotFoundException("Document was not found in database");
 
+//        if(found == null || found.getId() == null) {
+//            LOGGER.debug("document was not found in local cache, try to find it in database");
+//            found = crudService.findById(Long.parseLong(objectId));
+//
+//            if (found == null)
+//                throw new DocumentNotFoundException("Document was not found in database");
+//            localDocumentDtoCache.put(objectId, found);
+//        }
         LOGGER.debug("Found Document entry: {}", found);
 
         return found;

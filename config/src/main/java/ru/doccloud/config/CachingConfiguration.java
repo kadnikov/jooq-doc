@@ -25,7 +25,7 @@ public class CachingConfiguration extends CachingConfigurerSupport {
         networkConfig.setConnectionAttemptLimit(Integer.MAX_VALUE);
         networkConfig.setConnectionAttemptPeriod(10000);
         networkConfig.setConnectionTimeout(5000);
-        
+
         HazelcastInstance client = HazelcastClient.newHazelcastClient(config);
         return new HazelcastCacheManager(client); 
     } 

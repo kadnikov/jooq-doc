@@ -110,7 +110,7 @@ public final class FileBridgeUtils {
      * Gets the type id from a set of properties.
      */
     public static String getObjectTypeId(Properties properties) {
-        LOGGER.trace("entering  getObjectTypeId(properties={})", properties);
+        LOGGER.debug("entering  getObjectTypeId(properties={})", properties);
         PropertyData<?> typeProperty = properties.getProperties().get(PropertyIds.OBJECT_TYPE_ID);
         if (!(typeProperty instanceof PropertyId)) {
             throw new CmisInvalidArgumentException("Type Id must be set!");
@@ -121,7 +121,7 @@ public final class FileBridgeUtils {
             throw new CmisInvalidArgumentException("Type Id must be set!");
         }
 
-        LOGGER.trace("leaving getStringProperty(): objectTypeId {}", typeId);
+        LOGGER.debug("leaving getStringProperty(): objectTypeId {}", typeId);
         return typeId;
     }
 

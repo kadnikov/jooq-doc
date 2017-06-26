@@ -18,6 +18,6 @@ public class DocumentDTO extends AbstractDocumentDTO{
 
     @Override
     public String toString() {
-        return "DocumentDTO{}";
+        return "DocumentDTO " + super.toString();
     }
 }

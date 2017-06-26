@@ -48,7 +48,7 @@ public class FileBridgeRepositoryManager {
      * Adds a repository object.
      */
     public void addRepository(FileBridgeRepository fsr) {
-        LOGGER.debug("enetring addRepository(fsr={})", fsr);
+        LOGGER.debug("entering addRepository(fsr={})", fsr);
         if (fsr == null || fsr.getRepositoryId() == null) {
             return;
         }
