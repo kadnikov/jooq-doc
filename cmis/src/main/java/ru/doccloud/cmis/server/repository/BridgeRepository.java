@@ -19,6 +19,8 @@ import org.apache.chemistry.opencmis.commons.impl.server.ObjectInfoImpl;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.doccloud.cmis.server.FileBridgeTypeManager;
 import ru.doccloud.cmis.server.util.FileBridgeUtils;
 import ru.doccloud.document.dto.DocumentDTO;
@@ -32,6 +34,9 @@ import java.util.regex.Pattern;
 import static ru.doccloud.cmis.server.util.FileBridgeUtils.*;
 
 abstract class BridgeRepository {
+
+//    todo add loggind to this class
+    private static final Logger LOGGER = LoggerFactory.getLogger(BridgeRepository.class);
     static final String ROOT_ID = "0";
 
     static final String USER_UNKNOWN = "<unknown>";
@@ -236,6 +241,51 @@ abstract class BridgeRepository {
             throw cbe;
         } catch (Exception e) {
             throw new CmisRuntimeException(e.getMessage(), e);
+        }
+    }
+
+
+    /**
+     * Gather the children of a folder.
+     */
+    void gatherDescendants(CallContext context, File folder, List<ObjectInFolderContainer> list,
+                           boolean foldersOnly, int depth, Set<String> filter, boolean includeAllowableActions,
+                           boolean includePathSegments, boolean userReadOnly, ObjectInfoHandler objectInfos) {
+        if(folder == null) {
+            LOGGER.warn("gatherDescendants(): parent folder is null or it contains no any children");
+            return;
+        }
+        // iterate through children
+        for (File child : folder.listFiles()) {
+            // skip hidden and shadow files
+            if (child.isHidden()) {
+                continue;
+            }
+
+            // folders only?
+            if (foldersOnly && !child.isDirectory()) {
+                continue;
+            }
+
+            // add to list
+            ObjectInFolderDataImpl objectInFolder = new ObjectInFolderDataImpl();
+            objectInFolder.setObject(compileObjectData(context, child, filter, includeAllowableActions, false,
+                    userReadOnly, objectInfos));
+            if (includePathSegments) {
+                objectInFolder.setPathSegment(child.getName());
+            }
+
+            ObjectInFolderContainerImpl container = new ObjectInFolderContainerImpl();
+            container.setObject(objectInFolder);
+
+            list.add(container);
+
+            // move to next level
+            if (depth != 1 && child.isDirectory()) {
+                container.setChildren(new ArrayList<>());
+                gatherDescendants(context, child, container.getChildren(), foldersOnly, depth - 1, filter,
+                        includeAllowableActions, includePathSegments, userReadOnly, objectInfos);
+            }
         }
     }
 

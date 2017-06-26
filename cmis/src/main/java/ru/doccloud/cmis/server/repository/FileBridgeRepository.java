@@ -167,7 +167,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         //}
 
         // get parent
-        DocumentDTO parent = getParentDocument(folderId);
+        final DocumentDTO parent = getParentDocument(folderId);
         LOGGER.trace("createDocument(): parent is {}", parent);
         if (parent == null || !isFolder(parent.getType())) {
             throw new CmisObjectNotFoundException("Parent is not a folder!");
@@ -237,7 +237,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 //        }
 
         // get parent
-        DocumentDTO parent = getParentDocument(folderId);
+        final DocumentDTO parent = getParentDocument(folderId);
 
         LOGGER.debug("createDocumentFromSource(): parent document is {}", parent);
 
@@ -247,7 +247,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         DocumentDTO doc = null;
         try {
             // get source
-            DocumentDTO source = getDocument(sourceId);
+            final DocumentDTO source = getDocument(sourceId);
             LOGGER.debug("createDocumentFromSource(): source document is {}", source);
 
             // check properties
@@ -537,7 +537,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
             } else {
                 LinkDTO deletedChildLink = null;
 
-                DocumentDTO parent = getParentDocument(doc.getParent());//getFirstParent(doc.getId());
+                final DocumentDTO parent = getParentDocument(doc.getParent());//getFirstParent(doc.getId());
 
                 LOGGER.debug("deleteFolder(): parent document {}", parent);
 
@@ -560,7 +560,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         }
 
         LinkDTO deletedLink = null;
-        DocumentDTO parent = getParentDocument(doc.getParent());//getFirstParent(doc.getId());
+        final DocumentDTO parent = getParentDocument(doc.getParent());//getFirstParent(doc.getId());
 
         LOGGER.debug("deleteFolder(): parent document for deleted folder {}", parent);
 
@@ -633,7 +633,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         if(properties == null)
             throw new CmisInvalidArgumentException("Properties is null");
         // get the file or folder
-        DocumentDTO doc = getDocument(objectId.getValue());
+        final DocumentDTO doc = getDocument(objectId.getValue());
 
         LOGGER.debug("updateProperties(): document for update: {}", doc);
 
@@ -741,7 +741,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         Set<String> filterCollection = FileBridgeUtils.splitFilter(filter);
 
         final DocumentDTO parent = getParentDocument(doc.getParent());
-        LOGGER.debug("create(): parent document {}", parent);
+        LOGGER.debug("getObject(): parent document {}", parent);
 
         LOGGER.debug("leaving getObject(): found object {}", doc);
         // gather properties
@@ -817,23 +817,26 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
     public ObjectInFolderList getChildren(CallContext context, String objectId, String filter,
                                           Boolean includeAllowableActions, Boolean includePathSegment, BigInteger maxItems, BigInteger skipCount,
                                           ObjectInfoHandler objectInfos) {
+        LOGGER.debug("entering getChildren(objectId={},  filter= {}, includeAllowableActions={}, includePathSegment={}, maxItems={}, skipCount={}, objectInfos={})",
+                objectId, filter, includeAllowableActions, includePathSegment, maxItems, skipCount, objectInfos);
         boolean userReadOnly = checkUser(context, false);
 
         // split filter
         Set<String> filterCollection = FileBridgeUtils.splitFilter(filter);
+        LOGGER.debug("getChildren(): filterCollection: {}", filterCollection);
 
         // set defaults if values not set
         boolean iaa = FileBridgeUtils.getBooleanParameter(includeAllowableActions, false);
         boolean ips = FileBridgeUtils.getBooleanParameter(includePathSegment, false);
 
-        LOGGER.debug("Folder ID: {}", objectId);
+        LOGGER.debug("getChildren(): Folder ID: {}", objectId);
         final Long parentId = Long.parseLong(objectId);
         List<DocumentDTO> docList = crudService.findAllByParent(parentId);
 
-        LOGGER.debug("Found {} Document entries.", docList != null ? docList.size() : null);
+        LOGGER.debug("getChildren(): Found {} children.", docList != null ? docList.size() : null);
         ObjectInFolderListImpl result = new ObjectInFolderListImpl();
         if(docList == null){
-            LOGGER.debug(" document with parentid {} does not have children", parentId);
+            LOGGER.debug("getChildren(): document with parentid {} does not have children", parentId);
             return result;
         }
 
@@ -850,6 +853,8 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
         final DocumentDTO curdoc = getDocument(objectId);
 
+        LOGGER.debug("getChildren(): current document {}.", curdoc);
+
         if (context.isObjectInfoRequired()) {
             final DocumentDTO parent = getParentDocument(curdoc.getParent());
             LOGGER.debug("getChildren(): parent document {}", parent);
@@ -862,6 +867,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         result.setHasMoreItems(false);
         int count = 0;
 
+        LOGGER.debug("getChildren(): adding children to result...");
         for (DocumentDTO doc : docList){
             LOGGER.debug("getChildren(): child document {}", doc);
             count++;
@@ -892,7 +898,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
 
         result.setNumItems(BigInteger.valueOf(count));
-
+        LOGGER.debug("leaving getChildren(): result {}.", result);
         return result;
     }
 
@@ -902,6 +908,8 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
     public List<ObjectInFolderContainer> getDescendants(CallContext context, String folderId, BigInteger depth,
                                                         String filter, Boolean includeAllowableActions, Boolean includePathSegment, ObjectInfoHandler objectInfos,
                                                         boolean foldersOnly) {
+        LOGGER.debug("entering getDescendants(folderId={}, depth={},  filter= {}, includeAllowableActions={}, includePathSegment={}, objectInfos={}, foldersOnly={})",
+                folderId, depth, filter, includeAllowableActions, includePathSegment, objectInfos, foldersOnly);
         boolean userReadOnly = checkUser(context, false);
 
         // check depth
@@ -915,13 +923,14 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
         // split filter
         Set<String> filterCollection = FileBridgeUtils.splitFilter(filter);
-
+        LOGGER.debug("getDescendants(): filterCollection: {}", filterCollection);
         // set defaults if values not set
         boolean iaa = FileBridgeUtils.getBooleanParameter(includeAllowableActions, false);
         boolean ips = FileBridgeUtils.getBooleanParameter(includePathSegment, false);
 
         // get the folder
         File folder = getFile(folderId);
+        LOGGER.debug("getDescendants(): folder name: {}, isDirectory {}", folder.getName(), folder.isDirectory());
         if (!folder.isDirectory()) {
             throw new CmisObjectNotFoundException("Not a folder!");
         }
@@ -936,6 +945,8 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         gatherDescendants(context, folder, result, foldersOnly, d, filterCollection, iaa, ips, userReadOnly,
                 objectInfos);
 
+
+        LOGGER.debug("leaving getDescendants(): result {}.", result);
         return result;
     }
 
@@ -957,10 +968,13 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
      */
     public List<ObjectParentData> getObjectParents(CallContext context, String objectId, String filter,
                                                    Boolean includeAllowableActions, Boolean includeRelativePathSegment, ObjectInfoHandler objectInfos) {
+        LOGGER.debug("entering getObjectParents(objectId={},  filter= {}, includeAllowableActions={}, includeRelativePathSegment={}, objectInfos={})",
+                objectId, filter, includeAllowableActions, includeRelativePathSegment, objectInfos);
         boolean userReadOnly = checkUser(context, false);
 
         // split filter
         Set<String> filterCollection = FileBridgeUtils.splitFilter(filter);
+        LOGGER.debug("getObjectParents(): filterCollection: {}", filterCollection);
 
         // set defaults if values not set
         boolean iaa = FileBridgeUtils.getBooleanParameter(includeAllowableActions, false);
@@ -968,6 +982,8 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
         // get the file or folder
         final DocumentDTO doc = getDocument(objectId);
+
+        LOGGER.debug("getObjectParents():  document {}", doc);
 
         // don't climb above the root folder
         if (doc.getId()==0) {
@@ -990,7 +1006,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         if (irps) {
             result.setRelativePathSegment(doc.getTitle());
         }
-
+        LOGGER.debug("leaving getObjectParents(): result {}.", result);
         return Collections.<ObjectParentData> singletonList(result);
     }
 
@@ -999,20 +1015,25 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
      */
     public ObjectData getObjectByPath(CallContext context, String folderPath, String filter,
                                       boolean includeAllowableActions, boolean includeACL, ObjectInfoHandler objectInfos) {
+        LOGGER.debug("entering getObjectByPath(folderPath={},  filter= {}, includeAllowableActions={}, includeACL={}, objectInfos={})",
+                folderPath, filter, includeAllowableActions, includeACL, objectInfos);
         boolean userReadOnly = checkUser(context, false);
-
-        // split filter
-        Set<String> filterCollection = FileBridgeUtils.splitFilter(filter);
 
         // check path
         if (folderPath == null || folderPath.length() == 0) {
             throw new CmisInvalidArgumentException("Invalid folder path!");
         }
 
+        // split filter
+        Set<String> filterCollection = FileBridgeUtils.splitFilter(filter);
+        LOGGER.debug("getObjectByPath(): filterCollection: {}", filterCollection);
+
+
+
         Pageable pageable = new PageRequest(0, 1);
         List<DocumentDTO> dtos = crudService.findBySearchTerm(folderPath.substring(folderPath.lastIndexOf("/")+1, folderPath.length()), pageable);
-        DocumentDTO doc = dtos.iterator().next();
-
+        final DocumentDTO doc = dtos.iterator().next();
+        LOGGER.debug("getObjectByPath():  document {}", doc);
         final DocumentDTO parent = getParentDocument(doc.getParent());
         LOGGER.debug("getObjectByPath(): parent document {}", parent);
         return compileObjectData(context, doc, parent, filterCollection, includeAllowableActions, includeACL, userReadOnly,
@@ -1126,49 +1147,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         readWriteUserMap.put(user, true);
     }
 
-    /**
-     * Gather the children of a folder.
-     */
-    private void gatherDescendants(CallContext context, File folder, List<ObjectInFolderContainer> list,
-                                   boolean foldersOnly, int depth, Set<String> filter, boolean includeAllowableActions,
-                                   boolean includePathSegments, boolean userReadOnly, ObjectInfoHandler objectInfos) {
-        if(folder == null) {
-            LOGGER.warn("gatherDescendants(): parent folder is null or it contains no any children");
-            return;
-        }
-        // iterate through children
-        for (File child : folder.listFiles()) {
-            // skip hidden and shadow files
-            if (child.isHidden()) {
-                continue;
-            }
 
-            // folders only?
-            if (foldersOnly && !child.isDirectory()) {
-                continue;
-            }
-
-            // add to list
-            ObjectInFolderDataImpl objectInFolder = new ObjectInFolderDataImpl();
-            objectInFolder.setObject(compileObjectData(context, child, filter, includeAllowableActions, false,
-                    userReadOnly, objectInfos));
-            if (includePathSegments) {
-                objectInFolder.setPathSegment(child.getName());
-            }
-
-            ObjectInFolderContainerImpl container = new ObjectInFolderContainerImpl();
-            container.setObject(objectInFolder);
-
-            list.add(container);
-
-            // move to next level
-            if (depth != 1 && child.isDirectory()) {
-                container.setChildren(new ArrayList<>());
-                gatherDescendants(context, child, container.getChildren(), foldersOnly, depth - 1, filter,
-                        includeAllowableActions, includePathSegments, userReadOnly, objectInfos);
-            }
-        }
-    }
 
     // --- helpers ---
 
