@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import ru.doccloud.cmis.server.FileBridgeTypeManager;
 import ru.doccloud.cmis.server.util.FileBridgeUtils;
 import ru.doccloud.document.dto.DocumentDTO;
-import ru.doccloud.service.DocumentCrudService;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,7 +44,7 @@ abstract class BridgeRepository {
             .compile("(?i)select\\s+.+\\s+from\\s+(\\S*).*\\s+where\\s+in_folder\\('(.*)'\\)");
 
 
-    final DocumentCrudService crudService;
+//    final DocumentCrudService crudService;
 
     /** Types. */
     FileBridgeTypeManager typeManager;
@@ -56,7 +55,7 @@ abstract class BridgeRepository {
     /** Root directory. */
     protected final File root;
 
-    BridgeRepository(String rootPath, DocumentCrudService crudService, FileBridgeTypeManager typeManager) {
+    BridgeRepository(String rootPath,  FileBridgeTypeManager typeManager) {
         // check root folder
         if (StringUtils.isBlank(rootPath)) {
             throw new IllegalArgumentException("Invalid root folder!");
@@ -68,7 +67,7 @@ abstract class BridgeRepository {
             throw new IllegalArgumentException("Root is not a directory!");
         }
 
-        this.crudService = crudService;
+//        this.crudService = crudService;
         this.typeManager = typeManager;
 
         // set up read-write user map
@@ -281,12 +280,12 @@ abstract class BridgeRepository {
     /**
      * Compiles an object type object from a document.
      */
-    ObjectData compileObjectData(CallContext context, DocumentDTO doc, Set<String> filter,
+    ObjectData compileObjectData(CallContext context, DocumentDTO doc, DocumentDTO parentDoc, Set<String> filter,
                                  boolean includeAllowableActions, boolean includeAcl, boolean userReadOnly, ObjectInfoHandler objectInfos) {
         ObjectDataImpl result = new ObjectDataImpl();
         ObjectInfoImpl objectInfo = new ObjectInfoImpl();
 
-        result.setProperties(compileProperties(context, doc, filter, objectInfo));
+        result.setProperties(compileProperties(context, doc, parentDoc, filter, objectInfo));
 
 //        if (includeAllowableActions) {
 //            //result.setAllowableActions(compileAllowableActions(file, userReadOnly));
@@ -392,7 +391,7 @@ abstract class BridgeRepository {
     /**
      * Gathers all base properties of a document.
      */
-    private Properties compileProperties(CallContext context, DocumentDTO doc, Set<String> orgfilter,
+    private Properties compileProperties(CallContext context, DocumentDTO doc, DocumentDTO parentDoc, Set<String> orgfilter,
                                          ObjectInfoImpl objectInfo) {
         if (doc == null) {
             throw new IllegalArgumentException("File must not be null!");
@@ -465,9 +464,8 @@ abstract class BridgeRepository {
                 addPropertyString(result, typeId, filter, PropertyIds.PATH, "/"+path, type);
 
                 // folder properties
-                if (doc.getId()!=0) {
-                    DocumentDTO firstParentDoc = getFirstParent(doc.getId());
-                    addPropertyId(result, typeId, filter, PropertyIds.PARENT_ID, getId(firstParentDoc.getId()), type);
+                if (parentDoc !=null) {
+                    addPropertyId(result, typeId, filter, PropertyIds.PARENT_ID, getId(parentDoc.getId()), type);
                     objectInfo.setHasParent(true);
                 } else {
                     addPropertyId(result, typeId, filter, PropertyIds.PARENT_ID, null, type);
@@ -527,12 +525,6 @@ abstract class BridgeRepository {
             throw new CmisRuntimeException(e.getMessage(), e);
         }
     }
-
-    DocumentDTO getFirstParent(Long objectId) {
-        final List<DocumentDTO> docList = crudService.findParents(objectId);
-        return docList != null && docList.size() > 0 ? docList.get(0) : null;
-    }
-
 
     private void initObjectInfo(ObjectInfoImpl objectInfo, boolean isDirectory, String typeId){
         if (isDirectory) {

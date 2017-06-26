@@ -53,6 +53,8 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
     private final StorageActionsService storageActionsService;
 
+    private final DocumentCrudService crudService;
+
     private JsonNode settingsNode;
     
     private final StorageManager storageManager;
@@ -62,7 +64,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
     public FileBridgeRepository(final String repositoryId, final String rootPath,
                                 final FileBridgeTypeManager typeManager, DSLContext jooq, DocumentCrudService crudService, StorageAreaSettings storageAreaSettings, StorageManager storageManager) throws Exception {
-        super(repositoryId, rootPath, crudService, typeManager);
+        super(repositoryId, rootPath, typeManager);
 
         LOGGER.trace("FileBridgeRepository(repositoryId={}, rootPath={}, typeManager={}, jooq={}, crudService= {}, storageAreaSettings = {}, storageManager={})",repositoryId, rootPath, typeManager, jooq, crudService, storageAreaSettings, storageManager);
 
@@ -73,6 +75,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         LOGGER.trace("FileBridgeRepository( defaultStorage = {})", defaultStorage);
 
         storageActionsService = storageManager.getStorageService(defaultStorage);
+        this.crudService = crudService;
 //        localDocumentDtoCache = new ConcurrentHashMap<>();
     }
 
@@ -134,17 +137,20 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         }
         TypeDefinition type = getTypeDefinitionByTypeId(typeId);
         LOGGER.debug("create(): TypeDefinition {}", type);
-        DocumentDTO documentDTO;
+        DocumentDTO doc;
         if (type.getBaseTypeId() == BaseTypeId.CMIS_DOCUMENT) {
-            documentDTO = createDocument(context, properties, folderId, contentStream, versioningState, type);
+            doc = createDocument(context, properties, folderId, contentStream, versioningState, type);
         } else if (type.getBaseTypeId() == BaseTypeId.CMIS_FOLDER) {
-            documentDTO = createFolder(context, properties, folderId, type);
+            doc = createFolder(context, properties, folderId, type);
         } else {
             throw new CmisObjectNotFoundException("Cannot create object of type '" + typeId + "'!");
         }
 
-        LOGGER.debug("leaving create(): document with id has been created {}", documentDTO);
-        return compileObjectData(context, documentDTO, null, false, false, userReadOnly, objectInfos);
+        final DocumentDTO parent = getParentDocument(doc.getParent());
+        LOGGER.debug("create(): parent document {}", parent);
+
+        LOGGER.debug("leaving create(): document with id has been created {}", doc);
+        return compileObjectData(context, doc, parent, null, false, false, userReadOnly, objectInfos);
     }
 
     /**
@@ -161,9 +167,9 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         //}
 
         // get parent
-        DocumentDTO parent = getDocument(folderId);
+        DocumentDTO parent = getParentDocument(folderId);
         LOGGER.trace("createDocument(): parent is {}", parent);
-        if (!isFolder(parent.getType())) {
+        if (parent == null || !isFolder(parent.getType())) {
             throw new CmisObjectNotFoundException("Parent is not a folder!");
         }
         DocumentDTO doc = null;
@@ -231,13 +237,14 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 //        }
 
         // get parent
-        DocumentDTO parent = getDocument(folderId);
+        DocumentDTO parent = getParentDocument(folderId);
 
         LOGGER.debug("createDocumentFromSource(): parent document is {}", parent);
-        DocumentDTO doc = null;
-        if (!isFolder(parent.getType())) {
+
+        if (parent == null || !isFolder(parent.getType())) {
             throw new CmisObjectNotFoundException("Parent is not a folder!");
         }
+        DocumentDTO doc = null;
         try {
             // get source
             DocumentDTO source = getDocument(sourceId);
@@ -299,12 +306,12 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         checkUser(context, true);
         LOGGER.debug("entering createFolder(context={}, properties = {}, folderId={}, type={})", context, properties, folderId, type);
         // get parent
-        DocumentDTO parent = getDocument(folderId);
+        DocumentDTO parent = getParentDocument(folderId);
         LOGGER.debug("createFolder(): parent is {}", parent);
 
         // check properties
         checkNewProperties(properties, BaseTypeId.CMIS_FOLDER, type);
-        if (!isFolder(parent.getType())) {
+        if (parent == null || !isFolder(parent.getType())) {
             throw new CmisObjectNotFoundException("Parent is not a folder!");
         }
 
@@ -350,7 +357,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         if(doc == null || doc.getId() == null)
             throw new IllegalStateException(String.format("Document with id %s was not found", objectId));
 
-        final DocumentDTO parent = getDocument(doc.getParent());//getFirstParent(doc.getId());
+        final DocumentDTO parent = getParentDocument(doc.getParent());//getFirstParent(doc.getId());
 
         LOGGER.debug(" moveObject(): parent document {}", parent);
 
@@ -366,7 +373,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 //        localDocumentDtoCache.put(objectId.getValue(), doc);
         LOGGER.debug("leaving moveObject(): new link {} has been created for object {}", link, doc);
 
-        return compileObjectData(context, doc, null, false, false, userReadOnly, objectInfos);
+        return compileObjectData(context, doc, parent, null, false, false, userReadOnly, objectInfos);
     }
 
     /**
@@ -442,7 +449,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         LinkDTO deletedLink = null;
         try {
 
-            DocumentDTO parent = getDocument(doc.getParent());//getFirstParent(doc.getId());
+            DocumentDTO parent = getParentDocument(doc.getParent());//getFirstParent(doc.getId());
 
             LOGGER.debug("deleteObject(): parent document {}", parent);
 
@@ -530,7 +537,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
             } else {
                 LinkDTO deletedChildLink = null;
 
-                DocumentDTO parent = getDocument(doc.getParent());//getFirstParent(doc.getId());
+                DocumentDTO parent = getParentDocument(doc.getParent());//getFirstParent(doc.getId());
 
                 LOGGER.debug("deleteFolder(): parent document {}", parent);
 
@@ -553,7 +560,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         }
 
         LinkDTO deletedLink = null;
-        DocumentDTO parent = getDocument(doc.getParent());//getFirstParent(doc.getId());
+        DocumentDTO parent = getParentDocument(doc.getParent());//getFirstParent(doc.getId());
 
         LOGGER.debug("deleteFolder(): parent document for deleted folder {}", parent);
 
@@ -664,9 +671,12 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         if (isUpdate)
             crudService.update(doc ,context.getUsername());
 
+        final DocumentDTO parent = getParentDocument(doc.getParent());
+        LOGGER.debug("updateProperties(): parent document {}", parent);
+
 //        localDocumentDtoCache.put(objectId.getValue(), doc);
         LOGGER.debug("leaving updateProperties(context={}, objectId={}, properties={}, objectInfos ={})", context, objectId, properties, objectInfos);
-        return compileObjectData(context, doc, null, false, false, userReadOnly, objectInfos);
+        return compileObjectData(context, doc, parent, null, false, false, userReadOnly, objectInfos);
     }
 
     /**
@@ -721,7 +731,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
             // and the object id and version series id are the same
             objectId = versionServicesId;
         }
-        DocumentDTO doc = getDocument(objectId);
+        final DocumentDTO doc = getDocument(objectId);
 
         // set defaults if values not set
         boolean iaa = FileBridgeUtils.getBooleanParameter(includeAllowableActions, false);
@@ -730,9 +740,12 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         // split filter
         Set<String> filterCollection = FileBridgeUtils.splitFilter(filter);
 
+        final DocumentDTO parent = getParentDocument(doc.getParent());
+        LOGGER.debug("create(): parent document {}", parent);
+
         LOGGER.debug("leaving getObject(): found object {}", doc);
         // gather properties
-        return compileObjectData(context, doc, filterCollection, iaa, iacl, userReadOnly, objectInfos);
+        return compileObjectData(context, doc, parent, filterCollection, iaa, iacl, userReadOnly, objectInfos);
     }
 
     /**
@@ -814,11 +827,15 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         boolean ips = FileBridgeUtils.getBooleanParameter(includePathSegment, false);
 
         LOGGER.debug("Folder ID: {}", objectId);
-        Long parent = Long.parseLong(objectId);
-        List<DocumentDTO> docList = crudService.findAllByParent(parent);
+        final Long parentId = Long.parseLong(objectId);
+        List<DocumentDTO> docList = crudService.findAllByParent(parentId);
 
         LOGGER.debug("Found {} Document entries.", docList != null ? docList.size() : null);
-
+        ObjectInFolderListImpl result = new ObjectInFolderListImpl();
+        if(docList == null){
+            LOGGER.debug(" document with parentid {} does not have children", parentId);
+            return result;
+        }
 
         // skip and max
         int skip = (skipCount == null ? 0 : skipCount.intValue());
@@ -831,19 +848,22 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
             max = Integer.MAX_VALUE;
         }
 
-        DocumentDTO curdoc = getDocument(objectId);
+        final DocumentDTO curdoc = getDocument(objectId);
 
         if (context.isObjectInfoRequired()) {
-            compileObjectData(context, curdoc, null, false, false, userReadOnly, objectInfos);
+            final DocumentDTO parent = getParentDocument(curdoc.getParent());
+            LOGGER.debug("getChildren(): parent document {}", parent);
+            compileObjectData(context, curdoc, parent, null, false, false, userReadOnly, objectInfos);
         }
 
         // prepare result
-        ObjectInFolderListImpl result = new ObjectInFolderListImpl();
-        result.setObjects(new ArrayList<ObjectInFolderData>());
+
+        result.setObjects(new ArrayList<>());
         result.setHasMoreItems(false);
         int count = 0;
 
         for (DocumentDTO doc : docList){
+            LOGGER.debug("getChildren(): child document {}", doc);
             count++;
 
             if (skip > 0) {
@@ -858,7 +878,10 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
             // build and add child object
             ObjectInFolderDataImpl objectInFolder = new ObjectInFolderDataImpl();
-            objectInFolder.setObject(compileObjectData(context, doc, filterCollection, iaa, false, userReadOnly,
+
+            final DocumentDTO parent = getParentDocument(doc.getParent());
+            LOGGER.debug("getChildren(): parent document {}", parent);
+            objectInFolder.setObject(compileObjectData(context, doc, parent, filterCollection, iaa, false, userReadOnly,
                     objectInfos));
             if (ips) {
                 objectInFolder.setPathSegment(doc.getTitle());
@@ -944,21 +967,23 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         boolean irps = FileBridgeUtils.getBooleanParameter(includeRelativePathSegment, false);
 
         // get the file or folder
-        DocumentDTO doc = getDocument(objectId);
+        final DocumentDTO doc = getDocument(objectId);
 
         // don't climb above the root folder
         if (doc.getId()==0) {
             return Collections.emptyList();
         }
 
+        final DocumentDTO parent = getParentDocument(doc.getParent());
+        LOGGER.debug("getObjectParents(): parent document {}", parent);
         // set object info of the the object
         if (context.isObjectInfoRequired()) {
-            compileObjectData(context, doc, null, false, false, userReadOnly, objectInfos);
+
+            compileObjectData(context, doc, parent, null, false, false, userReadOnly, objectInfos);
         }
 
         // get parent folder
-        DocumentDTO parent = getDocument(doc.getParent());//getFirstParent(doc.getId());
-        ObjectData object = compileObjectData(context, parent, filterCollection, iaa, false, userReadOnly, objectInfos);
+        ObjectData object = compileObjectData(context, doc, parent, filterCollection, iaa, false, userReadOnly, objectInfos);
 
         ObjectParentDataImpl result = new ObjectParentDataImpl();
         result.setObject(object);
@@ -987,7 +1012,10 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         Pageable pageable = new PageRequest(0, 1);
         List<DocumentDTO> dtos = crudService.findBySearchTerm(folderPath.substring(folderPath.lastIndexOf("/")+1, folderPath.length()), pageable);
         DocumentDTO doc = dtos.iterator().next();
-        return compileObjectData(context, doc, filterCollection, includeAllowableActions, includeACL, userReadOnly,
+
+        final DocumentDTO parent = getParentDocument(doc.getParent());
+        LOGGER.debug("getObjectByPath(): parent document {}", parent);
+        return compileObjectData(context, doc, parent, filterCollection, includeAllowableActions, includeACL, userReadOnly,
                 objectInfos);
     }
 
@@ -1145,7 +1173,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
     // --- helpers ---
 
 
-    private DocumentDTO getDocument(String objectId) {
+    private DocumentDTO getDocument(final String objectId) {
 
         LOGGER.debug("entering getDocument(objectId ={})", objectId);
 
@@ -1153,7 +1181,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         if(StringUtils.isBlank(objectId))
             throw new IllegalArgumentException("Object id is null");
 
-        LOGGER.debug("try to find in local cache first");
+//        LOGGER.debug("try to find in local cache first");
 //        DocumentDTO found = localDocumentDtoCache.get(objectId);
 
         DocumentDTO found = crudService.findById(Long.parseLong(objectId));
@@ -1173,6 +1201,45 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         LOGGER.debug("Found Document entry: {}", found);
 
         return found;
+    }
+
+//    private DocumentDTO getFirstParent(Long objectId) {
+//        final List<DocumentDTO> docList = crudService.findParents(objectId);
+//        return docList != null && docList.size() > 0 ? docList.get(0) : null;
+//    }
+
+    private DocumentDTO getParentDocument(final String objectId){
+        LOGGER.debug("entering getParentDocument(objectId ={})", objectId);
+        return objectId != null ? getDocument(objectId) : null;
+    }
+
+
+    /**
+     * Checks if the user in the given context is valid for this repository and
+     * if the user has the required permissions.
+     */
+    boolean checkUser(CallContext context, boolean writeRequired) {
+
+        LOGGER.trace("entering checkUser(context={},writeRequired={})", context, writeRequired);
+        if (context == null) {
+            throw new CmisPermissionDeniedException("No user context!");
+        }
+
+        Boolean readOnly = readWriteUserMap.get(context.getUsername());
+
+        if (readOnly == null) {
+            throw new CmisPermissionDeniedException("Unknown user!");
+        }
+
+        if (readOnly && writeRequired) {
+            throw new CmisPermissionDeniedException("No write permission!");
+        }
+
+        crudService.setUser(context.getUsername());
+
+
+        LOGGER.trace("leaving checkUser(): is user {} readOnly? {}", context.getUsername(), readOnly);
+        return readOnly;
     }
 
 

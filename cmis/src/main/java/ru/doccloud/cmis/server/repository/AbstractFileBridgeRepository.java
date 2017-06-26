@@ -6,14 +6,12 @@ import org.apache.chemistry.opencmis.commons.data.PermissionMapping;
 import org.apache.chemistry.opencmis.commons.data.RepositoryInfo;
 import org.apache.chemistry.opencmis.commons.definitions.PermissionDefinition;
 import org.apache.chemistry.opencmis.commons.enums.*;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.*;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.doccloud.cmis.server.FileBridgeTypeManager;
-import ru.doccloud.service.DocumentCrudService;
 
 import java.io.File;
 import java.util.*;
@@ -29,8 +27,8 @@ public abstract class AbstractFileBridgeRepository extends BridgeRepository{
     /** CMIS 1.1 repository info. */
     private final RepositoryInfo repositoryInfo11;
 
-    AbstractFileBridgeRepository(String repositoryId, String rootPath, DocumentCrudService crudService, FileBridgeTypeManager typeManager) {
-        super(rootPath, crudService, typeManager);
+    AbstractFileBridgeRepository(String repositoryId, String rootPath, FileBridgeTypeManager typeManager) {
+        super(rootPath, typeManager);
 
         // check repository id
         if (StringUtils.isBlank(repositoryId)) {
@@ -193,37 +191,6 @@ public abstract class AbstractFileBridgeRepository extends BridgeRepository{
             return repositoryInfo11;
         }
     }
-
-    /**
-     * Checks if the user in the given context is valid for this repository and
-     * if the user has the required permissions.
-     */
-    boolean checkUser(CallContext context, boolean writeRequired) {
-
-        LOGGER.trace("entering checkUser(context={},writeRequired={})", context, writeRequired);
-        if (context == null) {
-            throw new CmisPermissionDeniedException("No user context!");
-        }
-
-        Boolean readOnly = readWriteUserMap.get(context.getUsername());
-
-        if (readOnly == null) {
-            throw new CmisPermissionDeniedException("Unknown user!");
-        }
-
-        if (readOnly && writeRequired) {
-            throw new CmisPermissionDeniedException("No write permission!");
-        }
-
-        crudService.setUser(context.getUsername());
-
-
-        LOGGER.trace("leaving checkUser(): is user {} readOnly? {}", context.getUsername(), readOnly);
-        return readOnly;
-    }
-
-
-
 }
 
 
