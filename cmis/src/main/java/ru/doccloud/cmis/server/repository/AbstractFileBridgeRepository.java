@@ -10,7 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.doccloud.cmis.server.FileBridgeTypeManager;
-import ru.doccloud.cmis.server.util.RepositoryInfoHelper;
+import ru.doccloud.cmis.server.util.repositoryinfo.RepositoryInfoHelper;
 
 import java.io.File;
 
@@ -49,7 +49,7 @@ public abstract class AbstractFileBridgeRepository extends BridgeRepository{
 
     private RepositoryInfo createRepositoryInfo(CmisVersion cmisVersion) throws IllegalAccessException {
 
-        LOGGER.debug("entering createRepositoryInfo(cmisVersion={})", cmisVersion);
+        LOGGER.trace("entering createRepositoryInfo(cmisVersion={})", cmisVersion);
 
         RepositoryInfoImpl repositoryInfo = new RepositoryInfoImpl();
         if(cmisVersion == null)

@@ -22,18 +22,21 @@
  */
 package ru.doccloud.cmis.server;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Manages users for the FileShare repository.
  */
 public class FileBridgeUserManager {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileBridgeUserManager.class);
 
     private final Map<String, String> logins;
 
@@ -52,6 +55,8 @@ public class FileBridgeUserManager {
      * Adds a login.
      */
     public synchronized void addLogin(final String username, final String password) {
+//        todo remove logging after creating auth
+        LOGGER.info("addLogin(userName = {}, password={})", username, password);
         if (username == null || password == null) {
             return;
         }
@@ -75,6 +80,8 @@ public class FileBridgeUserManager {
      * Authenticates a user against the configured logins.
      */
     private synchronized boolean authenticate(final String username, final String password) {
+        //        todo remove logging after creating auth
+        LOGGER.info("authenticate(userName = {}, password={})", username, password);
         final String pwd = logins.get(username);
         return pwd != null && pwd.equals(password);
 

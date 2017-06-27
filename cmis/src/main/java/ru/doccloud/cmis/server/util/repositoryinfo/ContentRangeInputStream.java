@@ -20,7 +20,7 @@
  * It is part of a training exercise and not intended for production use!
  *
  */
-package ru.doccloud.cmis.server.util;
+package ru.doccloud.cmis.server.util.repositoryinfo;
 
 import java.io.FilterInputStream;
 import java.io.IOException;

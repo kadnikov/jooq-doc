@@ -1,4 +1,4 @@
-package ru.doccloud.cmis.server.util;
+package ru.doccloud.cmis.server.util.repositoryinfo;
 
 import org.apache.chemistry.opencmis.commons.BasicPermissions;
 

@@ -27,6 +27,7 @@ import ru.doccloud.document.dto.DocumentDTO;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -175,64 +176,38 @@ abstract class BridgeRepository {
                 addPropertyIdList(result, typeId, filter, PropertyIds.SECONDARY_OBJECT_TYPE_IDS, null, type);
             }
 
+            addPropertyId(result, typeId, filter, PropertyIds.BASE_TYPE_ID, typeId, type);
+            addPropertyId(result, typeId, filter, PropertyIds.OBJECT_TYPE_ID, typeId, type);
             // directory or file
             if (file.isDirectory()) {
-                // base type and type name
-                addPropertyId(result, typeId, filter, PropertyIds.BASE_TYPE_ID, BaseTypeId.CMIS_FOLDER.value(), type);
-                addPropertyId(result, typeId, filter, PropertyIds.OBJECT_TYPE_ID, BaseTypeId.CMIS_FOLDER.value(), type);
                 String path = getRepositoryPath(file);
                 addPropertyString(result, typeId, filter, PropertyIds.PATH, path, type);
 
-                // folder properties
-                if (!root.equals(file)) {
-                    addPropertyId(result, typeId, filter, PropertyIds.PARENT_ID,
-                            (root.equals(file.getParentFile()) ? ROOT_ID : fileToId(file.getParentFile())), type);
-                    objectInfo.setHasParent(true);
-                } else {
-                    addPropertyId(result, typeId, filter, PropertyIds.PARENT_ID, null, type);
-                    objectInfo.setHasParent(false);
-                }
+                addPropertyId(result, typeId, filter, PropertyIds.PARENT_ID,
+                        !root.equals(file) ? (root.equals(file.getParentFile()) ? ROOT_ID : fileToId(file.getParentFile())): null, type);
+
+                objectInfo.setHasParent(!root.equals(file));
 
                 addPropertyIdList(result, typeId, filter, PropertyIds.ALLOWED_CHILD_OBJECT_TYPE_IDS, null, type);
             } else {
-                // base type and type name
-                addPropertyId(result, typeId, filter, PropertyIds.BASE_TYPE_ID, BaseTypeId.CMIS_DOCUMENT.value(), type);
-                addPropertyId(result, typeId, filter, PropertyIds.OBJECT_TYPE_ID, BaseTypeId.CMIS_DOCUMENT.value(), type);
-
                 // file properties
-                addPropertyBoolean(result, typeId, filter, PropertyIds.IS_IMMUTABLE, false, type);
-                addPropertyBoolean(result, typeId, filter, PropertyIds.IS_LATEST_VERSION, true, type);
-                addPropertyBoolean(result, typeId, filter, PropertyIds.IS_MAJOR_VERSION, true, type);
-                addPropertyBoolean(result, typeId, filter, PropertyIds.IS_LATEST_MAJOR_VERSION, true, type);
+                compileConstantBooleanProperties(result, typeId, filter, type, context);
+
+                compileConstantStringProperties(result, typeId, filter, type);
+
                 addPropertyString(result, typeId, filter, PropertyIds.VERSION_LABEL, file.getName(), type);
+
+                boolean isFileNotEmpty = file.length() != 0;
+
+                addPropertyString(result, typeId, filter, PropertyIds.CONTENT_STREAM_MIME_TYPE, isFileNotEmpty ? MimeTypes.getMIMEType(file) : null, type);
+                addPropertyString(result, typeId, filter, PropertyIds.CONTENT_STREAM_FILE_NAME, isFileNotEmpty ? file.getName() : null, type);
+                addPropertyBigInteger(result, typeId, filter, PropertyIds.CONTENT_STREAM_LENGTH, isFileNotEmpty ? BigInteger.valueOf(file.length()) : null, type);
+
+                objectInfo.setHasContent(isFileNotEmpty);
+                objectInfo.setContentType(isFileNotEmpty ? MimeTypes.getMIMEType(file) : null);
+                objectInfo.setFileName(isFileNotEmpty ? file.getName(): null);
+
                 addPropertyId(result, typeId, filter, PropertyIds.VERSION_SERIES_ID, fileToId(file), type);
-                addPropertyBoolean(result, typeId, filter, PropertyIds.IS_VERSION_SERIES_CHECKED_OUT, false, type);
-                addPropertyString(result, typeId, filter, PropertyIds.VERSION_SERIES_CHECKED_OUT_BY, null, type);
-                addPropertyString(result, typeId, filter, PropertyIds.VERSION_SERIES_CHECKED_OUT_ID, null, type);
-                addPropertyString(result, typeId, filter, PropertyIds.CHECKIN_COMMENT, "", type);
-                if (context.getCmisVersion() != CmisVersion.CMIS_1_0) {
-                    addPropertyBoolean(result, typeId, filter, PropertyIds.IS_PRIVATE_WORKING_COPY, false, type);
-                }
-
-                if (file.length() == 0) {
-                    addPropertyBigInteger(result, typeId, filter, PropertyIds.CONTENT_STREAM_LENGTH, null, type);
-                    addPropertyString(result, typeId, filter, PropertyIds.CONTENT_STREAM_MIME_TYPE, null, type);
-                    addPropertyString(result, typeId, filter, PropertyIds.CONTENT_STREAM_FILE_NAME, null, type);
-
-                    objectInfo.setHasContent(false);
-                    objectInfo.setContentType(null);
-                    objectInfo.setFileName(null);
-                } else {
-                    addPropertyInteger(result, typeId, filter, PropertyIds.CONTENT_STREAM_LENGTH, file.length(), type);
-                    addPropertyString(result, typeId, filter, PropertyIds.CONTENT_STREAM_MIME_TYPE,
-                            MimeTypes.getMIMEType(file), type);
-                    addPropertyString(result, typeId, filter, PropertyIds.CONTENT_STREAM_FILE_NAME, file.getName(), type);
-
-                    objectInfo.setHasContent(true);
-                    objectInfo.setContentType(MimeTypes.getMIMEType(file));
-                    objectInfo.setFileName(file.getName());
-                }
-
                 addPropertyId(result, typeId, filter, PropertyIds.CONTENT_STREAM_ID, null, type);
             }
 
@@ -244,7 +219,115 @@ abstract class BridgeRepository {
         }
     }
 
+    /**
+     * Gathers all base properties of a document.
+     */
+    private Properties compileProperties(CallContext context, DocumentDTO doc, DocumentDTO parentDoc, Set<String> orgfilter,
+                                         ObjectInfoImpl objectInfo) {
+        if (doc == null) {
+            throw new IllegalArgumentException("File must not be null!");
+        }
 
+        // copy filter
+        Set<String> filter = (orgfilter == null ? null : new HashSet<>(orgfilter));
+
+        boolean isDirectory = isFolder(doc.getType());
+        // find base type
+        String typeId = isDirectory ? BaseTypeId.CMIS_FOLDER.value() : BaseTypeId.CMIS_DOCUMENT.value();
+        initObjectInfo(objectInfo, isDirectory, typeId);
+        // identify if the file is a doc or a folder/directory
+
+
+        // exercise 3.3
+        try {
+            PropertiesImpl result = new PropertiesImpl();
+
+            TypeDefinition type = getTypeDefinitionByTypeId(typeId);
+
+            // id
+            String id = getId(doc.getId());
+
+            addPropertyId(result, typeId, filter, PropertyIds.OBJECT_ID, id, type);
+            objectInfo.setId(id);
+
+            // name
+            String name = doc.getTitle();
+            addPropertyString(result, typeId, filter, PropertyIds.NAME, name, type);
+            objectInfo.setName(name);
+
+            // created and modified by
+            String createdBy = doc.getAuthor() != null ? doc.getAuthor() : USER_UNKNOWN;
+            addPropertyString(result, typeId, filter, PropertyIds.CREATED_BY, createdBy, type);
+
+            String modifiedBy = doc.getModifier() != null ? doc.getModifier() : USER_UNKNOWN;
+            addPropertyString(result, typeId, filter, PropertyIds.LAST_MODIFIED_BY, modifiedBy, type);
+            objectInfo.setCreatedBy(createdBy);
+
+            // creation and modification date
+            GregorianCalendar created = FileBridgeUtils.millisToCalendar(doc.getCreationTime().toDateTime().getMillis());
+            addPropertyDateTime(result, typeId, filter, PropertyIds.CREATION_DATE, created, type);
+            GregorianCalendar lastModified = FileBridgeUtils.millisToCalendar(doc.getModificationTime().toDateTime().getMillis());
+            addPropertyDateTime(result, typeId, filter, PropertyIds.LAST_MODIFICATION_DATE, lastModified, type);
+            objectInfo.setCreationDate(created);
+            objectInfo.setLastModificationDate(lastModified);
+
+            // change token - always null
+            addPropertyString(result, typeId, filter, PropertyIds.CHANGE_TOKEN, null, type);
+
+            // CMIS 1.1 properties
+            if (context.getCmisVersion() != CmisVersion.CMIS_1_0) {
+                addPropertyString(result, typeId, filter, PropertyIds.DESCRIPTION, doc.getDescription(), type);
+                addPropertyIdList(result, typeId, filter, PropertyIds.SECONDARY_OBJECT_TYPE_IDS, null, type);
+            }
+
+            addPropertyId(result, typeId, filter, PropertyIds.BASE_TYPE_ID, typeId, type);
+            addPropertyId(result, typeId, filter, PropertyIds.OBJECT_TYPE_ID, typeId, type);
+
+
+            // directory or file
+            if (isDirectory) {
+                String path = doc.getTitle();
+                addPropertyString(result, typeId, filter, PropertyIds.PATH, "/"+path, type);
+
+                addPropertyId(result, typeId, filter, PropertyIds.PARENT_ID, parentDoc != null ? getId(parentDoc.getId()) : null, type);
+                objectInfo.setHasParent(parentDoc != null);
+
+                addPropertyIdList(result, typeId, filter, PropertyIds.ALLOWED_CHILD_OBJECT_TYPE_IDS, null, type);
+            } else {
+                // file properties
+                compileConstantBooleanProperties(result, typeId, filter, type, context);
+
+                compileConstantStringProperties(result, typeId, filter, type);
+
+                addPropertyString(result, typeId, filter, PropertyIds.VERSION_LABEL, doc.getTitle(), type);
+
+
+                addPropertyId(result, typeId, filter, PropertyIds.VERSION_SERIES_ID, getId(doc.getId()), type);
+
+
+                boolean isDocHasContent = !StringUtils.isBlank(doc.getFilePath());
+
+                addPropertyString(result, typeId, filter, PropertyIds.CONTENT_STREAM_MIME_TYPE, isDocHasContent ? doc.getFileMimeType() : null, type);
+                addPropertyString(result, typeId, filter, PropertyIds.CONTENT_STREAM_FILE_NAME, isDocHasContent ? doc.getTitle() : null, type);
+
+                addPropertyBigInteger(result, typeId, filter, PropertyIds.CONTENT_STREAM_LENGTH, isDocHasContent ?
+                        (doc.getFileLength() != null ? BigInteger.valueOf( doc.getFileLength()) : null) : null, type);
+
+
+                objectInfo.setHasContent(isDocHasContent);
+                objectInfo.setContentType(isDocHasContent ? doc.getFileMimeType(): null);
+                objectInfo.setFileName(isDocHasContent ?doc.getTitle() : null);
+
+                addPropertyId(result, typeId, filter, PropertyIds.CONTENT_STREAM_ID, null, type);
+            }
+
+            return result;
+        } catch (CmisBaseException cbe) {
+            throw cbe;
+        } catch (Exception e) {
+            throw new CmisRuntimeException(e.getMessage(), e);
+        }
+    }
     /**
      * Gather the children of a folder.
      */
@@ -438,136 +521,23 @@ abstract class BridgeRepository {
         return result;
     }
 
-    /**
-     * Gathers all base properties of a document.
-     */
-    private Properties compileProperties(CallContext context, DocumentDTO doc, DocumentDTO parentDoc, Set<String> orgfilter,
-                                         ObjectInfoImpl objectInfo) {
-        if (doc == null) {
-            throw new IllegalArgumentException("File must not be null!");
+
+    private void compileConstantBooleanProperties(PropertiesImpl result, String typeId, Set<String> filter, TypeDefinition type, CallContext context){
+        addPropertyBoolean(result, typeId, filter, PropertyIds.IS_IMMUTABLE, false, type);
+        addPropertyBoolean(result, typeId, filter, PropertyIds.IS_LATEST_VERSION, true, type);
+        addPropertyBoolean(result, typeId, filter, PropertyIds.IS_MAJOR_VERSION, true, type);
+        addPropertyBoolean(result, typeId, filter, PropertyIds.IS_LATEST_MAJOR_VERSION, true, type);
+        if (context.getCmisVersion() != CmisVersion.CMIS_1_0) {
+            addPropertyBoolean(result, typeId, filter, PropertyIds.IS_PRIVATE_WORKING_COPY, false, type);
         }
 
-        // copy filter
-        Set<String> filter = (orgfilter == null ? null : new HashSet<>(orgfilter));
+        addPropertyBoolean(result, typeId, filter, PropertyIds.IS_VERSION_SERIES_CHECKED_OUT, false, type);
+    }
 
-        boolean isDirectory = isFolder(doc.getType());
-        // find base type
-        String typeId = isDirectory ? BaseTypeId.CMIS_FOLDER.value() : BaseTypeId.CMIS_DOCUMENT.value();
-        initObjectInfo(objectInfo, isDirectory, typeId);
-        // identify if the file is a doc or a folder/directory
-
-
-        // exercise 3.3
-        try {
-            PropertiesImpl result = new PropertiesImpl();
-
-            TypeDefinition type = getTypeDefinitionByTypeId(typeId);
-
-            // id
-            String id = getId(doc.getId());
-
-            addPropertyId(result, typeId, filter, PropertyIds.OBJECT_ID, id, type);
-            objectInfo.setId(id);
-
-            // name
-            String name = doc.getTitle();
-            addPropertyString(result, typeId, filter, PropertyIds.NAME, name, type);
-            objectInfo.setName(name);
-
-            // created and modified by
-            String createdBy = doc.getAuthor() != null ? doc.getAuthor() : USER_UNKNOWN;
-            addPropertyString(result, typeId, filter, PropertyIds.CREATED_BY, createdBy, type);
-
-            String modifiedBy = doc.getModifier() != null ? doc.getModifier() : USER_UNKNOWN;
-            addPropertyString(result, typeId, filter, PropertyIds.LAST_MODIFIED_BY, modifiedBy, type);
-            objectInfo.setCreatedBy(createdBy);
-
-            // creation and modification date
-            GregorianCalendar created = FileBridgeUtils.millisToCalendar(doc.getCreationTime().toDateTime().getMillis());
-            addPropertyDateTime(result, typeId, filter, PropertyIds.CREATION_DATE, created, type);
-            GregorianCalendar lastModified = FileBridgeUtils.millisToCalendar(doc.getModificationTime().toDateTime().getMillis());
-            addPropertyDateTime(result, typeId, filter, PropertyIds.LAST_MODIFICATION_DATE, lastModified, type);
-            objectInfo.setCreationDate(created);
-            objectInfo.setLastModificationDate(lastModified);
-
-            // change token - always null
-            addPropertyString(result, typeId, filter, PropertyIds.CHANGE_TOKEN, null, type);
-
-            // CMIS 1.1 properties
-            if (context.getCmisVersion() != CmisVersion.CMIS_1_0) {
-                addPropertyString(result, typeId, filter, PropertyIds.DESCRIPTION, doc.getDescription(), type);
-                addPropertyIdList(result, typeId, filter, PropertyIds.SECONDARY_OBJECT_TYPE_IDS, null, type);
-            }
-
-            // directory or file
-            if (isFolder(doc.getType())) {
-                // base type and type name
-                addPropertyId(result, typeId, filter, PropertyIds.BASE_TYPE_ID, BaseTypeId.CMIS_FOLDER.value(), type);
-                addPropertyId(result, typeId, filter, PropertyIds.OBJECT_TYPE_ID, BaseTypeId.CMIS_FOLDER.value(), type);
-                String path = doc.getTitle();
-                addPropertyString(result, typeId, filter, PropertyIds.PATH, "/"+path, type);
-
-                // folder properties
-                if (parentDoc !=null) {
-                    addPropertyId(result, typeId, filter, PropertyIds.PARENT_ID, getId(parentDoc.getId()), type);
-                    objectInfo.setHasParent(true);
-                } else {
-                    addPropertyId(result, typeId, filter, PropertyIds.PARENT_ID, null, type);
-                    objectInfo.setHasParent(false);
-                }
-
-                addPropertyIdList(result, typeId, filter, PropertyIds.ALLOWED_CHILD_OBJECT_TYPE_IDS, null, type);
-            } else {
-                // base type and type name
-                addPropertyId(result, typeId, filter, PropertyIds.BASE_TYPE_ID, BaseTypeId.CMIS_DOCUMENT.value(), type);
-                addPropertyId(result, typeId, filter, PropertyIds.OBJECT_TYPE_ID, BaseTypeId.CMIS_DOCUMENT.value(), type);
-
-                // file properties
-                addPropertyBoolean(result, typeId, filter, PropertyIds.IS_IMMUTABLE, false, type);
-                addPropertyBoolean(result, typeId, filter, PropertyIds.IS_LATEST_VERSION, true, type);
-                addPropertyBoolean(result, typeId, filter, PropertyIds.IS_MAJOR_VERSION, true, type);
-                addPropertyBoolean(result, typeId, filter, PropertyIds.IS_LATEST_MAJOR_VERSION, true, type);
-                addPropertyString(result, typeId, filter, PropertyIds.VERSION_LABEL, doc.getTitle(), type);
-                addPropertyId(result, typeId, filter, PropertyIds.VERSION_SERIES_ID, getId(doc.getId()), type);
-                addPropertyBoolean(result, typeId, filter, PropertyIds.IS_VERSION_SERIES_CHECKED_OUT, false, type);
-                addPropertyString(result, typeId, filter, PropertyIds.VERSION_SERIES_CHECKED_OUT_BY, null, type);
-                addPropertyString(result, typeId, filter, PropertyIds.VERSION_SERIES_CHECKED_OUT_ID, null,type);
-                addPropertyString(result, typeId, filter, PropertyIds.CHECKIN_COMMENT, "", type);
-                if (context.getCmisVersion() != CmisVersion.CMIS_1_0) {
-                    addPropertyBoolean(result, typeId, filter, PropertyIds.IS_PRIVATE_WORKING_COPY, false, type);
-                }
-
-                if (doc.getFilePath()==null) {
-                    addPropertyBigInteger(result, typeId, filter, PropertyIds.CONTENT_STREAM_LENGTH, null, type);
-                    addPropertyString(result, typeId, filter, PropertyIds.CONTENT_STREAM_MIME_TYPE, null, type);
-                    addPropertyString(result, typeId, filter, PropertyIds.CONTENT_STREAM_FILE_NAME, null, type);
-
-                    objectInfo.setHasContent(false);
-                    objectInfo.setContentType(null);
-                    objectInfo.setFileName(null);
-                } else {
-                    if (doc.getFileLength()==null){
-                        addPropertyBigInteger(result, typeId, filter, PropertyIds.CONTENT_STREAM_LENGTH, null, type);
-                    }else{
-                        addPropertyInteger(result, typeId, filter, PropertyIds.CONTENT_STREAM_LENGTH, doc.getFileLength(), type);
-                    }
-                    addPropertyString(result, typeId, filter, PropertyIds.CONTENT_STREAM_MIME_TYPE, doc.getFileMimeType(), type);
-                    addPropertyString(result, typeId, filter, PropertyIds.CONTENT_STREAM_FILE_NAME, doc.getTitle(), type);
-
-                    objectInfo.setHasContent(true);
-                    objectInfo.setContentType(doc.getFileMimeType());
-                    objectInfo.setFileName(doc.getTitle());
-                }
-
-                addPropertyId(result, typeId, filter, PropertyIds.CONTENT_STREAM_ID, null, type);
-            }
-
-            return result;
-        } catch (CmisBaseException cbe) {
-            throw cbe;
-        } catch (Exception e) {
-            throw new CmisRuntimeException(e.getMessage(), e);
-        }
+    private void compileConstantStringProperties(PropertiesImpl result, String typeId, Set<String> filter, TypeDefinition type){
+        addPropertyString(result, typeId, filter, PropertyIds.VERSION_SERIES_CHECKED_OUT_BY, null, type);
+        addPropertyString(result, typeId, filter, PropertyIds.VERSION_SERIES_CHECKED_OUT_ID, null,type);
+        addPropertyString(result, typeId, filter, PropertyIds.CHECKIN_COMMENT, "", type);
     }
 
     private void initObjectInfo(ObjectInfoImpl objectInfo, boolean isDirectory, String typeId){
