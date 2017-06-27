@@ -35,7 +35,7 @@ import static ru.doccloud.cmis.server.util.FileBridgeUtils.*;
 
 abstract class BridgeRepository {
 
-//    todo add loggind to this class
+    //    todo add loggind to this class
     private static final Logger LOGGER = LoggerFactory.getLogger(BridgeRepository.class);
     static final String ROOT_ID = "0";
 
@@ -475,16 +475,10 @@ abstract class BridgeRepository {
             objectInfo.setName(name);
 
             // created and modified by
-            String createdBy = doc.getAuthor();
-            if (createdBy==null){
-                createdBy = USER_UNKNOWN;
-            }
+            String createdBy = doc.getAuthor() != null ? doc.getAuthor() : USER_UNKNOWN;
             addPropertyString(result, typeId, filter, PropertyIds.CREATED_BY, createdBy, type);
 
-            String modifiedBy = doc.getModifier();
-            if (modifiedBy==null){
-                modifiedBy = USER_UNKNOWN;
-            }
+            String modifiedBy = doc.getModifier() != null ? doc.getModifier() : USER_UNKNOWN;
             addPropertyString(result, typeId, filter, PropertyIds.LAST_MODIFIED_BY, modifiedBy, type);
             objectInfo.setCreatedBy(createdBy);
 
@@ -577,45 +571,24 @@ abstract class BridgeRepository {
     }
 
     private void initObjectInfo(ObjectInfoImpl objectInfo, boolean isDirectory, String typeId){
-        if (isDirectory) {
-            objectInfo.setBaseType(BaseTypeId.CMIS_FOLDER);
-            objectInfo.setTypeId(typeId);
-            objectInfo.setContentType(null);
-            objectInfo.setFileName(null);
-            objectInfo.setHasAcl(true);
-            objectInfo.setHasContent(false);
-            objectInfo.setVersionSeriesId(null);
-            objectInfo.setIsCurrentVersion(true);
-            objectInfo.setRelationshipSourceIds(null);
-            objectInfo.setRelationshipTargetIds(null);
-            objectInfo.setRenditionInfos(null);
-            objectInfo.setSupportsDescendants(true);
-            objectInfo.setSupportsFolderTree(true);
-            objectInfo.setSupportsPolicies(false);
-            objectInfo.setSupportsRelationships(false);
-            objectInfo.setWorkingCopyId(null);
-            objectInfo.setWorkingCopyOriginalId(null);
-        } else {
-            objectInfo.setBaseType(BaseTypeId.CMIS_DOCUMENT);
-            objectInfo.setTypeId(typeId);
-            objectInfo.setHasAcl(true);
-            objectInfo.setHasContent(true);
-            objectInfo.setHasParent(true);
-            objectInfo.setVersionSeriesId(null);
-            objectInfo.setIsCurrentVersion(true);
-            objectInfo.setRelationshipSourceIds(null);
-            objectInfo.setRelationshipTargetIds(null);
-            objectInfo.setRenditionInfos(null);
-            objectInfo.setSupportsDescendants(false);
-            objectInfo.setSupportsFolderTree(false);
-            objectInfo.setSupportsPolicies(false);
-            objectInfo.setSupportsRelationships(false);
-            objectInfo.setWorkingCopyId(null);
-            objectInfo.setWorkingCopyOriginalId(null);
-        }
+        objectInfo.setTypeId(typeId);
+        objectInfo.setHasAcl(true);
+        objectInfo.setVersionSeriesId(null);
+        objectInfo.setIsCurrentVersion(true);
+        objectInfo.setRelationshipSourceIds(null);
+        objectInfo.setRelationshipTargetIds(null);
+        objectInfo.setRenditionInfos(null);
+        objectInfo.setSupportsPolicies(false);
+        objectInfo.setSupportsRelationships(false);
+        objectInfo.setWorkingCopyId(null);
+        objectInfo.setWorkingCopyOriginalId(null);
+        objectInfo.setContentType(null);
+        objectInfo.setFileName(null);
+        objectInfo.setBaseType(isDirectory ? BaseTypeId.CMIS_FOLDER : BaseTypeId.CMIS_DOCUMENT);
+        objectInfo.setHasContent(!isDirectory);
+        objectInfo.setSupportsDescendants(isDirectory);
+        objectInfo.setSupportsFolderTree(isDirectory);
     }
-
-
 
     /**
      * Creates a File object from an id. A simple and insecure implementation,
@@ -679,4 +652,3 @@ abstract class BridgeRepository {
 
     abstract boolean checkUser(CallContext context, boolean writeRequired);
 }
-

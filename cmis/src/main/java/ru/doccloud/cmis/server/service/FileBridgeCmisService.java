@@ -83,6 +83,7 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
      * Gets the repository for the current call.
      */
     public FileBridgeRepository getRepository() {
+        LOGGER.debug("getRepository()");
         return repositoryManager.getRepository(getCallContext().getRepositoryId());
     }
 
@@ -90,9 +91,15 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
 
     @Override
     public RepositoryInfo getRepositoryInfo(String repositoryId, ExtensionsData extension) {
+        LOGGER.debug("getRepositoryInfo(repositoryId = {}, extension={})", repositoryId, extension);
         for (FileBridgeRepository fsr : repositoryManager.getRepositories()) {
             if (fsr.getRepositoryId().equals(repositoryId)) {
-                return fsr.getRepositoryInfo(getCallContext());
+                LOGGER.debug("getRepositoryInfo(): found repository {}", fsr);
+                try {
+                    return fsr.getRepositoryInfo(getCallContext());
+                } catch (IllegalAccessException e) {
+                    LOGGER.error("getRepositoryInfo(): Exception {}", e);
+                }
             }
         }
 
@@ -101,10 +108,16 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
 
     @Override
     public List<RepositoryInfo> getRepositoryInfos(ExtensionsData extension) {
-        List<RepositoryInfo> result = new ArrayList<RepositoryInfo>();
+        LOGGER.debug("getRepositoryInfos(extension={})", extension);
+        List<RepositoryInfo> result = new ArrayList<>();
 
         for (FileBridgeRepository fsr : repositoryManager.getRepositories()) {
-            result.add(fsr.getRepositoryInfo(getCallContext()));
+            try {
+                LOGGER.debug("getRepositoryInfos(): found repository {}", fsr);
+                result.add(fsr.getRepositoryInfo(getCallContext()));
+            } catch (IllegalAccessException e) {
+                LOGGER.error("getRepositoryInfos(): Exception {}", e);
+            }
         }
 
         return result;
@@ -197,7 +210,7 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
             LOGGER.info("leaving create()");
             return object.getId();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("create(): Exception {}", e);
         }
 
         return null;
@@ -215,7 +228,7 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
             LOGGER.info("leaving createDocument()");
             return object.getId();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("createDocument(): Exception {}", e);
         }
         return null;
     }
@@ -229,7 +242,7 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
             return getRepository().createDocumentFromSource(getCallContext(), sourceId, properties, folderId,
                     versioningState);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("createDocumentFromSource(): Exception {}", e);
         }
         return null;
     }
@@ -244,7 +257,7 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
             LOGGER.info("leaving createFolder()");
             return object.getId();
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("createFolder(): Exception {}", e);
         }
         return null;
     }
@@ -276,7 +289,7 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
             LOGGER.info("entering getContentStream()");
             return getRepository().getContentStream(getCallContext(), objectId, offset, length);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("getContentStream(): Exception {}", e);
         }
         return null;
     }
