@@ -36,8 +36,6 @@ import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.chemistry.opencmis.server.support.wrapper.CallContextAwareCmisService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import ru.doccloud.cmis.server.repository.FileBridgeRepository;
 import ru.doccloud.cmis.server.repository.FileBridgeRepositoryManager;
 
@@ -49,15 +47,16 @@ import java.util.List;
 /**
  * FileShare Service implementation.
  */
-@Component
+//@Component
+//@Scope(value = "request")
 public class FileBridgeCmisService extends AbstractCmisService implements CallContextAwareCmisService {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileBridgeCmisService.class);
 
 	private final FileBridgeRepositoryManager repositoryManager;
     private CallContext context;
 
-    @Autowired
-    public FileBridgeCmisService(FileBridgeRepositoryManager repositoryManager) {
+//    @Autowired
+    FileBridgeCmisService(FileBridgeRepositoryManager repositoryManager) {
         this.repositoryManager = repositoryManager;
     }
 
@@ -266,6 +265,7 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
 
     @Override
     public AllowableActions getAllowableActions(String repositoryId, String objectId, ExtensionsData extension) {
+        LOGGER.info("entering getAllowableActions()");
         return getRepository().getAllowableActions(getCallContext(), objectId);
     }
 
@@ -273,6 +273,7 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
     public ContentStream getContentStream(String repositoryId, String objectId, String streamId, BigInteger offset,
             BigInteger length, ExtensionsData extension) {
         try {
+            LOGGER.info("entering getContentStream()");
             return getRepository().getContentStream(getCallContext(), objectId, offset, length);
         } catch (Exception e) {
             e.printStackTrace();
@@ -284,6 +285,7 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
     public ObjectData getObject(String repositoryId, String objectId, String filter, Boolean includeAllowableActions,
             IncludeRelationships includeRelationships, String renditionFilter, Boolean includePolicyIds,
             Boolean includeAcl, ExtensionsData extension) {
+        LOGGER.info("entering getObject()");
         return getRepository().getObject(getCallContext(), objectId, null, filter, includeAllowableActions, includeAcl,
                 this);
     }
@@ -292,12 +294,14 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
     public ObjectData getObjectByPath(String repositoryId, String path, String filter, Boolean includeAllowableActions,
             IncludeRelationships includeRelationships, String renditionFilter, Boolean includePolicyIds,
             Boolean includeAcl, ExtensionsData extension) {
+        LOGGER.info("entering getObjectByPath()");
         return getRepository().getObjectByPath(getCallContext(), path, filter, includeAllowableActions, includeAcl,
                 this);
     }
 
     @Override
     public Properties getProperties(String repositoryId, String objectId, String filter, ExtensionsData extension) {
+        LOGGER.info("entering getProperties()");
         ObjectData object = getRepository().getObject(getCallContext(), objectId, null, filter, false, false, this);
         return object.getProperties();
     }
@@ -305,6 +309,7 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
     @Override
     public List<RenditionData> getRenditions(String repositoryId, String objectId, String renditionFilter,
             BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
+        LOGGER.info("entering getRenditions()");
         return Collections.emptyList();
     }
 
@@ -318,31 +323,40 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
     @Override
     public void setContentStream(String repositoryId, Holder<String> objectId, Boolean overwriteFlag,
             Holder<String> changeToken, ContentStream contentStream, ExtensionsData extension) {
+        LOGGER.info("entering setContentStream()");
         getRepository().changeContentStream(getCallContext(), objectId, overwriteFlag, contentStream, false);
+        LOGGER.info("leaving setContentStream()");
     }
 
     @Override
     public void appendContentStream(String repositoryId, Holder<String> objectId, Holder<String> changeToken,
             ContentStream contentStream, boolean isLastChunk, ExtensionsData extension) {
+        LOGGER.info("entering appendContentStream()");
         getRepository().changeContentStream(getCallContext(), objectId, true, contentStream, true);
+        LOGGER.info("leaving appendContentStream()");
     }
 
     @Override
     public void deleteContentStream(String repositoryId, Holder<String> objectId, Holder<String> changeToken,
             ExtensionsData extension) {
+        LOGGER.info("entering deleteContentStream()");
         getRepository().changeContentStream(getCallContext(), objectId, true, null, false);
+        LOGGER.info("leaving deleteContentStream()");
     }
 
     @Override
     public void updateProperties(String repositoryId, Holder<String> objectId, Holder<String> changeToken,
             Properties properties, ExtensionsData extension) {
+        LOGGER.info("entering updateProperties()");
         getRepository().updateProperties(getCallContext(), objectId, properties, this);
+        LOGGER.info("entering updateProperties()");
     }
 
     @Override
     public List<BulkUpdateObjectIdAndChangeToken> bulkUpdateProperties(String repositoryId,
             List<BulkUpdateObjectIdAndChangeToken> objectIdAndChangeToken, Properties properties,
             List<String> addSecondaryTypeIds, List<String> removeSecondaryTypeIds, ExtensionsData extension) {
+        LOGGER.info("entering bulkUpdateProperties()");
         return getRepository().bulkUpdateProperties(getCallContext(), objectIdAndChangeToken, properties, this);
     }
 
@@ -353,7 +367,7 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
             Boolean includeAllowableActions, ExtensionsData extension) {
         ObjectData theVersion = getRepository().getObject(getCallContext(), objectId, versionSeriesId, filter,
                 includeAllowableActions, false, this);
-
+        LOGGER.info("entering getAllVersions()");
         return Collections.singletonList(theVersion);
     }
 
@@ -361,6 +375,7 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
     public ObjectData getObjectOfLatestVersion(String repositoryId, String objectId, String versionSeriesId,
             Boolean major, String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
             String renditionFilter, Boolean includePolicyIds, Boolean includeAcl, ExtensionsData extension) {
+        LOGGER.info("entering getObjectOfLatestVersion()");
         return getRepository().getObject(getCallContext(), objectId, versionSeriesId, filter, includeAllowableActions,
                 includeAcl, this);
     }
@@ -368,6 +383,7 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
     @Override
     public Properties getPropertiesOfLatestVersion(String repositoryId, String objectId, String versionSeriesId,
             Boolean major, String filter, ExtensionsData extension) {
+        LOGGER.info("entering getPropertiesOfLatestVersion()");
         ObjectData object = getRepository().getObject(getCallContext(), objectId, versionSeriesId, filter, false,
                 false, null);
 
@@ -378,6 +394,7 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
 
     @Override
     public Acl getAcl(String repositoryId, String objectId, Boolean onlyBasicPermissions, ExtensionsData extension) {
+        LOGGER.info("entering getAcl()");
         return getRepository().getAcl(getCallContext(), objectId);
     }
 
@@ -387,6 +404,7 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
     public ObjectList query(String repositoryId, String statement, Boolean searchAllVersions,
             Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter,
             BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
+        LOGGER.info("entering query()");
         return getRepository().query(getCallContext(), statement, includeAllowableActions, maxItems, skipCount, this);
     }
 

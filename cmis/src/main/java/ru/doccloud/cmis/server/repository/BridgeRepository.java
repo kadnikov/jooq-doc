@@ -19,10 +19,11 @@ import org.apache.chemistry.opencmis.commons.impl.server.ObjectInfoImpl;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.doccloud.cmis.server.FileBridgeTypeManager;
 import ru.doccloud.cmis.server.util.FileBridgeUtils;
 import ru.doccloud.document.dto.DocumentDTO;
-import ru.doccloud.service.DocumentCrudService;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,6 +34,9 @@ import java.util.regex.Pattern;
 import static ru.doccloud.cmis.server.util.FileBridgeUtils.*;
 
 abstract class BridgeRepository {
+
+//    todo add loggind to this class
+    private static final Logger LOGGER = LoggerFactory.getLogger(BridgeRepository.class);
     static final String ROOT_ID = "0";
 
     static final String USER_UNKNOWN = "<unknown>";
@@ -45,7 +49,7 @@ abstract class BridgeRepository {
             .compile("(?i)select\\s+.+\\s+from\\s+(\\S*).*\\s+where\\s+in_folder\\('(.*)'\\)");
 
 
-    final DocumentCrudService crudService;
+//    final DocumentCrudService crudService;
 
     /** Types. */
     FileBridgeTypeManager typeManager;
@@ -56,7 +60,7 @@ abstract class BridgeRepository {
     /** Root directory. */
     protected final File root;
 
-    BridgeRepository(String rootPath, DocumentCrudService crudService, FileBridgeTypeManager typeManager) {
+    BridgeRepository(String rootPath,  FileBridgeTypeManager typeManager) {
         // check root folder
         if (StringUtils.isBlank(rootPath)) {
             throw new IllegalArgumentException("Invalid root folder!");
@@ -68,7 +72,7 @@ abstract class BridgeRepository {
             throw new IllegalArgumentException("Root is not a directory!");
         }
 
-        this.crudService = crudService;
+//        this.crudService = crudService;
         this.typeManager = typeManager;
 
         // set up read-write user map
@@ -241,6 +245,51 @@ abstract class BridgeRepository {
     }
 
 
+    /**
+     * Gather the children of a folder.
+     */
+    void gatherDescendants(CallContext context, File folder, List<ObjectInFolderContainer> list,
+                           boolean foldersOnly, int depth, Set<String> filter, boolean includeAllowableActions,
+                           boolean includePathSegments, boolean userReadOnly, ObjectInfoHandler objectInfos) {
+        if(folder == null) {
+            LOGGER.warn("gatherDescendants(): parent folder is null or it contains no any children");
+            return;
+        }
+        // iterate through children
+        for (File child : folder.listFiles()) {
+            // skip hidden and shadow files
+            if (child.isHidden()) {
+                continue;
+            }
+
+            // folders only?
+            if (foldersOnly && !child.isDirectory()) {
+                continue;
+            }
+
+            // add to list
+            ObjectInFolderDataImpl objectInFolder = new ObjectInFolderDataImpl();
+            objectInFolder.setObject(compileObjectData(context, child, filter, includeAllowableActions, false,
+                    userReadOnly, objectInfos));
+            if (includePathSegments) {
+                objectInFolder.setPathSegment(child.getName());
+            }
+
+            ObjectInFolderContainerImpl container = new ObjectInFolderContainerImpl();
+            container.setObject(objectInFolder);
+
+            list.add(container);
+
+            // move to next level
+            if (depth != 1 && child.isDirectory()) {
+                container.setChildren(new ArrayList<>());
+                gatherDescendants(context, child, container.getChildren(), foldersOnly, depth - 1, filter,
+                        includeAllowableActions, includePathSegments, userReadOnly, objectInfos);
+            }
+        }
+    }
+
+
     TypeDefinition getTypeDefinitionByTypeId(String typeId){
         TypeDefinition type = typeManager.getInternalTypeDefinition(typeId);
 
@@ -281,12 +330,12 @@ abstract class BridgeRepository {
     /**
      * Compiles an object type object from a document.
      */
-    ObjectData compileObjectData(CallContext context, DocumentDTO doc, Set<String> filter,
+    ObjectData compileObjectData(CallContext context, DocumentDTO doc, DocumentDTO parentDoc, Set<String> filter,
                                  boolean includeAllowableActions, boolean includeAcl, boolean userReadOnly, ObjectInfoHandler objectInfos) {
         ObjectDataImpl result = new ObjectDataImpl();
         ObjectInfoImpl objectInfo = new ObjectInfoImpl();
 
-        result.setProperties(compileProperties(context, doc, filter, objectInfo));
+        result.setProperties(compileProperties(context, doc, parentDoc, filter, objectInfo));
 
 //        if (includeAllowableActions) {
 //            //result.setAllowableActions(compileAllowableActions(file, userReadOnly));
@@ -392,7 +441,7 @@ abstract class BridgeRepository {
     /**
      * Gathers all base properties of a document.
      */
-    private Properties compileProperties(CallContext context, DocumentDTO doc, Set<String> orgfilter,
+    private Properties compileProperties(CallContext context, DocumentDTO doc, DocumentDTO parentDoc, Set<String> orgfilter,
                                          ObjectInfoImpl objectInfo) {
         if (doc == null) {
             throw new IllegalArgumentException("File must not be null!");
@@ -465,9 +514,8 @@ abstract class BridgeRepository {
                 addPropertyString(result, typeId, filter, PropertyIds.PATH, "/"+path, type);
 
                 // folder properties
-                if (doc.getId()!=0) {
-                    DocumentDTO firstParentDoc = getFirstParent(doc.getId());
-                    addPropertyId(result, typeId, filter, PropertyIds.PARENT_ID, getId(firstParentDoc.getId()), type);
+                if (parentDoc !=null) {
+                    addPropertyId(result, typeId, filter, PropertyIds.PARENT_ID, getId(parentDoc.getId()), type);
                     objectInfo.setHasParent(true);
                 } else {
                     addPropertyId(result, typeId, filter, PropertyIds.PARENT_ID, null, type);
@@ -527,12 +575,6 @@ abstract class BridgeRepository {
             throw new CmisRuntimeException(e.getMessage(), e);
         }
     }
-
-    DocumentDTO getFirstParent(Long objectId) {
-        final List<DocumentDTO> docList = crudService.findParents(objectId);
-        return docList != null && docList.size() > 0 ? docList.get(0) : null;
-    }
-
 
     private void initObjectInfo(ObjectInfoImpl objectInfo, boolean isDirectory, String typeId){
         if (isDirectory) {
