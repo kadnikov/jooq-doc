@@ -29,10 +29,6 @@ import org.slf4j.LoggerFactory;
 import ru.doccloud.service.UserService;
 import ru.doccloud.service.document.dto.UserDTO;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * Manages users for the FileShare repository.
  */
@@ -40,33 +36,10 @@ public class FileBridgeUserManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileBridgeUserManager.class);
 
-    private final Map<String, String> logins;
-
     private UserService userService;
 
     public FileBridgeUserManager(UserService userService) {
         this.userService = userService;
-        logins = new ConcurrentHashMap<>();
-    }
-
-    /**
-     * Returns all logins.
-     */
-    public synchronized Collection<String> getLogins() {
-        return logins.keySet();
-    }
-
-    /**
-     * Adds a login.
-     */
-    public synchronized void addLogin(final String username, final String password) {
-//        todo remove logging after creating auth
-        LOGGER.info("addLogin(userName = {}, password={})", username, password);
-        if (username == null || password == null) {
-            return;
-        }
-
-        logins.put(username.trim(), password);
     }
 
     /**

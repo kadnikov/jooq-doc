@@ -177,34 +177,37 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
      * definitions.
      */
     private void readConfiguration(Map<String, String> parameters) throws Exception {
-        LOGGER.info("[FileBridgeCmisServiceFactory] readConfiguration");
+        LOGGER.info("entering readConfiguration(parameters={})", parameters);
         List<String> keys = new ArrayList<String>(parameters.keySet());
+        LOGGER.info("readConfiguration(): keys {}", keys);
         Collections.sort(keys);
 
         for (String key : keys) {
 //            todo rewrite using enum
             if (key.startsWith(PREFIX_LOGIN)) {
                 // get logins
-                String usernameAndPassword = parameters.get(key);
-                if (usernameAndPassword == null) {
-                    continue;
-                }
+//                String usernameAndPassword = parameters.get(key);
+//                if (usernameAndPassword == null) {
+//                    continue;
+//                }
+//
+//                String username = usernameAndPassword;
+//                String password = "";
+//
+//                int x = usernameAndPassword.indexOf(':');
+//                if (x > -1) {
+//                    username = usernameAndPassword.substring(0, x);
+//                    password = usernameAndPassword.substring(x + 1);
+//                }
+//
+//                LOGGER.info("Adding login '{}'.", username);
 
-                String username = usernameAndPassword;
-                String password = "";
-
-                int x = usernameAndPassword.indexOf(':');
-                if (x > -1) {
-                    username = usernameAndPassword.substring(0, x);
-                    password = usernameAndPassword.substring(x + 1);
-                }
-
-                LOGGER.info("Adding login '{}'.", username);
-
-                userManager.addLogin(username, password);
+//                userManager.addLogin(username, password);
             } else if (key.startsWith(PREFIX_REPOSITORY)) {
                 // configure repositories
                 String repositoryId = key.substring(PREFIX_REPOSITORY.length()).trim();
+
+                LOGGER.info("readConfiguration(): repositoryId {}", repositoryId);
                 int x = repositoryId.lastIndexOf('.');
                 if (x > 0) {
                     repositoryId = repositoryId.substring(0, x);
