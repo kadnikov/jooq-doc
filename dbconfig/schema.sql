@@ -36,6 +36,63 @@ CREATE TABLE if not exists links (
 	PRIMARY KEY (head_id, tail_id)
 );
 
+CREATE TABLE if not exists roles
+(
+  role character varying(50) NOT NULL,
+  CONSTRAINT roles_pkey PRIMARY KEY (role)
+)
+WITH (
+OIDS=FALSE
+);
+
+ALTER TABLE public.roles
+  OWNER TO postgres;
+GRANT ALL ON TABLE public.roles TO postgres;
+GRANT SELECT, UPDATE, INSERT, DELETE, TRIGGER ON TABLE public.roles TO public;
+
+CREATE TABLE if not exists users
+(
+  userid character varying(255) NOT NULL,
+  password character varying(50),
+  groups text[],
+  fullname character varying(255),
+  avatar character varying(255),
+  email character varying(255),
+  created bigint,
+  validated boolean,
+  validationcode character varying(128),
+  category integer,
+  details character varying(2048),
+  status integer DEFAULT 0,
+  CONSTRAINT users_pkey PRIMARY KEY (userid)
+)
+WITH (
+OIDS=FALSE
+);
+ALTER TABLE public.users
+  OWNER TO postgres;
+GRANT ALL ON TABLE public.users TO postgres;
+GRANT SELECT, UPDATE, INSERT ON TABLE public.users TO doccloud;
+
+CREATE TABLE if not exists user_roles
+(
+  role character varying(50) NOT NULL,
+  userid character varying(50) NOT NULL,
+  CONSTRAINT user_roles_pkey PRIMARY KEY (userid, role),
+  CONSTRAINT user_roles_role_fkey FOREIGN KEY (role)
+  REFERENCES public.roles (role) MATCH SIMPLE
+  ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT user_roles_userid_fkey FOREIGN KEY (userid)
+  REFERENCES public.users (userid) MATCH SIMPLE
+  ON UPDATE NO ACTION ON DELETE CASCADE
+)
+WITH (
+OIDS=FALSE
+);
+ALTER TABLE public.user_roles
+  OWNER TO postgres;
+GRANT ALL ON TABLE public.user_roles TO postgres;
+GRANT SELECT, UPDATE, INSERT, DELETE, TRIGGER ON TABLE public.user_roles TO public;
 
 -- CREATE TABLESPACE admin LOCATION '/var/lib/postgresql/9.6/main';
 -- CREATE SEQUENCE IF NOT EXISTS system_id_seq;

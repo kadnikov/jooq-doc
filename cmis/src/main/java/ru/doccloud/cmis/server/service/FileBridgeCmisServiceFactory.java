@@ -40,6 +40,7 @@ import ru.doccloud.cmis.server.FileBridgeUserManager;
 import ru.doccloud.cmis.server.repository.FileBridgeRepository;
 import ru.doccloud.cmis.server.repository.FileBridgeRepositoryManager;
 import ru.doccloud.config.PersistenceContext;
+import ru.doccloud.service.UserService;
 import ru.doccloud.storagemanager.StorageManager;
 import ru.doccloud.service.DocumentCrudService;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
@@ -74,21 +75,17 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
 
     /** Default depth value for getDescendants(). */
     private static final BigInteger DEFAULT_DEPTH_OBJECTS = BigInteger.valueOf(10);
-    
+
     private final ApplicationContext appContext;
-    
+
 //    private final JTransfo transformer;
 
     private final DocumentCrudService crudService;
     private final StorageManager storageManager;
     private StorageAreaSettings storageAreaSettings;
 
-    /** Each thread gets its own {@link FileBridgeCmisService} instance. */
-    // old threadLocalService
-    // private ThreadLocal<CmisServiceWrapper<FileBridgeCmisService>>
-    // threadLocalService = new
-    // ThreadLocal<CmisServiceWrapper<FileBridgeCmisService>>();
-    // new CallContextAware threadLocalService
+    private final UserService userService;
+
     private ThreadLocal<CallContextAwareCmisService> threadLocalService = new ThreadLocal<CallContextAwareCmisService>();
     // new wrapperManager
     private CmisServiceWrapperManager wrapperManager;
@@ -98,13 +95,15 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
     private FileBridgeTypeManager typeManager;
 
     @Autowired
-    public FileBridgeCmisServiceFactory(ApplicationContext appContext,  DocumentCrudService crudService, StorageAreaSettings storageAreaSettings,  StorageManager storageManager) {
+    public FileBridgeCmisServiceFactory(ApplicationContext appContext,  DocumentCrudService crudService,
+                                        StorageAreaSettings storageAreaSettings,  StorageManager storageManager,
+                                        UserService userService) {
         LOGGER.info("FileBridgeCmisServiceFactory(crudService={}, storageAreaSettings= {}, storageManager={})", crudService, storageAreaSettings, storageManager);
         this.appContext = appContext;
         this.crudService = crudService;
         this.storageAreaSettings = storageAreaSettings;
-        //        todo add storageManager as autowired
         this.storageManager = storageManager;
+        this.userService = userService;
     }
 
     @Override
@@ -126,7 +125,7 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
             }
 
             repositoryManager = new FileBridgeRepositoryManager();
-            userManager = new FileBridgeUserManager();
+            userManager = new FileBridgeUserManager(userService);
             typeManager = new FileBridgeTypeManager();
 
             readConfiguration(parameters);
@@ -142,12 +141,12 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
 
     @Override
     public CmisService getService(CallContext context) {
-        
-    	// LOGGER.info("[FileBridgeCmisServiceFactory] getService");
-    	// authenticate the user
+
+        // LOGGER.info("[FileBridgeCmisServiceFactory] getService");
+        // authenticate the user
         // if the authentication fails, authenticate() throws a
         // CmisPermissionDeniedException
-    	
+
         userManager.authenticate(context);
 
         // get service object for this thread
@@ -178,7 +177,7 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
      * definitions.
      */
     private void readConfiguration(Map<String, String> parameters) throws Exception {
-    	LOGGER.info("[FileBridgeCmisServiceFactory] readConfiguration");
+        LOGGER.info("[FileBridgeCmisServiceFactory] readConfiguration");
         List<String> keys = new ArrayList<String>(parameters.keySet());
         Collections.sort(keys);
 
@@ -235,7 +234,7 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
                     PersistenceContext pctx = appContext.getBean(PersistenceContext.class);
                     LOGGER.info("pctx: {}", pctx);
                     DSLContext jooq = pctx.dsl();
-                    
+
                     FileBridgeRepository fsr = new FileBridgeRepository(repositoryId, root, typeManager, jooq, crudService, storageAreaSettings, storageManager);
                     repositoryManager.addRepository(fsr);
                 }

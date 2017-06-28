@@ -26,6 +26,8 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedExce
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.doccloud.service.UserService;
+import ru.doccloud.service.document.dto.UserDTO;
 
 import java.util.Collection;
 import java.util.Map;
@@ -40,7 +42,10 @@ public class FileBridgeUserManager {
 
     private final Map<String, String> logins;
 
-    public FileBridgeUserManager() {
+    private UserService userService;
+
+    public FileBridgeUserManager(UserService userService) {
+        this.userService = userService;
         logins = new ConcurrentHashMap<>();
     }
 
@@ -82,21 +87,9 @@ public class FileBridgeUserManager {
     private synchronized boolean authenticate(final String username, final String password) {
         //        todo remove logging after creating auth
         LOGGER.info("authenticate(userName = {}, password={})", username, password);
-        final String pwd = logins.get(username);
-        return pwd != null && pwd.equals(password);
+        final UserDTO userDTO = userService.getUserDto(username, password);
+        LOGGER.info("authenticate(): userDto {}",userDTO);
+        return userDTO != null;
 
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-
-        for (String user : logins.keySet()) {
-            sb.append('[');
-            sb.append(user);
-            sb.append(']');
-        }
-
-        return sb.toString();
     }
 }
