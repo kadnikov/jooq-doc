@@ -14,7 +14,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import ru.doccloud.docs.PageBuilder;
 import ru.doccloud.docs.common.TestDateUtil;
 import ru.doccloud.docs.config.ServiceTestContext;
-import ru.doccloud.document.dto.DocumentDTO;
+import ru.doccloud.service.document.dto.DocumentDTO;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.repository.DocumentRepository;
 import ru.doccloud.service.impl.RepositoryDocumentSearchService;

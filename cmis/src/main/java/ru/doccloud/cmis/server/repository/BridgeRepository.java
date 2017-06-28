@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.doccloud.cmis.server.FileBridgeTypeManager;
 import ru.doccloud.cmis.server.util.FileBridgeUtils;
-import ru.doccloud.document.dto.DocumentDTO;
+import ru.doccloud.service.document.dto.DocumentDTO;
 
 import java.io.File;
 import java.io.IOException;

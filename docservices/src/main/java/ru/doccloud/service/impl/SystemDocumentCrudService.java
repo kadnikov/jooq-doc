@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import ru.doccloud.document.dto.SystemDTO;
+import ru.doccloud.service.document.dto.SystemDTO;
 import ru.doccloud.document.model.SystemDocument;
 import ru.doccloud.repository.SystemRepository;
 import ru.doccloud.service.SystemCrudService;

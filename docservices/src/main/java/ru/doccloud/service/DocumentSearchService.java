@@ -3,7 +3,7 @@ package ru.doccloud.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import ru.doccloud.document.dto.DocumentDTO;
+import ru.doccloud.service.document.dto.DocumentDTO;
 
 /**
  * @author Andrey Kadnikov

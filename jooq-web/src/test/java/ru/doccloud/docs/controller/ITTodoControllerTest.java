@@ -26,7 +26,7 @@ import ru.doccloud.docs.IntegrationTestConstants;
 import ru.doccloud.docs.dto.DocsDTOBuilder;
 import ru.doccloud.docs.utils.WebTestConstants;
 import ru.doccloud.docs.utils.WebTestUtil;
-import ru.doccloud.document.dto.DocumentDTO;
+import ru.doccloud.service.document.dto.DocumentDTO;
 
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;

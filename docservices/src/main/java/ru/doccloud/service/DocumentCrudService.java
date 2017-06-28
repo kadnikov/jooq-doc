@@ -3,8 +3,8 @@ package ru.doccloud.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
-import ru.doccloud.document.dto.DocumentDTO;
-import ru.doccloud.document.dto.LinkDTO;
+import ru.doccloud.service.document.dto.DocumentDTO;
+import ru.doccloud.service.document.dto.LinkDTO;
 
 import java.util.List;
 

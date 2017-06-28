@@ -24,7 +24,7 @@ import ru.doccloud.docs.config.WebUnitTestContext;
 import ru.doccloud.docs.dto.DocsDTOBuilder;
 import ru.doccloud.docs.utils.WebTestConstants;
 import ru.doccloud.docs.utils.WebTestUtil;
-import ru.doccloud.document.dto.DocumentDTO;
+import ru.doccloud.service.document.dto.DocumentDTO;
 import ru.doccloud.service.DocumentCrudService;
 import ru.doccloud.service.DocumentSearchService;
 

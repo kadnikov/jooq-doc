@@ -2,7 +2,7 @@ package ru.doccloud.docs.dto;
 
 import org.joda.time.LocalDateTime;
 import ru.doccloud.docs.common.TestDateUtil;
-import ru.doccloud.document.dto.DocumentDTO;
+import ru.doccloud.service.document.dto.DocumentDTO;
 
 /**
  */

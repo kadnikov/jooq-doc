@@ -13,7 +13,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import ru.doccloud.common.util.VersionHelper;
-import ru.doccloud.document.dto.SystemDTO;
+import ru.doccloud.service.document.dto.SystemDTO;
 import ru.doccloud.service.SystemCrudService;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
 import ru.doccloud.storagemanager.StorageManager;

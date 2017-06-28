@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
-import ru.doccloud.document.dto.SystemDTO;
+import ru.doccloud.service.document.dto.SystemDTO;
 
 import java.util.List;
 

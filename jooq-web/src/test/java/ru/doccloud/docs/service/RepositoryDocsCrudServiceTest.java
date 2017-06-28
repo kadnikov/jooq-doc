@@ -13,7 +13,7 @@ import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.docs.common.TestDateUtil;
 import ru.doccloud.docs.config.ServiceTestContext;
 import ru.doccloud.docs.dto.DocsDTOBuilder;
-import ru.doccloud.document.dto.DocumentDTO;
+import ru.doccloud.service.document.dto.DocumentDTO;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.repository.DocumentRepository;
 import ru.doccloud.service.impl.RepositoryDocumentCrudService;

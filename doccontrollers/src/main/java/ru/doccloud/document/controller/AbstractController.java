@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import ru.doccloud.document.dto.AbstractDocumentDTO;
+import ru.doccloud.service.document.dto.AbstractDocumentDTO;
 import ru.doccloud.storage.StorageActionsService;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
 import ru.doccloud.storagemanager.StorageManager;

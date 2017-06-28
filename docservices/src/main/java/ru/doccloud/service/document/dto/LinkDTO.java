@@ -1,4 +1,4 @@
-package ru.doccloud.document.dto;
+package ru.doccloud.service.document.dto;
 
 import org.jtransfo.DomainClass;
 
