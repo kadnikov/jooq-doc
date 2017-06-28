@@ -907,7 +907,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
      */
     public List<ObjectInFolderContainer> getDescendants(CallContext context, String folderId, BigInteger depth,
                                                         String filter, Boolean includeAllowableActions, Boolean includePathSegment, ObjectInfoHandler objectInfos,
-                                                        boolean foldersOnly) {
+                                                        boolean foldersOnly) throws IOException {
         LOGGER.debug("entering getDescendants(folderId={}, depth={},  filter= {}, includeAllowableActions={}, includePathSegment={}, objectInfos={}, foldersOnly={})",
                 folderId, depth, filter, includeAllowableActions, includePathSegment, objectInfos, foldersOnly);
         boolean userReadOnly = checkUser(context, false);
@@ -1044,7 +1044,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
      * CMIS query (simple IN_FOLDER queries only)
      */
     public ObjectList query(CallContext context, String statement, Boolean includeAllowableActions,
-                            BigInteger maxItems, BigInteger skipCount, ObjectInfoHandler objectInfos) {
+                            BigInteger maxItems, BigInteger skipCount, ObjectInfoHandler objectInfos) throws IOException {
         boolean userReadOnly = checkUser(context, false);
 
         Matcher matcher = IN_FOLDER_QUERY_PATTERN.matcher(statement.trim());

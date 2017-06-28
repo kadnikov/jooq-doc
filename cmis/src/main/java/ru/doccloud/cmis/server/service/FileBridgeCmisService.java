@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import ru.doccloud.cmis.server.repository.FileBridgeRepository;
 import ru.doccloud.cmis.server.repository.FileBridgeRepositoryManager;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -157,8 +158,13 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
     public List<ObjectInFolderContainer> getDescendants(String repositoryId, String folderId, BigInteger depth,
             String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
             String renditionFilter, Boolean includePathSegment, ExtensionsData extension) {
-        return getRepository().getDescendants(getCallContext(), folderId, depth, filter, includeAllowableActions,
-                includePathSegment, this, false);
+        try {
+            return getRepository().getDescendants(getCallContext(), folderId, depth, filter, includeAllowableActions,
+                    includePathSegment, this, false);
+        } catch (IOException e) {
+            LOGGER.error("getDescendants(): Exception {}", e);
+        }
+        return null;
     }
 
     @Override
@@ -170,8 +176,13 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
     public List<ObjectInFolderContainer> getFolderTree(String repositoryId, String folderId, BigInteger depth,
             String filter, Boolean includeAllowableActions, IncludeRelationships includeRelationships,
             String renditionFilter, Boolean includePathSegment, ExtensionsData extension) {
-        return getRepository().getDescendants(getCallContext(), folderId, depth, filter, includeAllowableActions,
-                includePathSegment, this, true);
+        try {
+            return getRepository().getDescendants(getCallContext(), folderId, depth, filter, includeAllowableActions,
+                    includePathSegment, this, true);
+        } catch (IOException e) {
+            LOGGER.error("getFolderTree(): Exception {}", e);
+        }
+        return null;
     }
 
     @Override
@@ -418,7 +429,12 @@ public class FileBridgeCmisService extends AbstractCmisService implements CallCo
             Boolean includeAllowableActions, IncludeRelationships includeRelationships, String renditionFilter,
             BigInteger maxItems, BigInteger skipCount, ExtensionsData extension) {
         LOGGER.info("entering query()");
-        return getRepository().query(getCallContext(), statement, includeAllowableActions, maxItems, skipCount, this);
+        try {
+            return getRepository().query(getCallContext(), statement, includeAllowableActions, maxItems, skipCount, this);
+        } catch (IOException e) {
+            LOGGER.error("query(): Exception {}", e);
+        }
+        return null;
     }
 
 }

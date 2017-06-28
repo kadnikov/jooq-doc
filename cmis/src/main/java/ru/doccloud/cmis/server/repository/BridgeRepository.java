@@ -121,7 +121,7 @@ abstract class BridgeRepository {
      * Gathers all base properties of a file or folder.
      */
     private Properties compileProperties(CallContext context, File file, Set<String> orgfilter,
-                                         ObjectInfoImpl objectInfo) {
+                                         ObjectInfoImpl objectInfo) throws IOException {
         if (file == null) {
             throw new IllegalArgumentException("File must not be null!");
         }
@@ -131,93 +131,37 @@ abstract class BridgeRepository {
             throw new CmisObjectNotFoundException("Object not found!");
         }
 
-        // copy filter
-        Set<String> filter = (orgfilter == null ? null : new HashSet<>(orgfilter));
+        boolean isDirectory = file.isDirectory();
 
-        // find base type
-        String typeId = file.isDirectory() ? BaseTypeId.CMIS_FOLDER.value() : BaseTypeId.CMIS_DOCUMENT.value();
-        initObjectInfo(objectInfo, file.isDirectory(), typeId);
+        // id
+        String id = fileToId(file);
+        // name
+        String name = file.getName();
 
+        long createdTime = file.lastModified();
+        long lastModifiedTime = file.lastModified();
+        // change token - always null
 
-        // exercise 3.3
-        try {
-            PropertiesImpl result = new PropertiesImpl();
+        String rootId = isDirectory ? (!root.equals(file) ? (root.equals(file.getParentFile()) ? ROOT_ID : fileToId(file.getParentFile())): null) : null;
+        String path = isDirectory ? getRepositoryPath(file):null;
 
-            TypeDefinition type = getTypeDefinitionByTypeId(typeId);
+        String title = isDirectory ? null : file.getName();
 
-            // id
-            String id = fileToId(file);
-            addPropertyId(result, typeId, filter, PropertyIds.OBJECT_ID, id, type);
-            objectInfo.setId(id);
+        boolean isFileNotEmpty = !isDirectory && file.length() != 0;
 
-            // name
-            String name = file.getName();
-            addPropertyString(result, typeId, filter, PropertyIds.NAME, name, type);
-            objectInfo.setName(name);
+        String streamMimeType = isFileNotEmpty ? MimeTypes.getMIMEType(file) : null;
 
-            // created and modified by
-            addPropertyString(result, typeId, filter, PropertyIds.CREATED_BY, USER_UNKNOWN, type);
-            addPropertyString(result, typeId, filter, PropertyIds.LAST_MODIFIED_BY, USER_UNKNOWN, type);
-            objectInfo.setCreatedBy(USER_UNKNOWN);
+        String streamFileName = isFileNotEmpty ? file.getName() : null;
 
-            // creation and modification date
-            GregorianCalendar lastModified = FileBridgeUtils.millisToCalendar(file.lastModified());
-            addPropertyDateTime(result, typeId, filter, PropertyIds.CREATION_DATE, lastModified, type);
-            addPropertyDateTime(result, typeId, filter, PropertyIds.LAST_MODIFICATION_DATE, lastModified, type);
-            objectInfo.setCreationDate(lastModified);
-            objectInfo.setLastModificationDate(lastModified);
+        BigInteger streamLenght = isFileNotEmpty ? BigInteger.valueOf(file.length()) : null;
 
-            // change token - always null
-            addPropertyString(result, typeId, filter, PropertyIds.CHANGE_TOKEN, null, type);
+        return compileProperties(context, rootId, orgfilter, objectInfo, isDirectory, id, name, null,
+                USER_UNKNOWN, USER_UNKNOWN, createdTime, lastModifiedTime, path, title,
+                isFileNotEmpty, streamMimeType, streamFileName, streamLenght);
 
-            // CMIS 1.1 properties
-            if (context.getCmisVersion() != CmisVersion.CMIS_1_0) {
-                addPropertyString(result, typeId, filter, PropertyIds.DESCRIPTION, null, type);
-                addPropertyIdList(result, typeId, filter, PropertyIds.SECONDARY_OBJECT_TYPE_IDS, null, type);
-            }
-
-            addPropertyId(result, typeId, filter, PropertyIds.BASE_TYPE_ID, typeId, type);
-            addPropertyId(result, typeId, filter, PropertyIds.OBJECT_TYPE_ID, typeId, type);
-            // directory or file
-            if (file.isDirectory()) {
-                String path = getRepositoryPath(file);
-                addPropertyString(result, typeId, filter, PropertyIds.PATH, path, type);
-
-                addPropertyId(result, typeId, filter, PropertyIds.PARENT_ID,
-                        !root.equals(file) ? (root.equals(file.getParentFile()) ? ROOT_ID : fileToId(file.getParentFile())): null, type);
-
-                objectInfo.setHasParent(!root.equals(file));
-
-                addPropertyIdList(result, typeId, filter, PropertyIds.ALLOWED_CHILD_OBJECT_TYPE_IDS, null, type);
-            } else {
-                // file properties
-                compileConstantBooleanProperties(result, typeId, filter, type, context);
-
-                compileConstantStringProperties(result, typeId, filter, type);
-
-                addPropertyString(result, typeId, filter, PropertyIds.VERSION_LABEL, file.getName(), type);
-
-                boolean isFileNotEmpty = file.length() != 0;
-
-                addPropertyString(result, typeId, filter, PropertyIds.CONTENT_STREAM_MIME_TYPE, isFileNotEmpty ? MimeTypes.getMIMEType(file) : null, type);
-                addPropertyString(result, typeId, filter, PropertyIds.CONTENT_STREAM_FILE_NAME, isFileNotEmpty ? file.getName() : null, type);
-                addPropertyBigInteger(result, typeId, filter, PropertyIds.CONTENT_STREAM_LENGTH, isFileNotEmpty ? BigInteger.valueOf(file.length()) : null, type);
-
-                objectInfo.setHasContent(isFileNotEmpty);
-                objectInfo.setContentType(isFileNotEmpty ? MimeTypes.getMIMEType(file) : null);
-                objectInfo.setFileName(isFileNotEmpty ? file.getName(): null);
-
-                addPropertyId(result, typeId, filter, PropertyIds.VERSION_SERIES_ID, fileToId(file), type);
-                addPropertyId(result, typeId, filter, PropertyIds.CONTENT_STREAM_ID, null, type);
-            }
-
-            return result;
-        } catch (CmisBaseException cbe) {
-            throw cbe;
-        } catch (Exception e) {
-            throw new CmisRuntimeException(e.getMessage(), e);
-        }
     }
+
+
 
     /**
      * Gathers all base properties of a document.
@@ -228,47 +172,72 @@ abstract class BridgeRepository {
             throw new IllegalArgumentException("File must not be null!");
         }
 
+        boolean isDirectory = isFolder(doc.getType());
+        String rootId = isDirectory ? (parentDoc != null ? getId(parentDoc.getId()) : null):null;
+        String id = getId(doc.getId());
+        String name = doc.getTitle();
+        String createdBy = doc.getAuthor() != null ? doc.getAuthor() : USER_UNKNOWN;
+        String modifiedBy = doc.getModifier() != null ? doc.getModifier() : USER_UNKNOWN;
+        String path = isDirectory ? doc.getTitle() : null;
+
+        String title = isDirectory ? null : doc.getTitle();
+
+        boolean isDocHasContent = !isDirectory && !StringUtils.isBlank(doc.getFilePath());
+
+        String streamMimeType = isDocHasContent ? doc.getFileMimeType() : null;
+
+        String streamFileName = isDocHasContent ? doc.getTitle() : null;
+
+        String description = doc.getDescription();
+
+        BigInteger streamLenght = isDocHasContent ?
+                (doc.getFileLength() != null ? BigInteger.valueOf( doc.getFileLength()) : null) : null;
+
+        long createdTime = doc.getCreationTime().toDateTime().getMillis();
+        long lastModifiedTime = doc.getModificationTime().toDateTime().getMillis();
+
+        return compileProperties(context, rootId, orgfilter, objectInfo, isDirectory, id, name, description,
+                createdBy, modifiedBy, createdTime, lastModifiedTime, path, title,
+                isDocHasContent, streamMimeType, streamFileName, streamLenght);
+
+
+    }
+
+    private Properties compileProperties(CallContext context, String rootId, Set<String> orgfilter, ObjectInfoImpl objectInfo,
+                                         boolean isDirectory, String id, String name, String description,
+                                         String createdBy, String modifiedBy, Long createdTime, Long lastModifiedTime, String path,
+                                         String title, boolean hasContent, String streamMimeType, String  streamFileName, BigInteger streamLenght){
+
         // copy filter
         Set<String> filter = (orgfilter == null ? null : new HashSet<>(orgfilter));
-
-        boolean isDirectory = isFolder(doc.getType());
         // find base type
         String typeId = isDirectory ? BaseTypeId.CMIS_FOLDER.value() : BaseTypeId.CMIS_DOCUMENT.value();
         initObjectInfo(objectInfo, isDirectory, typeId);
-        // identify if the file is a doc or a folder/directory
 
-
-        // exercise 3.3
         try {
             PropertiesImpl result = new PropertiesImpl();
 
             TypeDefinition type = getTypeDefinitionByTypeId(typeId);
 
             // id
-            String id = getId(doc.getId());
-
             addPropertyId(result, typeId, filter, PropertyIds.OBJECT_ID, id, type);
             objectInfo.setId(id);
 
             // name
-            String name = doc.getTitle();
             addPropertyString(result, typeId, filter, PropertyIds.NAME, name, type);
             objectInfo.setName(name);
 
             // created and modified by
-            String createdBy = doc.getAuthor() != null ? doc.getAuthor() : USER_UNKNOWN;
             addPropertyString(result, typeId, filter, PropertyIds.CREATED_BY, createdBy, type);
-
-            String modifiedBy = doc.getModifier() != null ? doc.getModifier() : USER_UNKNOWN;
             addPropertyString(result, typeId, filter, PropertyIds.LAST_MODIFIED_BY, modifiedBy, type);
-            objectInfo.setCreatedBy(createdBy);
+            objectInfo.setCreatedBy(USER_UNKNOWN);
 
             // creation and modification date
-            GregorianCalendar created = FileBridgeUtils.millisToCalendar(doc.getCreationTime().toDateTime().getMillis());
+            GregorianCalendar created = FileBridgeUtils.millisToCalendar(createdTime);
+            GregorianCalendar lastModified = FileBridgeUtils.millisToCalendar(lastModifiedTime);
             addPropertyDateTime(result, typeId, filter, PropertyIds.CREATION_DATE, created, type);
-            GregorianCalendar lastModified = FileBridgeUtils.millisToCalendar(doc.getModificationTime().toDateTime().getMillis());
             addPropertyDateTime(result, typeId, filter, PropertyIds.LAST_MODIFICATION_DATE, lastModified, type);
-            objectInfo.setCreationDate(created);
+            objectInfo.setCreationDate(lastModified);
             objectInfo.setLastModificationDate(lastModified);
 
             // change token - always null
@@ -276,51 +245,36 @@ abstract class BridgeRepository {
 
             // CMIS 1.1 properties
             if (context.getCmisVersion() != CmisVersion.CMIS_1_0) {
-                addPropertyString(result, typeId, filter, PropertyIds.DESCRIPTION, doc.getDescription(), type);
+                addPropertyString(result, typeId, filter, PropertyIds.DESCRIPTION, description, type);
                 addPropertyIdList(result, typeId, filter, PropertyIds.SECONDARY_OBJECT_TYPE_IDS, null, type);
             }
-
             addPropertyId(result, typeId, filter, PropertyIds.BASE_TYPE_ID, typeId, type);
             addPropertyId(result, typeId, filter, PropertyIds.OBJECT_TYPE_ID, typeId, type);
 
-
             // directory or file
             if (isDirectory) {
-                String path = doc.getTitle();
-                addPropertyString(result, typeId, filter, PropertyIds.PATH, "/"+path, type);
+                addPropertyString(result, typeId, filter, PropertyIds.PATH, path, type);
 
-                addPropertyId(result, typeId, filter, PropertyIds.PARENT_ID, parentDoc != null ? getId(parentDoc.getId()) : null, type);
-                objectInfo.setHasParent(parentDoc != null);
+                addPropertyId(result, typeId, filter, PropertyIds.PARENT_ID,
+                        rootId, type);
+
+                objectInfo.setHasParent(rootId !=null);
 
                 addPropertyIdList(result, typeId, filter, PropertyIds.ALLOWED_CHILD_OBJECT_TYPE_IDS, null, type);
             } else {
                 // file properties
-                compileConstantBooleanProperties(result, typeId, filter, type, context);
+                compileConstantProperties(result, typeId, filter, type, context);
 
-                compileConstantStringProperties(result, typeId, filter, type);
+                addPropertyString(result, typeId, filter, PropertyIds.VERSION_LABEL, title, type);
 
-                addPropertyString(result, typeId, filter, PropertyIds.VERSION_LABEL, doc.getTitle(), type);
+                addPropertyString(result, typeId, filter, PropertyIds.CONTENT_STREAM_MIME_TYPE, streamMimeType, type);
+                addPropertyString(result, typeId, filter, PropertyIds.CONTENT_STREAM_FILE_NAME, streamFileName, type);
+                addPropertyBigInteger(result, typeId, filter, PropertyIds.CONTENT_STREAM_LENGTH, streamLenght, type);
 
-
-                addPropertyId(result, typeId, filter, PropertyIds.VERSION_SERIES_ID, getId(doc.getId()), type);
-
-
-                boolean isDocHasContent = !StringUtils.isBlank(doc.getFilePath());
-
-                addPropertyString(result, typeId, filter, PropertyIds.CONTENT_STREAM_MIME_TYPE, isDocHasContent ? doc.getFileMimeType() : null, type);
-                addPropertyString(result, typeId, filter, PropertyIds.CONTENT_STREAM_FILE_NAME, isDocHasContent ? doc.getTitle() : null, type);
-
-                addPropertyBigInteger(result, typeId, filter, PropertyIds.CONTENT_STREAM_LENGTH, isDocHasContent ?
-                        (doc.getFileLength() != null ? BigInteger.valueOf( doc.getFileLength()) : null) : null, type);
-
-
-                objectInfo.setHasContent(isDocHasContent);
-                objectInfo.setContentType(isDocHasContent ? doc.getFileMimeType(): null);
-                objectInfo.setFileName(isDocHasContent ?doc.getTitle() : null);
-
-                addPropertyId(result, typeId, filter, PropertyIds.CONTENT_STREAM_ID, null, type);
+                objectInfo.setHasContent(hasContent);
+                objectInfo.setContentType(streamMimeType);
+                objectInfo.setFileName(streamFileName);
             }
-
             return result;
         } catch (CmisBaseException cbe) {
             throw cbe;
@@ -328,12 +282,13 @@ abstract class BridgeRepository {
             throw new CmisRuntimeException(e.getMessage(), e);
         }
     }
+
     /**
      * Gather the children of a folder.
      */
     void gatherDescendants(CallContext context, File folder, List<ObjectInFolderContainer> list,
                            boolean foldersOnly, int depth, Set<String> filter, boolean includeAllowableActions,
-                           boolean includePathSegments, boolean userReadOnly, ObjectInfoHandler objectInfos) {
+                           boolean includePathSegments, boolean userReadOnly, ObjectInfoHandler objectInfos) throws IOException {
         if(folder == null) {
             LOGGER.warn("gatherDescendants(): parent folder is null or it contains no any children");
             return;
@@ -387,7 +342,7 @@ abstract class BridgeRepository {
      * Compiles an object type object from a file or folder.
      */
     ObjectData compileObjectData(CallContext context, File file, Set<String> filter,
-                                 boolean includeAllowableActions, boolean includeAcl, boolean userReadOnly, ObjectInfoHandler objectInfos) {
+                                 boolean includeAllowableActions, boolean includeAcl, boolean userReadOnly, ObjectInfoHandler objectInfos) throws IOException {
         ObjectDataImpl result = new ObjectDataImpl();
         ObjectInfoImpl objectInfo = new ObjectInfoImpl();
 
@@ -522,7 +477,7 @@ abstract class BridgeRepository {
     }
 
 
-    private void compileConstantBooleanProperties(PropertiesImpl result, String typeId, Set<String> filter, TypeDefinition type, CallContext context){
+    private void compileConstantProperties(PropertiesImpl result, String typeId, Set<String> filter, TypeDefinition type, CallContext context){
         addPropertyBoolean(result, typeId, filter, PropertyIds.IS_IMMUTABLE, false, type);
         addPropertyBoolean(result, typeId, filter, PropertyIds.IS_LATEST_VERSION, true, type);
         addPropertyBoolean(result, typeId, filter, PropertyIds.IS_MAJOR_VERSION, true, type);
@@ -532,13 +487,14 @@ abstract class BridgeRepository {
         }
 
         addPropertyBoolean(result, typeId, filter, PropertyIds.IS_VERSION_SERIES_CHECKED_OUT, false, type);
-    }
 
-    private void compileConstantStringProperties(PropertiesImpl result, String typeId, Set<String> filter, TypeDefinition type){
         addPropertyString(result, typeId, filter, PropertyIds.VERSION_SERIES_CHECKED_OUT_BY, null, type);
         addPropertyString(result, typeId, filter, PropertyIds.VERSION_SERIES_CHECKED_OUT_ID, null,type);
         addPropertyString(result, typeId, filter, PropertyIds.CHECKIN_COMMENT, "", type);
+
+        addPropertyId(result, typeId, filter, PropertyIds.CONTENT_STREAM_ID, null, type);
     }
+
 
     private void initObjectInfo(ObjectInfoImpl objectInfo, boolean isDirectory, String typeId){
         objectInfo.setTypeId(typeId);
