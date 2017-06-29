@@ -40,7 +40,7 @@ CREATE TABLE if not exists roles
 (
   role character varying(50) NOT NULL,
   CONSTRAINT roles_pkey PRIMARY KEY (role)
-)
+);
 
 
 CREATE TABLE if not exists users
@@ -58,7 +58,7 @@ CREATE TABLE if not exists users
   details character varying(2048),
   status integer DEFAULT 0,
   CONSTRAINT users_pkey PRIMARY KEY (userid)
-)
+);
 
 CREATE TABLE if not exists user_roles
 (
@@ -71,7 +71,7 @@ CREATE TABLE if not exists user_roles
   CONSTRAINT user_roles_userid_fkey FOREIGN KEY (userid)
   REFERENCES public.users (userid) MATCH SIMPLE
   ON UPDATE NO ACTION ON DELETE CASCADE
-)
+);
 
 
 -- CREATE TABLESPACE admin LOCATION '/var/lib/postgresql/9.6/main';
