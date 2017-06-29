@@ -41,14 +41,7 @@ CREATE TABLE if not exists roles
   role character varying(50) NOT NULL,
   CONSTRAINT roles_pkey PRIMARY KEY (role)
 )
-WITH (
-OIDS=FALSE
-);
 
-ALTER TABLE public.roles
-  OWNER TO postgres;
-GRANT ALL ON TABLE public.roles TO postgres;
-GRANT SELECT, UPDATE, INSERT, DELETE, TRIGGER ON TABLE public.roles TO public;
 
 CREATE TABLE if not exists users
 (
@@ -66,13 +59,6 @@ CREATE TABLE if not exists users
   status integer DEFAULT 0,
   CONSTRAINT users_pkey PRIMARY KEY (userid)
 )
-WITH (
-OIDS=FALSE
-);
-ALTER TABLE public.users
-  OWNER TO postgres;
-GRANT ALL ON TABLE public.users TO postgres;
-GRANT SELECT, UPDATE, INSERT ON TABLE public.users TO doccloud;
 
 CREATE TABLE if not exists user_roles
 (
@@ -86,13 +72,7 @@ CREATE TABLE if not exists user_roles
   REFERENCES public.users (userid) MATCH SIMPLE
   ON UPDATE NO ACTION ON DELETE CASCADE
 )
-WITH (
-OIDS=FALSE
-);
-ALTER TABLE public.user_roles
-  OWNER TO postgres;
-GRANT ALL ON TABLE public.user_roles TO postgres;
-GRANT SELECT, UPDATE, INSERT, DELETE, TRIGGER ON TABLE public.user_roles TO public;
+
 
 -- CREATE TABLESPACE admin LOCATION '/var/lib/postgresql/9.6/main';
 -- CREATE SEQUENCE IF NOT EXISTS system_id_seq;
