@@ -43,11 +43,6 @@ WITH (
 OIDS=FALSE
 );
 
-ALTER TABLE public.roles
-  OWNER TO postgres;
-GRANT ALL ON TABLE public.roles TO postgres;
-GRANT SELECT, UPDATE, INSERT, DELETE, TRIGGER ON TABLE public.roles TO public;
-
 CREATE TABLE if not exists users
 (
   userid character varying(255) NOT NULL,
@@ -67,10 +62,6 @@ CREATE TABLE if not exists users
 WITH (
 OIDS=FALSE
 );
-ALTER TABLE public.users
-  OWNER TO postgres;
-GRANT ALL ON TABLE public.users TO postgres;
-GRANT SELECT, UPDATE, INSERT ON TABLE public.users TO doccloud;
 
 CREATE TABLE if not exists user_roles
 (
@@ -87,10 +78,6 @@ CREATE TABLE if not exists user_roles
 WITH (
 OIDS=FALSE
 );
-ALTER TABLE public.user_roles
-  OWNER TO postgres;
-GRANT ALL ON TABLE public.user_roles TO postgres;
-GRANT SELECT, UPDATE, INSERT, DELETE, TRIGGER ON TABLE public.user_roles TO public;
 
 -- CREATE TABLESPACE  admin LOCATION '/var/lib/postgresql/9.6/main';
 -- CREATE SEQUENCE IF NOT EXISTS system_id_seq;
