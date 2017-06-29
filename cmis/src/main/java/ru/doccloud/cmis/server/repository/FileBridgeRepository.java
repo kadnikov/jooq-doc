@@ -357,19 +357,21 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         if(doc == null || doc.getId() == null)
             throw new IllegalStateException(String.format("Document with id %s was not found", objectId));
 
-        final DocumentDTO parent = getParentDocument(doc.getParent());//getFirstParent(doc.getId());
+        Long parentId = Long.parseLong(targetFolderId);
+        doc.setParent(parentId.toString());
+        crudService.setParent(doc);
+        
+        final DocumentDTO parent = getDocument(doc.getParent());//getFirstParent(doc.getId());
 
         LOGGER.debug(" moveObject(): parent document {}", parent);
 
         if (parent!=null){
-
             LOGGER.debug("moveObject(): removing exiting link with headId {} and tailId {}", parent.getId(), doc.getId());
             LinkDTO deletedLink = crudService.deleteLink(parent.getId(), doc.getId());
             LOGGER.debug("moveObject(): existing link {} has been deleted", deletedLink);
         }
         LinkDTO link = crudService.addLink(Long.parseLong(targetFolderId), doc.getId());
-        doc.setParent(parent.getId().toString());
-        crudService.setParent(doc);
+
 //        localDocumentDtoCache.put(objectId.getValue(), doc);
         LOGGER.debug("leaving moveObject(): new link {} has been created for object {}", link, doc);
 
