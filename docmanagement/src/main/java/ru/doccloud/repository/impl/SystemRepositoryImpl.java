@@ -51,11 +51,11 @@ public class SystemRepositoryImpl extends AbstractJooqRepository implements Syst
         SystemRecord persisted = jooq.insertInto(
                 SYSTEM, SYSTEM.SYS_DESC, SYSTEM.SYS_TITLE, SYSTEM.SYS_TYPE, SYSTEM.SYS_AUTHOR,
                 SYSTEM.SYS_READERS, SYSTEM.DATA, SYSTEM.SYS_FILE_LENGTH, SYSTEM.SYS_FILE_MIME_TYPE,
-                SYSTEM.SYS_FILE_NAME, SYSTEM.SYS_FILE_PATH, SYSTEM.SYS_VERSION, SYSTEM.SYS_SYMBOLIC_NAME)
+                SYSTEM.SYS_FILE_NAME, SYSTEM.SYS_FILE_PATH, SYSTEM.SYS_VERSION, SYSTEM.SYS_SYMBOLIC_NAME, SYSTEM.SYS_PARENT)
                 .values(
                         documentEntry.getDescription(), documentEntry.getTitle(), documentEntry.getType(), documentEntry.getAuthor(),
                         readers, documentEntry.getData(), documentEntry.getFileLength(), documentEntry.getFileMimeType(),
-                        documentEntry.getFileName(), documentEntry.getFilePath(), documentEntry.getDocVersion(), documentEntry.getSymbolicName())
+                        documentEntry.getFileName(), documentEntry.getFilePath(), documentEntry.getDocVersion(), documentEntry.getSymbolicName(), documentEntry.getParent())
                 .returning()
                 .fetchOne();
         SystemDocument returned = SystemConverter.convertQueryResultToModelObject(persisted);
@@ -302,6 +302,7 @@ public class SystemRepositoryImpl extends AbstractJooqRepository implements Syst
                 .set(SYSTEM.SYS_TITLE, documentEntry.getTitle())
                 .set(SYSTEM.SYS_MODIFIER, documentEntry.getModifier())
                 .set(SYSTEM.SYS_SYMBOLIC_NAME, documentEntry.getSymbolicName())
+                .set(SYSTEM.SYS_PARENT, documentEntry.getParent())
                 .set(SYSTEM.DATA, documentEntry.getData())
                 .set(SYSTEM.SYS_FILE_PATH, documentEntry.getFilePath())
                 .set(SYSTEM.SYS_FILE_LENGTH, documentEntry.getFileLength())
