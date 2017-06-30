@@ -250,6 +250,7 @@ public class SystemDocumentCrudService implements SystemCrudService {
                 .filePath(dto.getFilePath())
                 .docVersion(dto.getDocVersion())
                 .symbolicName(dto.getSymbolicName())
+                .parent(dto.getParent())
                 .build();
     }
 }

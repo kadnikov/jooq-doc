@@ -184,7 +184,7 @@ public class SystemController  extends AbstractController {
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
     public SystemDTO update(HttpServletRequest request, @PathVariable("id") Long id, @RequestBody @Valid SystemDTO dto) {
         dto.setId(id);
-        LOGGER.info("update(id={})", id);
+        LOGGER.info("update(id={}, doc={})", id, dto);
         dto.setDocVersion(VersionHelper.generateMinorDocVersion(dto.getDocVersion()));
 
         return crudService.update(dto, request.getRemoteUser());
