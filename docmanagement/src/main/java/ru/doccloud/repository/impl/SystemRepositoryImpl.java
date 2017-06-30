@@ -162,6 +162,7 @@ public class SystemRepositoryImpl extends AbstractJooqRepository implements Syst
         selectedFields.add(SYSTEM.SYS_VERSION);
         selectedFields.add(SYSTEM.SYS_UUID);
         selectedFields.add(SYSTEM.SYS_SYMBOLIC_NAME);
+        selectedFields.add(SYSTEM.SYS_PARENT);
         if (fields!=null){
             for (String field : fields) {
                 selectedFields.add(jsonObject(SYSTEM.DATA, field).as(field));
@@ -373,6 +374,7 @@ public class SystemRepositoryImpl extends AbstractJooqRepository implements Syst
                     .fileName(queryResult.getValue(SYSTEM.SYS_FILE_NAME))
                     .uuid(queryResult.getValue(SYSTEM.SYS_UUID))
                     .symbolicName(queryResult.getValue(SYSTEM.SYS_SYMBOLIC_NAME))
+                    .parent(queryResult.getValue(SYSTEM.SYS_PARENT))
                     .data(JsonNodeParser.buildObjectNode(queryResult, fields))
                     .build();
         }
@@ -395,6 +397,7 @@ public class SystemRepositoryImpl extends AbstractJooqRepository implements Syst
                     .docVersion(queryResult.getSysVersion())
                     .uuid(queryResult.getSysUuid())
                     .symbolicName(queryResult.getSysSymbolicName())
+                    .parent(queryResult.getSysParent())
                     .build();
         }
 

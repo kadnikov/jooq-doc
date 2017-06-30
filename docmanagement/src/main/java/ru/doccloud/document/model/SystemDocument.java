@@ -51,6 +51,7 @@ public class SystemDocument extends AbstractDocument {
         this.docVersion = builder.docVersion;
         this.uuid = builder.uuid;
         this.symbolicName = builder.symbolicName;
+        this.parent = builder.parent;
     }
 
     public static Builder getBuilder(String title) {
@@ -99,6 +100,8 @@ public class SystemDocument extends AbstractDocument {
         private UUID uuid;
 
         private String symbolicName;
+        
+        private String parent;
 
         public Builder(String title) {
             this.title = title;
@@ -142,6 +145,11 @@ public class SystemDocument extends AbstractDocument {
 
         public Builder symbolicName(String symbolicName) {
             this.symbolicName = symbolicName;
+            return this;
+        }
+        
+        public Builder parent(String parent) {
+            this.parent = parent;
             return this;
         }
 
