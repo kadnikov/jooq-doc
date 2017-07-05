@@ -55,7 +55,8 @@ public class DataQueryHelper {
 
         } catch (NoSuchFieldException | IllegalAccessException ex) {
             LOGGER.trace("getFieldValue(): Could not find table field: {}, Cast to JSONB", param);
-            try {
+            result =  DSL.val(param.getValue()).cast(JSONB);
+    /*        try {
                 int intval = Integer.parseInt(param.getValue());
                 result =  DSL.val(param.getValue()).cast(JSONB);
             }catch (NumberFormatException exN){
@@ -67,7 +68,7 @@ public class DataQueryHelper {
                 }catch (ParseException exP){
                     result =  DSL.val(param.getValue());
                 }
-            }
+            }*/
 
         }
         LOGGER.trace("getFieldValue(): Result {}", result);
