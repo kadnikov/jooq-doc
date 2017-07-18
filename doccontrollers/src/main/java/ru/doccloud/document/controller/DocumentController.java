@@ -13,9 +13,9 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import ru.doccloud.common.util.VersionHelper;
-import ru.doccloud.service.document.dto.DocumentDTO;
 import ru.doccloud.service.DocumentCrudService;
 import ru.doccloud.service.DocumentSearchService;
+import ru.doccloud.service.document.dto.DocumentDTO;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
 import ru.doccloud.storagemanager.StorageManager;
 
@@ -44,7 +44,6 @@ public class DocumentController  extends AbstractController {
         LOGGER.info("DocumentController(crudService={}, searchService = {}, storageAreaSettings= {}, storageManager={})", crudService, searchService, storageAreaSettings, storageManager);
         this.crudService = crudService;
         this.searchService = searchService;
-
         LOGGER.info("DocumentController(): storage settings {}", settingsNode);
 
     }

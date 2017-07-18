@@ -40,10 +40,11 @@ import ru.doccloud.cmis.server.FileBridgeUserManager;
 import ru.doccloud.cmis.server.repository.FileBridgeRepository;
 import ru.doccloud.cmis.server.repository.FileBridgeRepositoryManager;
 import ru.doccloud.config.PersistenceContext;
-import ru.doccloud.service.UserService;
-import ru.doccloud.storagemanager.StorageManager;
 import ru.doccloud.service.DocumentCrudService;
+import ru.doccloud.service.UserService;
+import ru.doccloud.service.document.dto.UserDTO;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
+import ru.doccloud.storagemanager.StorageManager;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -93,6 +94,7 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
     private FileBridgeRepositoryManager repositoryManager;
     private FileBridgeUserManager userManager;
     private FileBridgeTypeManager typeManager;
+//    private UserInfo userInfo;
 
     @Autowired
     public FileBridgeCmisServiceFactory(ApplicationContext appContext,  DocumentCrudService crudService,
@@ -147,7 +149,11 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
         // if the authentication fails, authenticate() throws a
         // CmisPermissionDeniedException
 
-        userManager.authenticate(context);
+        UserDTO userDTO = userManager.authenticate(context);
+
+//        LOGGER.info("getService(): userInfoObj {}", userInfo);
+//
+//        userInfo.setLogin(userDTO.getUserId());
 
         // get service object for this thread
         CallContextAwareCmisService service = threadLocalService.get();
@@ -220,15 +226,9 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
                 if (key.endsWith(SUFFIX_READWRITE)) {
                     // read-write users
                     FileBridgeRepository fsr = repositoryManager.getRepository(repositoryId);
-                    for (String user : split(parameters.get(key))) {
-                        fsr.setUserReadWrite(user);
-                    }
                 } else if (key.endsWith(SUFFIX_READONLY)) {
                     // read-only users
                     FileBridgeRepository fsr = repositoryManager.getRepository(repositoryId);
-                    for (String user : split(parameters.get(key))) {
-                        fsr.setUserReadOnly(user);
-                    }
                 } else {
                     // new repository
                     String root = parameters.get(key);
@@ -238,7 +238,7 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
                     LOGGER.info("pctx: {}", pctx);
                     DSLContext jooq = pctx.dsl();
 
-                    FileBridgeRepository fsr = new FileBridgeRepository(repositoryId, root, typeManager, jooq, crudService, storageAreaSettings, storageManager);
+                    FileBridgeRepository fsr = new FileBridgeRepository(repositoryId, root, typeManager, jooq, crudService, storageAreaSettings, storageManager, userService);
                     repositoryManager.addRepository(fsr);
                 }
             }
