@@ -57,26 +57,6 @@ public class SystemDocumentCrudService implements SystemCrudService {
         return transformer.convert(persisted, new SystemDTO());
     }
 
-//    @Transactional
-//    @Override
-//    public SystemDTO addToFolder(final SystemDTO dto, final Long folderId) {
-//        LOGGER.debug("entering addToFolder(dto = {}, folderId={})", dto, folderId);
-//
-//        Document persisted = null;
-////        try to find document in database
-//        if(dto.getId() != null) {
-//            persisted = repository.findById(dto.getId());
-//        }
-//
-//        if(persisted == null)
-//            persisted = repository.add(createModel(dto));
-//
-//        Link link = repository.addLink(folderId, persisted.getId());
-//
-//        LOGGER.debug("leaving addToFolder(): Added Document entry  {} with link {}", persisted, link);
-//
-//        return transformer.convert(persisted, new SystemDTO());
-//    }
 
     @Transactional
     @Override
@@ -118,7 +98,6 @@ public class SystemDocumentCrudService implements SystemCrudService {
                 searchResults.getTotalElements()
         );
     }
-
 
 
     @Transactional(readOnly = true)
@@ -168,13 +147,12 @@ public class SystemDocumentCrudService implements SystemCrudService {
 
     @Transactional(readOnly = true)
     @Override
-    public JsonNode findSettings() {
-        LOGGER.debug("entering findSettings()");
-        SystemDocument found = repository.findSettings();
+    public JsonNode findSettings(final String settingsKey) {
+        LOGGER.debug("entering findSettings(settingsKey={})", settingsKey);
+        SystemDocument found = repository.findSettings(settingsKey);
         LOGGER.debug("leaving findSettings(): Found {}", found);
-        JsonNode jsonNode = found.getData();
 
-        return jsonNode;
+        return found.getData();
     }
 
 

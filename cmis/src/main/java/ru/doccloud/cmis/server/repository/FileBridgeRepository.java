@@ -17,7 +17,6 @@ import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.DSLContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import ru.doccloud.cmis.server.FileBridgeTypeManager;
 import ru.doccloud.cmis.server.util.FileBridgeUtils;
 import ru.doccloud.common.exception.DocumentNotFoundException;
+import ru.doccloud.common.global.SettingsKeys;
 import ru.doccloud.common.util.VersionHelper;
 import ru.doccloud.service.DocumentCrudService;
 import ru.doccloud.service.UserService;
@@ -60,23 +60,24 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
     private UserService userService;
 
-    private JsonNode settingsNode;
-    
+    private JsonNode storageSettingsNode;
+
     private final StorageManager storageManager;
 
 //    todo make local cache with objectId and appropriate dto object to avoid redundant calls of getDocument method
 //    private final Map<String, DocumentDTO> localDocumentDtoCache;
 
-    public FileBridgeRepository(final String repositoryId, final String rootPath,
-                                final FileBridgeTypeManager typeManager, DSLContext jooq, DocumentCrudService crudService, StorageAreaSettings storageAreaSettings, StorageManager storageManager, UserService userService) throws Exception {
-        super(repositoryId, rootPath, typeManager);
+    public FileBridgeRepository(final String repositoryId, String rootPath,
+                                final FileBridgeTypeManager typeManager,  DocumentCrudService crudService, StorageAreaSettings storageAreaSettings, StorageManager storageManager, UserService userService) throws Exception {
+        super(repositoryId, typeManager, rootPath);
 
-        LOGGER.trace("FileBridgeRepository(repositoryId={}, rootPath={}, typeManager={}, jooq={}, crudService= {}, storageAreaSettings = {}, storageManager={})",repositoryId, rootPath, typeManager, jooq, crudService, storageAreaSettings, storageManager);
+        LOGGER.trace("FileBridgeRepository(repositoryId={}, rootPath = {}, typeManager={},  crudService= {}, storageAreaSettings = {}, storageManager={})",
+                repositoryId, rootPath, typeManager, crudService, storageAreaSettings, storageManager);
 
         this.storageManager = storageManager;
-        settingsNode = (JsonNode) storageAreaSettings.getStorageSetting();
+        storageSettingsNode = (JsonNode) storageAreaSettings.getSetting(SettingsKeys.STORAGE_AREA_KEY.getSettingsKey());
 
-        Storages defaultStorage = storageManager.getDefaultStorage(settingsNode);
+        Storages defaultStorage = storageManager.getDefaultStorage(storageSettingsNode);
         LOGGER.trace("FileBridgeRepository( defaultStorage = {})", defaultStorage);
 
         storageActionsService = storageManager.getStorageService(defaultStorage);
@@ -151,7 +152,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
      * CMIS createDocument.
      */
     private DocumentDTO createDocument(CallContext context, Properties properties, String folderId,
-                                 ContentStream contentStream, VersioningState versioningState, TypeDefinition type) throws Exception {
+                                       ContentStream contentStream, VersioningState versioningState, TypeDefinition type) throws Exception {
         LOGGER.trace("entering createDocument(context={}, properties = {}, folderId={}, versionState={}, type= {})", context, properties, folderId, versioningState, type);
         checkUser(context, true);
 
@@ -326,7 +327,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         Long parentId = Long.parseLong(targetFolderId);
         doc.setParent(parentId.toString());
         crudService.setParent(doc);
-        
+
         final DocumentDTO parent = getParentDocument(doc.getParent());//getFirstParent(doc.getId());
 
         LOGGER.debug(" moveObject(): parent document {}", parent);
@@ -471,8 +472,8 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
     private String writeContent(DocumentDTO doc, InputStream stream) throws Exception {
         try {
             LOGGER.trace("entering writeContent(doc={})", doc);
-            LOGGER.trace("writeContent(): settingsNode {}, storageSettingsNode {}", settingsNode, storageActionsService != null ? storageActionsService.getClass() : null);
-            final String filePath = storageActionsService.writeFile(storageManager.getRootName(settingsNode),  doc.getUuid(), org.apache.commons.io.IOUtils.toByteArray(stream));
+            LOGGER.trace("writeContent(): storageSettingsNode {}, storageSettingsNode {}", storageSettingsNode, storageActionsService != null ? storageActionsService.getClass() : null);
+            final String filePath = storageActionsService.writeFile(storageManager.getRootName(storageSettingsNode),  doc.getUuid(), org.apache.commons.io.IOUtils.toByteArray(stream));
             LOGGER.debug("writeContent(): File has been saved on the disc, path to file {}", filePath);
             doc.setFilePath(filePath);
 
@@ -967,7 +968,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
         // get parent folder
         ObjectData object = compileObjectData(context, parent, null, filterCollection, iaa, false, userReadOnly, objectInfos);
-        
+
         ObjectParentDataImpl result = new ObjectParentDataImpl();
         result.setObject(object);
         if (irps) {
@@ -1174,4 +1175,5 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         LOGGER.trace("leaving checkUser(): is user {} readOnly? {}", context.getUsername(), readOnly);
         return readOnly;
     }
+
 }

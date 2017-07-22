@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+import ru.doccloud.common.global.SettingsKeys;
 import ru.doccloud.service.document.dto.AbstractDocumentDTO;
 import ru.doccloud.storage.StorageActionsService;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
@@ -27,13 +28,13 @@ abstract class AbstractController {
 
     private final StorageManager storageManager;
 
-    JsonNode settingsNode;
+    JsonNode storageSettingsNode;
 
     AbstractController(StorageAreaSettings storageAreaSettings, StorageManager storageManager) throws Exception {
         this.storageManager = storageManager;
 
-        settingsNode = (JsonNode) storageAreaSettings.getStorageSetting();
-        this.storageActionsService = storageManager.getStorageService(storageManager.getDefaultStorage(settingsNode));
+        storageSettingsNode = (JsonNode) storageAreaSettings.getSetting(SettingsKeys.STORAGE_AREA_KEY.getSettingsKey());
+        this.storageActionsService = storageManager.getStorageService(storageManager.getDefaultStorage(storageSettingsNode));
     }
 
     void initFileParamsFromRequest(AbstractDocumentDTO dto, MultipartFile mpf) throws Exception {
@@ -43,7 +44,7 @@ abstract class AbstractController {
     }
 
     String writeContent(UUID uuid, byte[] bytes) throws Exception {
-        return storageActionsService.writeFile(storageManager.getRootName(settingsNode), uuid, bytes);
+        return storageActionsService.writeFile(storageManager.getRootName(storageSettingsNode), uuid, bytes);
     }
 
     boolean checkMultipartFile(MultipartFile mpf) throws IOException {

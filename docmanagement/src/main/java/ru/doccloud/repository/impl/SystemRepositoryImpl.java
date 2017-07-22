@@ -244,13 +244,13 @@ public class SystemRepositoryImpl extends AbstractJooqRepository implements Syst
 
     @Transactional(readOnly = true)
     @Override
-    public SystemDocument findSettings() {
-        LOGGER.trace("entering findSettings(): try to find storage area settings in cache first");
+    public SystemDocument findSettings(String settingsKey) {
+        LOGGER.trace("entering findSettings(settingsKey={}): try to find storage area settings in cache first", settingsKey);
 
 
             LOGGER.trace("storage area settings weren't found in cache. It will get from database");
             SystemRecord record = jooq.selectFrom(SYSTEM)
-                    .where(SYSTEM.SYS_TYPE.equal("storage_area"))
+                    .where(SYSTEM.SYS_TYPE.equal(settingsKey))
                     .fetchOne();
             LOGGER.trace("findSettings(): settings record was found in db {}", record);
             if (record == null) {

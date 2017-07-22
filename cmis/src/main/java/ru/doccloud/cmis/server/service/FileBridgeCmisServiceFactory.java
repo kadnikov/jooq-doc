@@ -22,24 +22,26 @@
  */
 package ru.doccloud.cmis.server.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.chemistry.opencmis.commons.impl.server.AbstractServiceFactory;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.CmisService;
 import org.apache.chemistry.opencmis.server.support.wrapper.CallContextAwareCmisService;
 import org.apache.chemistry.opencmis.server.support.wrapper.CmisServiceWrapperManager;
 import org.apache.chemistry.opencmis.server.support.wrapper.ConformanceCmisServiceWrapper;
-import org.jooq.DSLContext;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import ru.doccloud.cmis.server.FileBridgeCallContext;
 import ru.doccloud.cmis.server.FileBridgeTypeManager;
 import ru.doccloud.cmis.server.FileBridgeUserManager;
 import ru.doccloud.cmis.server.repository.FileBridgeRepository;
 import ru.doccloud.cmis.server.repository.FileBridgeRepositoryManager;
-import ru.doccloud.config.PersistenceContext;
+import ru.doccloud.common.exception.DocumentNotFoundException;
+import ru.doccloud.common.global.SettingsKeys;
+import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.service.DocumentCrudService;
 import ru.doccloud.service.UserService;
 import ru.doccloud.service.document.dto.UserDTO;
@@ -47,7 +49,8 @@ import ru.doccloud.storage.storagesettings.StorageAreaSettings;
 import ru.doccloud.storagemanager.StorageManager;
 
 import java.math.BigInteger;
-import java.util.*;
+import java.util.GregorianCalendar;
+import java.util.Map;
 
 /**
  * FileShare Service Factory.
@@ -56,11 +59,6 @@ import java.util.*;
 public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileBridgeCmisServiceFactory.class);
-
-    private static final String PREFIX_LOGIN = "login.";
-    private static final String PREFIX_REPOSITORY = "repository.";
-    private static final String SUFFIX_READWRITE = ".readwrite";
-    private static final String SUFFIX_READONLY = ".readonly";
 
     /** Default maxItems value for getTypeChildren()}. */
     private static final BigInteger DEFAULT_MAX_ITEMS_TYPES = BigInteger.valueOf(50);
@@ -77,7 +75,7 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
     /** Default depth value for getDescendants(). */
     private static final BigInteger DEFAULT_DEPTH_OBJECTS = BigInteger.valueOf(10);
 
-    private final ApplicationContext appContext;
+//    private final ApplicationContext appContext;
 
 //    private final JTransfo transformer;
 
@@ -97,11 +95,11 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
 //    private UserInfo userInfo;
 
     @Autowired
-    public FileBridgeCmisServiceFactory(ApplicationContext appContext,  DocumentCrudService crudService,
+    public FileBridgeCmisServiceFactory( DocumentCrudService crudService,
                                         StorageAreaSettings storageAreaSettings,  StorageManager storageManager,
                                         UserService userService) {
         LOGGER.info("FileBridgeCmisServiceFactory(crudService={}, storageAreaSettings= {}, storageManager={})", crudService, storageAreaSettings, storageManager);
-        this.appContext = appContext;
+//        this.appContext = appContext;
         this.crudService = crudService;
         this.storageAreaSettings = storageAreaSettings;
         this.storageManager = storageManager;
@@ -110,7 +108,7 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
 
     @Override
     public void init(Map<String, String> parameters) {
-        LOGGER.info("[FileBridgeCmisServiceFactory] init");
+        LOGGER.trace("init(parameters={})", parameters);
         try {
             // New for Chameleon **
             wrapperManager = new CmisServiceWrapperManager();
@@ -122,17 +120,18 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
             // lets print out the parameters for debugging purposes so we can see
             // what happens to our
             // custom parameters
-            for (String currentKey : parameters.keySet()) {
-                LOGGER.info("[FileBridgeCmisServiceFactory]Key: " + currentKey + " ->Value:" + parameters.get(currentKey));
+            if(LOGGER.isTraceEnabled()) {
+                for (String currentKey : parameters.keySet()) {
+                    LOGGER.info("init(): Key = {} -> Value = {}", currentKey, parameters.get(currentKey));
+                }
             }
 
             repositoryManager = new FileBridgeRepositoryManager();
             userManager = new FileBridgeUserManager(userService);
             typeManager = new FileBridgeTypeManager();
 
-            readConfiguration(parameters);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("init(): exception {}", e);
         }
     }
 
@@ -143,121 +142,60 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
 
     @Override
     public CmisService getService(CallContext context) {
+        LOGGER.trace("getService(userName={})", context.getUsername());
 
-        // LOGGER.info("[FileBridgeCmisServiceFactory] getService");
-        // authenticate the user
-        // if the authentication fails, authenticate() throws a
-        // CmisPermissionDeniedException
+        try {
+    //        todo add authentificated user into the cache, it would be ideal if we used already authentificated user in application
+            LOGGER.trace("getService(): userManager {}", userManager);
+            UserDTO userDTO = userManager.authenticate(context);
 
-        UserDTO userDTO = userManager.authenticate(context);
+    //        if login successfull, create cmis repository
+            final JsonNode cmisSettings = (JsonNode)storageAreaSettings.getSetting(SettingsKeys.CMIS_SETTINGS_KEY.getSettingsKey());
 
-//        LOGGER.info("getService(): userInfoObj {}", userInfo);
-//
-//        userInfo.setLogin(userDTO.getUserId());
+            LOGGER.trace("getService(): cmisSettings {}", cmisSettings);
+            final String repositoryId = JsonNodeParser.getValueJsonNode(cmisSettings, "repositoryId");
+            LOGGER.trace("getService(): repositoryId {}", repositoryId);
+            if(StringUtils.isBlank(repositoryId))
+                throw new DocumentNotFoundException("Repository id was not found");
 
-        // get service object for this thread
-        CallContextAwareCmisService service = threadLocalService.get();
-        if (service == null) {
-            FileBridgeCmisService fileShareService = new FileBridgeCmisService(repositoryManager);
-            // wrap it with the chain of wrappers
-            service = (CallContextAwareCmisService) wrapperManager.wrap(fileShareService);
-            threadLocalService.set(service);
-        }
+            LOGGER.trace("getService(): find repository from repositoryManager by repositoryId {}", repositoryId);
 
-        // Stash any object into the call context and then pass it to our
-        // service so that it can be shared with any extensions.
-        // Here is where you would put in a reference to a native API object if
-        // needed.
-        FileBridgeCallContext fileBridgeCallContext = new FileBridgeCallContext(context);
-        fileBridgeCallContext.setRequestTimestamp(new GregorianCalendar());
+            FileBridgeRepository fsr = repositoryManager.getRepository(repositoryId);
 
-        service.setCallContext(fileBridgeCallContext);
-
-        return service;
-    }
-
-    // ---- helpers ----
-
-    /**
-     * Reads the configuration and sets up the repositories, logins, and type
-     * definitions.
-     */
-    private void readConfiguration(Map<String, String> parameters) throws Exception {
-        LOGGER.info("entering readConfiguration(parameters={})", parameters);
-        List<String> keys = new ArrayList<String>(parameters.keySet());
-        LOGGER.info("readConfiguration(): keys {}", keys);
-        Collections.sort(keys);
-
-        for (String key : keys) {
-//            todo rewrite using enum
-            if (key.startsWith(PREFIX_LOGIN)) {
-                // get logins
-//                String usernameAndPassword = parameters.get(key);
-//                if (usernameAndPassword == null) {
-//                    continue;
-//                }
-//
-//                String username = usernameAndPassword;
-//                String password = "";
-//
-//                int x = usernameAndPassword.indexOf(':');
-//                if (x > -1) {
-//                    username = usernameAndPassword.substring(0, x);
-//                    password = usernameAndPassword.substring(x + 1);
-//                }
-//
-//                LOGGER.info("Adding login '{}'.", username);
-
-//                userManager.addLogin(username, password);
-            } else if (key.startsWith(PREFIX_REPOSITORY)) {
-                // configure repositories
-                String repositoryId = key.substring(PREFIX_REPOSITORY.length()).trim();
-
-                LOGGER.info("readConfiguration(): repositoryId {}", repositoryId);
-                int x = repositoryId.lastIndexOf('.');
-                if (x > 0) {
-                    repositoryId = repositoryId.substring(0, x);
-                }
-
-                if (repositoryId.length() == 0) {
-                    throw new IllegalArgumentException("No repository id!");
-                }
-
-                if (key.endsWith(SUFFIX_READWRITE)) {
-                    // read-write users
-                    FileBridgeRepository fsr = repositoryManager.getRepository(repositoryId);
-                } else if (key.endsWith(SUFFIX_READONLY)) {
-                    // read-only users
-                    FileBridgeRepository fsr = repositoryManager.getRepository(repositoryId);
-                } else {
-                    // new repository
-                    String root = parameters.get(key);
-
-                    LOGGER.debug("Adding repository '{}': {}", repositoryId, root);
-                    PersistenceContext pctx = appContext.getBean(PersistenceContext.class);
-                    LOGGER.info("pctx: {}", pctx);
-                    DSLContext jooq = pctx.dsl();
-
-                    FileBridgeRepository fsr = new FileBridgeRepository(repositoryId, root, typeManager, jooq, crudService, storageAreaSettings, storageManager, userService);
-                    repositoryManager.addRepository(fsr);
-                }
+            LOGGER.trace("getService(): foundRepository {} ", fsr);
+            if(fsr == null) {
+                final String rootPath = JsonNodeParser.getValueJsonNode(cmisSettings, "rootPath");
+                LOGGER.trace("getService(): rootPath {}", rootPath);
+                if(StringUtils.isBlank(rootPath))
+                    throw new DocumentNotFoundException("root path was not found for repository " + repositoryId);
+                fsr = new FileBridgeRepository(repositoryId, rootPath, typeManager, crudService, storageAreaSettings, storageManager, userService);
+                repositoryManager.addRepository(fsr);
+                LOGGER.trace("getService(): repository was creatd and added to repositoryManager {}", repositoryId);
             }
+
+            // get service object for this thread
+            CallContextAwareCmisService service = threadLocalService.get();
+            if (service == null) {
+                FileBridgeCmisService fileShareService = new FileBridgeCmisService(repositoryManager);
+                // wrap it with the chain of wrappers
+                service = (CallContextAwareCmisService) wrapperManager.wrap(fileShareService);
+                threadLocalService.set(service);
+            }
+
+            // Stash any object into the call context and then pass it to our
+            // service so that it can be shared with any extensions.
+            // Here is where you would put in a reference to a native API object if
+            // needed.
+            FileBridgeCallContext fileBridgeCallContext = new FileBridgeCallContext(context);
+            fileBridgeCallContext.setRequestTimestamp(new GregorianCalendar());
+
+            service.setCallContext(fileBridgeCallContext);
+
+            return service;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return null;
     }
 
-    /**
-     * Splits a string by comma.
-     */
-    private List<String> split(String csl) {
-        if (csl == null) {
-            return Collections.emptyList();
-        }
-
-        List<String> result = new ArrayList<String>();
-        for (String s : csl.split(",")) {
-            result.add(s.trim());
-        }
-
-        return result;
-    }
 }

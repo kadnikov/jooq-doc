@@ -52,7 +52,7 @@ public interface SystemRepository extends CommonRepository {
 
 
     @Transactional(readOnly = true)
-    SystemDocument findSettings();
+    SystemDocument findSettings(final String settingsKey);
 
     public Page<SystemDocument> findBySearchTerm(String searchTerm, Pageable pageable);
 

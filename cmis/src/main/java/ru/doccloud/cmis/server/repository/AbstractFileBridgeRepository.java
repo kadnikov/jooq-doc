@@ -14,7 +14,7 @@ import ru.doccloud.cmis.server.util.repositoryinfo.RepositoryInfoHelper;
 
 import java.io.File;
 
-public abstract class AbstractFileBridgeRepository extends BridgeRepository{
+public abstract class AbstractFileBridgeRepository extends BridgeRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractFileBridgeRepository.class);
     /** Repository id. */
@@ -22,7 +22,7 @@ public abstract class AbstractFileBridgeRepository extends BridgeRepository{
 
     private RepositoryInfo repositoryInfo;
 
-    AbstractFileBridgeRepository(String repositoryId, String rootPath, FileBridgeTypeManager typeManager) {
+    AbstractFileBridgeRepository(String repositoryId, FileBridgeTypeManager typeManager, String rootPath) {
         super(rootPath, typeManager);
 
         // check repository id
@@ -43,8 +43,10 @@ public abstract class AbstractFileBridgeRepository extends BridgeRepository{
     /**
      * Returns the root directory of this repository
      */
+//    todo get root from database from document with id =0
     File getRootDirectory() {
-        return root;
+//        return root;
+        return null;
     }
 
     private RepositoryInfo createRepositoryInfo(CmisVersion cmisVersion) throws IllegalAccessException {
@@ -103,5 +105,4 @@ public abstract class AbstractFileBridgeRepository extends BridgeRepository{
         return repositoryInfo;
     }
 }
-
 

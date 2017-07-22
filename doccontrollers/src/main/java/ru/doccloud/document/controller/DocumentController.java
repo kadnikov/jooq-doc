@@ -44,7 +44,7 @@ public class DocumentController  extends AbstractController {
         LOGGER.info("DocumentController(crudService={}, searchService = {}, storageAreaSettings= {}, storageManager={})", crudService, searchService, storageAreaSettings, storageManager);
         this.crudService = crudService;
         this.searchService = searchService;
-        LOGGER.info("DocumentController(): storage settings {}", settingsNode);
+        LOGGER.info("DocumentController(): storage settings {}", storageSettingsNode);
 
     }
 
