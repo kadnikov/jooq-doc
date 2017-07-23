@@ -64,6 +64,8 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
     private final StorageManager storageManager;
 
+    private final Storages currentStorage;
+
 //    todo make local cache with objectId and appropriate dto object to avoid redundant calls of getDocument method
 //    private final Map<String, DocumentDTO> localDocumentDtoCache;
 
@@ -77,10 +79,10 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         this.storageManager = storageManager;
         storageSettingsNode = (JsonNode) storageAreaSettings.getSetting(SettingsKeys.STORAGE_AREA_KEY.getSettingsKey());
 
-        Storages defaultStorage = storageManager.getDefaultStorage(storageSettingsNode);
-        LOGGER.trace("FileBridgeRepository( defaultStorage = {})", defaultStorage);
+        currentStorage = storageManager.getCurrentStorage(storageSettingsNode);
+        LOGGER.trace("FileBridgeRepository( currentStorage = {})", currentStorage);
 
-        storageActionsService = storageManager.getStorageService(defaultStorage);
+        storageActionsService = storageManager.getStorageService(currentStorage);
         this.crudService = crudService;
         this.userService = userService;
 //        localDocumentDtoCache = new ConcurrentHashMap<>();
@@ -168,7 +170,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
             final String name = FileBridgeUtils.getStringProperty(properties, PropertyIds.NAME);
 
-            LOGGER.trace("createDocument(): name is {}", name);
+            LOGGER.trace("createDocument(): name is {}, currentStorage {}, curerentStorageName {}", name, currentStorage, currentStorage.getStorageName());
 
             doc = new DocumentDTO(name, "document", context.getUsername());
             doc.setDocVersion(VersionHelper.generateMinorDocVersion(doc.getDocVersion()));
@@ -177,9 +179,10 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
             LOGGER.trace("createDocument(): Document has been created {}", doc);
             crudService.addToFolder(doc, parent.getId());
 
+            LOGGER.trace("createDocument(): contentStream  {} ", getContentStreamInfo(contentStream));
 
             // write content, if available
-            if (contentStream != null && contentStream.getStream() != null) {
+            if (contentStream != null && contentStream.getStream() != null && contentStream.getLength() >0 ) {
 
                 final String filePath = writeContent(doc, contentStream.getStream());
                 LOGGER.debug("createDocument(): content was written filePath {}", filePath);
@@ -197,6 +200,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
                     doc.setFileMimeType(mimeType);
                     doc.setModifier(context.getUsername());
                     doc.setFileName(fileName);
+                    doc.setFileStorage(currentStorage.getStorageName());
                     crudService.updateFileInfo(doc);
                 }
             }
@@ -251,6 +255,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
                 doc.setFileLength(source.getFileLength());
                 doc.setFileName(source.getFileName());
                 doc.setModifier(context.getUsername());
+                doc.setFileStorage(currentStorage.getStorageName());
                 doc = crudService.update(doc, context.getUsername());
             }
 
@@ -288,6 +293,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         LOGGER.debug("createFolder(): name is {}", name);
         DocumentDTO doc = null;
         try {
+//            we don't need to save fileStorage for folders
             doc = new DocumentDTO(name, "folder", context.getUsername());
             doc.setDocVersion(VersionHelper.generateMinorDocVersion(doc.getDocVersion()));
             doc = crudService.add(doc, context.getUsername());
@@ -472,8 +478,12 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
     private String writeContent(DocumentDTO doc, InputStream stream) throws Exception {
         try {
             LOGGER.trace("entering writeContent(doc={})", doc);
-            LOGGER.trace("writeContent(): storageSettingsNode {}, storageSettingsNode {}", storageSettingsNode, storageActionsService != null ? storageActionsService.getClass() : null);
-            final String filePath = storageActionsService.writeFile(storageManager.getRootName(storageSettingsNode),  doc.getUuid(), org.apache.commons.io.IOUtils.toByteArray(stream));
+            final String rootName = storageManager.getRootName(storageSettingsNode);
+            LOGGER.trace("writeContent(): rootName, path to file {}", rootName);
+            if(StringUtils.isBlank(rootName))
+                throw new Exception("rootName was not found in settings");
+
+            final String filePath = storageActionsService.writeFile(rootName,  doc.getUuid(), org.apache.commons.io.IOUtils.toByteArray(stream));
             LOGGER.debug("writeContent(): File has been saved on the disc, path to file {}", filePath);
             doc.setFilePath(filePath);
 
@@ -1174,6 +1184,13 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
         LOGGER.trace("leaving checkUser(): is user {} readOnly? {}", context.getUsername(), readOnly);
         return readOnly;
+    }
+
+    private String getContentStreamInfo(ContentStream contentStream){
+        return contentStream != null ? ("ContentStream { " + " mimeType " + contentStream.getMimeType() +
+                " fileName " + contentStream.getFileName() +
+                " inputstream " + contentStream.getStream() +
+                " length " + contentStream.getLength() + " }") : null;
     }
 
 }

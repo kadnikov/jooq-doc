@@ -9,5 +9,5 @@ public interface StorageManager {
 
     public String getRootName (JsonNode settingsNode) throws Exception;
 
-    public Storages getDefaultStorage(JsonNode settingsNode) throws Exception;
+    public Storages getCurrentStorage(JsonNode settingsNode) throws Exception;
 }

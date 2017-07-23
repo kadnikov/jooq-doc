@@ -1,23 +1,7 @@
 package ru.doccloud.repository.impl;
 
 
-import static ru.doccloud.document.jooq.db.tables.Documents.DOCUMENTS;
-import static ru.doccloud.document.jooq.db.tables.Links.LINKS;
-import static ru.doccloud.repository.util.DataQueryHelper.createWhereConditions;
-import static ru.doccloud.repository.util.DataQueryHelper.extendConditions;
-import static ru.doccloud.repository.util.DataQueryHelper.getQueryParams;
-import static ru.doccloud.repository.util.DataQueryHelper.getSortFields;
-
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import org.jooq.Condition;
-import org.jooq.DSLContext;
-import org.jooq.Field;
-import org.jooq.Record;
-import org.jooq.SelectField;
+import org.jooq.*;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +12,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
 import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.common.service.DateTimeService;
 import ru.doccloud.common.util.JsonNodeParser;
@@ -40,6 +23,15 @@ import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
 import ru.doccloud.document.model.QueryParam;
 import ru.doccloud.repository.DocumentRepository;
+
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import static ru.doccloud.document.jooq.db.tables.Documents.DOCUMENTS;
+import static ru.doccloud.document.jooq.db.tables.Links.LINKS;
+import static ru.doccloud.repository.util.DataQueryHelper.*;
 
 /**
  * @author Andrey Kadnikov
@@ -65,11 +57,11 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
         DocumentsRecord persisted = jooq.insertInto(
                 DOCUMENTS, DOCUMENTS.SYS_DESC, DOCUMENTS.SYS_TITLE, DOCUMENTS.SYS_TYPE, DOCUMENTS.SYS_AUTHOR,
                 DOCUMENTS.SYS_READERS, DOCUMENTS.DATA, DOCUMENTS.SYS_FILE_LENGTH, DOCUMENTS.SYS_FILE_MIME_TYPE,
-                DOCUMENTS.SYS_FILE_NAME, DOCUMENTS.SYS_FILE_PATH, DOCUMENTS.SYS_VERSION)
+                DOCUMENTS.SYS_FILE_NAME, DOCUMENTS.SYS_FILE_PATH, DOCUMENTS.SYS_VERSION, DOCUMENTS.SYS_FILE_STORAGE)
                 .values(
                         documentEntry.getDescription(), documentEntry.getTitle(), documentEntry.getType(), documentEntry.getAuthor(),
                         readers, documentEntry.getData(), documentEntry.getFileLength(), documentEntry.getFileMimeType(),
-                        documentEntry.getFileName(), documentEntry.getFilePath(), documentEntry.getDocVersion())
+                        documentEntry.getFileName(), documentEntry.getFilePath(), documentEntry.getDocVersion(), documentEntry.getFileStorage())
                 .returning()
                 .fetchOne();
         Document returned = DocumentConverter.convertQueryResultToModelObject(persisted);
@@ -338,6 +330,7 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
                 .set(DOCUMENTS.SYS_FILE_NAME, documentEntry.getFileName())
                 .set(DOCUMENTS.SYS_VERSION, documentEntry.getDocVersion())
                 .set(DOCUMENTS.SYS_TYPE, documentEntry.getType())
+                .set(DOCUMENTS.SYS_FILE_STORAGE, documentEntry.getFileStorage())
                 .where(DOCUMENTS.ID.equal(documentEntry.getId().intValue()))
                 .execute();
 
@@ -363,6 +356,7 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
                 .set(DOCUMENTS.SYS_FILE_LENGTH, documentEntry.getFileLength())
                 .set(DOCUMENTS.SYS_FILE_MIME_TYPE, documentEntry.getFileMimeType())
                 .set(DOCUMENTS.SYS_FILE_NAME, documentEntry.getFileName())
+                .set(DOCUMENTS.SYS_FILE_STORAGE, documentEntry.getFileStorage())
                 .where(DOCUMENTS.ID.equal(documentEntry.getId().intValue()))
                 .execute();
 
@@ -491,8 +485,6 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
     }
 
 
-
-
     private static class DocumentConverter{
         private static Document convertQueryResultToModelObject(Record queryResult, String[] fields) {
             return  Document.getBuilder(queryResult.getValue(DOCUMENTS.SYS_TITLE))
@@ -505,6 +497,7 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
                     .modifier(queryResult.getValue(DOCUMENTS.SYS_MODIFIER))
                     .filePath(queryResult.getValue(DOCUMENTS.SYS_FILE_PATH))
                     .fileName(queryResult.getValue(DOCUMENTS.SYS_FILE_NAME))
+                    .fileStorage(queryResult.getValue(DOCUMENTS.SYS_FILE_STORAGE))
                     .uuid(queryResult.getValue(DOCUMENTS.SYS_UUID))
                     .parent(queryResult.getValue(DOCUMENTS.SYS_PARENT))
                     .data(JsonNodeParser.buildObjectNode(queryResult, fields))
@@ -525,6 +518,7 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
                     .filePath(queryResult.getSysFilePath())
                     .fileMimeType(queryResult.getSysFileMimeType())
                     .fileLength(queryResult.getSysFileLength())
+                    .fileStorage(queryResult.getSysFileStorage())
                     .fileName(queryResult.getSysFileName())
                     .docVersion(queryResult.getSysVersion())
                     .parent(queryResult.getSysParent())

@@ -3,19 +3,27 @@ package ru.doccloud.storagemanager;
 
 public enum Storages {
 
-    FILESTORAGE ("fileStorage"),
-    AMAZONSTORAGE("amazonStorage");
+//    DEFAULT("fileStorage", ""),
+    FILESTORAGE ("fileStorage", "repository"),
+    SCALITYAMAZONSTORAGE("scalityAmazonStorage", "bucketName"),
+    AMAZONSTORAGE("amazonStorage", "bucketName");
 
     private String storageName;
 
-    Storages(String storageName) {
+    private String rootName;
+
+    Storages(String storageName, String rootName) {
         this.storageName = storageName;
+        this.rootName = rootName;
     }
 
     public String getStorageName() {
         return storageName;
     }
 
+    public String getRootName() {
+        return rootName;
+    }
 
     public static Storages getStorageByName(final String storageName) {
         for (Storages storages : Storages.values()){

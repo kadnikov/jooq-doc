@@ -12,6 +12,7 @@ import ru.doccloud.service.document.dto.AbstractDocumentDTO;
 import ru.doccloud.storage.StorageActionsService;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
 import ru.doccloud.storagemanager.StorageManager;
+import ru.doccloud.storagemanager.Storages;
 
 import java.io.IOException;
 import java.util.Enumeration;
@@ -30,11 +31,15 @@ abstract class AbstractController {
 
     JsonNode storageSettingsNode;
 
+    protected final Storages currentStorage;
+
     AbstractController(StorageAreaSettings storageAreaSettings, StorageManager storageManager) throws Exception {
         this.storageManager = storageManager;
 
         storageSettingsNode = (JsonNode) storageAreaSettings.getSetting(SettingsKeys.STORAGE_AREA_KEY.getSettingsKey());
-        this.storageActionsService = storageManager.getStorageService(storageManager.getDefaultStorage(storageSettingsNode));
+        this.storageActionsService = storageManager.getStorageService(storageManager.getCurrentStorage(storageSettingsNode));
+
+        currentStorage = storageManager.getCurrentStorage(storageSettingsNode);
     }
 
     void initFileParamsFromRequest(AbstractDocumentDTO dto, MultipartFile mpf) throws Exception {

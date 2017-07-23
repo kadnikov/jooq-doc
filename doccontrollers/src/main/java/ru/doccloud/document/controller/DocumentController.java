@@ -206,6 +206,7 @@ public class DocumentController  extends AbstractController {
             LOGGER.debug("the document: {} has been added", dto);
             LOGGER.debug("start adding file to FS");
             dto.setFilePath(writeContent(dto.getUuid(), mpf.getBytes()));
+            dto.setFileStorage(currentStorage.getStorageName());
             DocumentDTO updated = crudService.update(dto, user);
             LOGGER.debug("Dto object has been updated: {}", updated);
             return updated;
