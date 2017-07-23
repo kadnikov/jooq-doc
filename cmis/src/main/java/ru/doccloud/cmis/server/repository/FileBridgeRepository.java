@@ -54,6 +54,8 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileBridgeRepository.class);
 
+    private static final String CMIS_READ_WRITE_ROLE_NAME = "readwrite";
+
     private final StorageActionsService storageActionsService;
 
     private final DocumentCrudService crudService;
@@ -760,18 +762,28 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
      * CMIS getContentStream.
      */
     public ContentStream getContentStream(CallContext context, String objectId, BigInteger offset, BigInteger length) throws Exception {
+        LOGGER.trace("entering getContentStream(objectId={}, offset = {}, length= {})", objectId, offset, length);
         checkUser(context, false);
 
         // get the file
         final DocumentDTO doc = getDocument(objectId);
+        LOGGER.trace("getContentStream(): document {}", doc);
 
-
-        if (StringUtils.isBlank(doc.getFilePath())) {
+        if(doc == null)
+            throw new Exception("Document with objectId " + objectId + " was not found in database");
+        if (StringUtils.isBlank(doc.getFilePath()))
             throw new CmisConstraintException("Document has no content!");
-        }
 
-        byte[] contentByteArr = storageActionsService.readFile(doc.getFilePath());
+        if(StringUtils.isBlank(doc.getFileStorage()))
+            throw new CmisConstraintException("Document has no filestorage!");
 
+        StorageActionsService storageActionsService4Read = getStorageActionsServiceForReadFiles(doc.getFileStorage());
+
+        LOGGER.trace("getContentStream(): storageActionsService4Read {}", storageActionsService4Read);
+
+        byte[] contentByteArr = storageActionsService4Read.readFile(doc.getFilePath());
+
+        LOGGER.trace("getContentStream(): contentByte {}", contentByteArr != null ? contentByteArr.length : 0);
         // compile data
         ContentStreamImpl result;
         if ((offset != null && offset.longValue() > 0) || length != null) {
@@ -783,9 +795,10 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         result.setFileName(doc.getFileName());
         result.setLength(BigInteger.valueOf(doc.getFileLength()));
         result.setMimeType(MimeTypes.getMIMEType(doc.getFileMimeType()));
-        result.setStream(new ByteArrayInputStream(contentByteArr));
+        result.setStream(contentByteArr != null ? new ByteArrayInputStream(contentByteArr): null);
 
 
+        LOGGER.trace("leaving getContentStream(): contentStream  {}", getContentStreamInfo(result));
         return result;
     }
 
@@ -1154,11 +1167,11 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
             throw new CmisPermissionDeniedException("No user context!");
         }
 
-        LOGGER.trace("entering checkUser(): check user {}", context.getUsername());
+        LOGGER.trace("checkUser(): check user {}", context.getUsername());
 
         final UserDTO userDTO = userService.getUserDto(context.getUsername(), context.getPassword());
 
-        LOGGER.trace("entering checkUser(): userDto {}", userDTO);
+        LOGGER.trace("checkUser(): userDto {}", userDTO);
         if (userDTO == null) {
             throw new CmisPermissionDeniedException("Unknown user!");
         }
@@ -1168,7 +1181,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         Boolean readOnly = true;
         if(userRoleDTOList != null){
             for (UserRoleDTO userRoleDTO : userRoleDTOList) {
-                if(userRoleDTO.getRole().equals("readwrite")){
+                if(userRoleDTO.getRole().equals(CMIS_READ_WRITE_ROLE_NAME)){
                     readOnly = false;
                     break;
                 }
@@ -1191,6 +1204,15 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
                 " fileName " + contentStream.getFileName() +
                 " inputstream " + contentStream.getStream() +
                 " length " + contentStream.getLength() + " }") : null;
+    }
+
+    private StorageActionsService getStorageActionsServiceForReadFiles(String storageName){
+        LOGGER.trace("entering getStorageActionsServiceForReadFiles( storageName = {})", storageName);
+        Storages storages = Storages.getStorageByName(storageName);
+        LOGGER.trace(" getStorageActionsServiceForReadFiles(): current {}", storages);
+        StorageActionsService storageActionsService =  storageManager.getStorageService(storages);
+        LOGGER.trace(" getStorageActionsServiceForReadFiles(): current {}", storages);
+        return storageActionsService;
     }
 
 }
