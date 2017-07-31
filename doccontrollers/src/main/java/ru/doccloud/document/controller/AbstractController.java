@@ -5,8 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+
+import ru.doccloud.service.DocumentCrudService;
 import ru.doccloud.service.document.dto.AbstractDocumentDTO;
 import ru.doccloud.storage.StorageActionsService;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
@@ -15,6 +19,8 @@ import ru.doccloud.storagemanager.StorageManager;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.UUID;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Created by ilya on 6/5/17.
@@ -26,12 +32,13 @@ abstract class AbstractController {
     final StorageActionsService storageActionsService;
 
     private final StorageManager storageManager;
-
+    private final DocumentCrudService crudService;
     JsonNode settingsNode;
 
-    AbstractController(StorageAreaSettings storageAreaSettings, StorageManager storageManager) throws Exception {
+    AbstractController(StorageAreaSettings storageAreaSettings, StorageManager storageManager, DocumentCrudService crudService) throws Exception {
         this.storageManager = storageManager;
-
+        this.crudService = crudService;
+        
         settingsNode = (JsonNode) storageAreaSettings.getStorageSetting();
         this.storageActionsService = storageManager.getStorageService(storageManager.getDefaultStorage(settingsNode));
     }
@@ -78,5 +85,14 @@ abstract class AbstractController {
                 }
             }
         }
+    }
+    
+    void setUser(){
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        LOGGER.info("httpservlet request from setUser {} ", request);
+        if(request == null)
+            crudService.setUser();
+        else
+            crudService.setUser(request.getRemoteUser());
     }
 }

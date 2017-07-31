@@ -1,28 +1,37 @@
 package ru.doccloud.document.controller;
 
-import org.apache.commons.lang3.StringUtils;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
-import ru.doccloud.common.util.VersionHelper;
-import ru.doccloud.service.document.dto.DocumentDTO;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import ru.doccloud.common.DateHelper;
 import ru.doccloud.service.DocumentCrudService;
 import ru.doccloud.service.DocumentSearchService;
+import ru.doccloud.service.document.dto.DocumentDTO;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
 import ru.doccloud.storagemanager.StorageManager;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * @author Andrey Kadnikov
@@ -36,11 +45,16 @@ public class IAController  extends AbstractController {
     private final DocumentCrudService crudService;
 
     private final DocumentSearchService searchService;
+    
+    public static final String TIMESTAMP_PATTERN = "yyyy-MM-dd HH:mm:ss";
+    
+    private final DateTimeFormatter dateTimeFormat = DateTimeFormat.forPattern(TIMESTAMP_PATTERN);
+	
 
     @Autowired
     public IAController(DocumentCrudService crudService, DocumentSearchService searchService,
                               StorageAreaSettings storageAreaSettings, StorageManager storageManager) throws Exception {
-        super(storageAreaSettings, storageManager);
+        super(storageAreaSettings, storageManager, crudService);
         LOGGER.info("DocumentController(crudService={}, searchService = {}, storageAreaSettings= {}, storageManager={})", crudService, searchService, storageAreaSettings, storageManager);
         this.crudService = crudService;
         this.searchService = searchService;
@@ -50,17 +64,94 @@ public class IAController  extends AbstractController {
     }
 
     @RequestMapping(value = "/tenants", method = RequestMethod.GET)
-    public List<DocumentDTO> findTenants() {
+    public JsonNode findTenants() {
         LOGGER.info("findTenants");
         Long parentid = Long.parseLong("0");
-        return crudService.findAllByParent(parentid);
+        
+        return getIaJson(crudService.findAllByParent(parentid),"tenants");
+    }
+    
+    private JsonNode getIaJson(List<DocumentDTO> docs, String domain){
+    	ObjectMapper mapper = new ObjectMapper();
+    	JsonNode res = null;
+    	String base_url = "http://localhost:8080/jooq";
+    	String base = "{"
+    			+ "\"_embedded\" : {"
+    				+"\""+domain+"\" : []"
+    			+ "},"
+    			+ "\"_links\" : {"
+	    			+ "\"self\" : {"
+	    			+ "\"href\" : \""+base_url+"/restapi/systemdata/tenants\""
+	    			+ "}"
+    			+ "},"
+    			+ "\"page\" : {"
+	    			+"\"size\" : 10,"
+	    			+"\"totalElements\" : 1,"
+	    			+"\"totalPages\" : 1,"
+	    			+"\"number\" : 0"
+    			+ "}"
+    			+ "}";
+    	LOGGER.info(base);
+    	
+		try {
+			res = mapper.readTree(base);
+			LOGGER.info(mapper.writeValueAsString(res));
+			ArrayNode nodes = (ArrayNode) res.path("_embedded").path(domain);
+			for (DocumentDTO doc : docs){
+				
+				String item = "{"
+						+ "\"permission\" : {"
+							+"\"groups\" : []"
+						+"},"
+						+"\"_links\" : {}}";
+				ObjectNode itemNode = (ObjectNode) mapper.readTree(item);
+				itemNode.put("createdBy",doc.getAuthor());
+				itemNode.put("createdDate",dateTimeFormat.print(doc.getCreationTime()));
+				itemNode.put("lastModifiedBy",doc.getModifier());
+				itemNode.put("lastModifiedDate",dateTimeFormat.print(doc.getModificationTime()));
+				itemNode.put("version",doc.getDocVersion());
+				itemNode.put("name",doc.getTitle());
+				
+				
+				ObjectNode linksNode = (ObjectNode) itemNode.path("_links");
+				ObjectNode sNode = mapper.createObjectNode();
+				sNode.put("href",base_url+"/restapi/systemdata/"+domain+"/"+doc.getId());
+				linksNode.put("self", sNode);
+				
+				ObjectNode jNode = mapper.createObjectNode();
+				if (domain=="tenants"){
+					jNode.put("href",base_url+"/restapi/systemdata/"+domain+"/"+doc.getId()+"/applications");
+					linksNode.put("http://identifiers.emc.com/applications", jNode);
+				}
+				if (domain=="applications"){
+					itemNode.put("structuredDataStorageAllocationStrategy","DEFAULT");
+					itemNode.put("type", "APP_DECOMM");
+					itemNode.put("archiveType", "TABLE");
+					itemNode.put("searchCreated", true);
+					itemNode.put("xdbLibraryAssociated", true);
+					itemNode.put("state", "IN_TEST");
+					itemNode.put("viewStatus", true);
+					
+					jNode.put("href",base_url+"/restapi/systemdata/"+domain+"/"+doc.getId()+"/searches");
+					linksNode.put("http://identifiers.emc.com/searches", jNode);
+				}
+				LOGGER.info(mapper.writeValueAsString(itemNode));
+				
+				nodes.add(itemNode);
+			}
+			LOGGER.info(mapper.writeValueAsString(res));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return res;
     }
     
     @RequestMapping(value = "/tenants/{tenantId}/applications", method = RequestMethod.GET)
-    public List<DocumentDTO> findAplications(@PathVariable("tenantId") String tenantId) {
+    public JsonNode findAplications(@PathVariable("tenantId") String tenantId) {
         LOGGER.info("findApplications");
         Long parentid = Long.parseLong(tenantId);
-        return crudService.findAllByParent(parentid);
+        return getIaJson(crudService.findAllByParent(parentid),"applications");
     }
     
     @RequestMapping(value = "/type/{type}", method = RequestMethod.GET)
@@ -99,13 +190,5 @@ public class IAController  extends AbstractController {
         return crudService.findByUUID(uuid);
     }
 
-    void setUser(){
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        LOGGER.info("httpservlet request from setUser {} ", request);
-        if(request == null)
-            crudService.setUser();
-        else
-            crudService.setUser(request.getRemoteUser());
-    }
 
 }
