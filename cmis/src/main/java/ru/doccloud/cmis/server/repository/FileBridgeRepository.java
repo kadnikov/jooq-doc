@@ -297,6 +297,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         try {
 //            we don't need to save fileStorage for folders
             doc = new DocumentDTO(name, "folder", context.getUsername());
+            doc.setBaseType("folder");
             doc.setDocVersion(VersionHelper.generateMinorDocVersion(doc.getDocVersion()));
             doc = crudService.add(doc, context.getUsername());
             crudService.addToFolder(doc, parent.getId());

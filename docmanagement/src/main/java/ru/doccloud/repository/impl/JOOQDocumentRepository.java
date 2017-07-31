@@ -55,11 +55,11 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
         String[] readers = {documentEntry.getAuthor(), "admins"};
         LOGGER.trace("add(): readers {}", readers);
         DocumentsRecord persisted = jooq.insertInto(
-                DOCUMENTS, DOCUMENTS.SYS_DESC, DOCUMENTS.SYS_TITLE, DOCUMENTS.SYS_TYPE, DOCUMENTS.SYS_AUTHOR,
+                DOCUMENTS, DOCUMENTS.SYS_DESC, DOCUMENTS.SYS_TITLE, DOCUMENTS.SYS_BASE_TYPE, DOCUMENTS.SYS_TYPE, DOCUMENTS.SYS_AUTHOR,
                 DOCUMENTS.SYS_READERS, DOCUMENTS.DATA, DOCUMENTS.SYS_FILE_LENGTH, DOCUMENTS.SYS_FILE_MIME_TYPE,
                 DOCUMENTS.SYS_FILE_NAME, DOCUMENTS.SYS_FILE_PATH, DOCUMENTS.SYS_VERSION, DOCUMENTS.SYS_FILE_STORAGE)
                 .values(
-                        documentEntry.getDescription(), documentEntry.getTitle(), documentEntry.getType(), documentEntry.getAuthor(),
+                        documentEntry.getDescription(), documentEntry.getTitle(), documentEntry.getBaseType(), documentEntry.getType(), documentEntry.getAuthor(),
                         readers, documentEntry.getData(), documentEntry.getFileLength(), documentEntry.getFileMimeType(),
                         documentEntry.getFileName(), documentEntry.getFilePath(), documentEntry.getDocVersion(), documentEntry.getFileStorage())
                 .returning()
@@ -198,6 +198,7 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
         selectedFields.add(DOCUMENTS.SYS_MODIFIER);
         selectedFields.add(DOCUMENTS.SYS_FILE_PATH);
         selectedFields.add(DOCUMENTS.SYS_TYPE);
+        selectedFields.add(DOCUMENTS.SYS_BASE_TYPE);
         selectedFields.add(DOCUMENTS.SYS_FILE_NAME);
         selectedFields.add(DOCUMENTS.SYS_VERSION);
         selectedFields.add(DOCUMENTS.SYS_UUID);
@@ -489,6 +490,7 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
         private static Document convertQueryResultToModelObject(Record queryResult, String[] fields) {
             return  Document.getBuilder(queryResult.getValue(DOCUMENTS.SYS_TITLE))
                     .description(queryResult.getValue(DOCUMENTS.SYS_DESC))
+                    .baseType(queryResult.getValue(DOCUMENTS.SYS_BASE_TYPE))
                     .type(queryResult.getValue(DOCUMENTS.SYS_TYPE))
                     .id(queryResult.getValue(DOCUMENTS.ID).longValue())
                     .creationTime(queryResult.getValue(DOCUMENTS.SYS_DATE_CR))
@@ -509,6 +511,7 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
             return Document.getBuilder(queryResult.getSysTitle())
                     .creationTime(queryResult.getSysDateCr())
                     .description(queryResult.getSysDesc())
+                    .baseType(queryResult.getSysBaseType())
                     .type(queryResult.getSysType())
                     .data(queryResult.getData())
                     .id(queryResult.getId().longValue())

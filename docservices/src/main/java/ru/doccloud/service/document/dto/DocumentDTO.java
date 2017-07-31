@@ -9,6 +9,7 @@ import org.jtransfo.DomainClass;
 public class DocumentDTO extends AbstractDocumentDTO{
 
     private String fileStorage;
+    private String baseType;
 
     public DocumentDTO() {
 
@@ -26,7 +27,15 @@ public class DocumentDTO extends AbstractDocumentDTO{
         this.fileStorage = fileStorage;
     }
 
-    @Override
+    public String getBaseType() {
+		return baseType;
+	}
+
+	public void setBaseType(String baseType) {
+		this.baseType = baseType;
+	}
+
+	@Override
     public String toString() {
         return "DocumentDTO{" +
                 "fileStorage='" + fileStorage + '\'' + super.toString() +

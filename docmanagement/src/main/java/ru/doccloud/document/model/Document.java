@@ -15,6 +15,7 @@ public class Document extends AbstractDocument implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private String fileStorage;
+	private String baseType;
 
 	private Document(Builder builder) {
         this.id = builder.id;
@@ -49,7 +50,8 @@ public class Document extends AbstractDocument implements Serializable {
         this.modifier = builder.modifier;
         
         this.type = builder.type;
-        
+        this.baseType = builder.baseType;
+                
         this.parent = builder.parent;
         
         this.data = builder.data;
@@ -59,6 +61,10 @@ public class Document extends AbstractDocument implements Serializable {
 
     public String getFileStorage() {
         return fileStorage;
+    }
+    
+    public String getBaseType() {
+        return baseType;
     }
 
     public static Builder getBuilder(String title) {
@@ -81,6 +87,7 @@ public class Document extends AbstractDocument implements Serializable {
                 ", fileMimeType='" + fileMimeType + '\'' +
                 ", fileLength=" + fileLength +
                 ", type='" + type + '\'' +
+                ", baseType='" + baseType + '\'' +
                 ", docVersion='" + docVersion + '\'' +
                 ", data=" + data +
                 ", uuid=" + uuid +
@@ -110,6 +117,8 @@ public class Document extends AbstractDocument implements Serializable {
         
         private String type;
         
+        private String baseType;
+        
         private String parent;
         
         private String author;
@@ -136,6 +145,11 @@ public class Document extends AbstractDocument implements Serializable {
         
         public Builder type(String type) {
             this.type = type;
+            return this;
+        }
+        
+        public Builder baseType(String baseType) {
+            this.baseType = baseType;
             return this;
         }
         

@@ -51,6 +51,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 
         repository.setUser(user);
         dto.setAuthor(user);
+        if (dto.getBaseType() == null) dto.setBaseType("document");
         Document persisted = repository.add(createModel(dto));
 
         LOGGER.debug("leaving add(): Added Document entry {}", persisted);
@@ -270,6 +271,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         return Document.getBuilder(dto.getTitle())
                 .description(dto.getDescription())
                 .type(dto.getType())
+                .baseType(dto.getBaseType())
                 .parent(dto.getParent())
                 .data(dto.getData())
                 .id(dto.getId())
