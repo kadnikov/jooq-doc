@@ -44,10 +44,6 @@ abstract class AbstractController {
     AbstractController(StorageAreaSettings storageAreaSettings, StorageManager storageManager, DocumentCrudService crudService) throws Exception {
         this.storageManager = storageManager;
         this.crudService = crudService;
-        
-        settingsNode = (JsonNode) storageAreaSettings.getStorageSetting();
-        this.storageActionsService = storageManager.getStorageService(storageManager.getDefaultStorage(settingsNode));
-
 
         storageSettingsNode = (JsonNode) storageAreaSettings.getSetting(SettingsKeys.STORAGE_AREA_KEY.getSettingsKey());
         this.storageActionsService = storageManager.getStorageService(storageManager.getCurrentStorage(storageSettingsNode));
