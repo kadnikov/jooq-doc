@@ -163,7 +163,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         // get parent
         final DocumentDTO parent = getParentDocument(folderId);
         LOGGER.trace("createDocument(): parent is {}", parent);
-        if (parent == null || !isFolder(parent.getType())) {
+        if (parent == null || !isFolder(parent.getBaseType())) {
             throw new CmisObjectNotFoundException("Parent is not a folder!");
         }
         DocumentDTO doc = null;
@@ -233,7 +233,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
         LOGGER.debug("createDocumentFromSource(): parent document is {}", parent);
 
-        if (parent == null || !isFolder(parent.getType())) {
+        if (parent == null || !isFolder(parent.getBaseType())) {
             throw new CmisObjectNotFoundException("Parent is not a folder!");
         }
         DocumentDTO doc = null;
@@ -285,7 +285,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
         // check properties
         checkNewProperties(properties, BaseTypeId.CMIS_FOLDER, type);
-        if (parent == null || !isFolder(parent.getType())) {
+        if (parent == null || !isFolder(parent.getBaseType())) {
             throw new CmisObjectNotFoundException("Parent is not a folder!");
         }
 
@@ -417,7 +417,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
         LOGGER.debug("deleteObject(): document for deleting {}", doc);
         // check if it is a folder and if it is empty
-        if (isFolder(doc.getType())) {
+        if (isFolder(doc.getBaseType())) {
             if (crudService.findAllByParent(doc.getId()).size() > 0) {
                 throw new CmisConstraintException("Folder is not empty!");
             }
@@ -464,7 +464,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         result.setIds(new ArrayList<>());
 
         // if it is a folder, remove it recursively
-        if (isFolder(doc.getType())) {
+        if (isFolder(doc.getBaseType())) {
             deleteFolder(doc, cof, result);
         } else {
             throw new CmisConstraintException("Object is not a folder!");
@@ -508,7 +508,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         List<DocumentDTO> docList = crudService.findAllByParent(doc.getId());
         for (DocumentDTO childDoc : docList) {
             LOGGER.debug(" deleteFolder(): childDoc {} : ", childDoc);
-            if (isFolder(childDoc.getType())) {
+            if (isFolder(childDoc.getBaseType())) {
                 if (!deleteFolder(childDoc, continueOnFailure, ftd)) {
                     if (!continueOnFailure) {
                         return false;
@@ -619,7 +619,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         LOGGER.debug("updateProperties(): document for update: {}", doc);
 
         // check the properties
-        String typeId = (isFolder(doc.getType()) ? BaseTypeId.CMIS_FOLDER.value() : BaseTypeId.CMIS_DOCUMENT.value());
+        String typeId = (isFolder(doc.getBaseType()) ? BaseTypeId.CMIS_FOLDER.value() : BaseTypeId.CMIS_DOCUMENT.value());
 
         LOGGER.debug("updateProperties(): typeId is : {}", typeId);
 
