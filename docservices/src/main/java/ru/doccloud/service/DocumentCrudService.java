@@ -56,4 +56,6 @@ public interface DocumentCrudService {
 
     public DocumentDTO setParent(DocumentDTO dto);
 
+    public List<DocumentDTO> findAllByParentAndType(Long parentid, String type);
+
 }

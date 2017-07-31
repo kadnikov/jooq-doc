@@ -266,6 +266,17 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 
         return transformer.convertList(docEntries, DocumentDTO.class);
     }
+    
+    @Override
+    public List<DocumentDTO> findAllByParentAndType(final Long parentid, String type) {
+        LOGGER.debug("entering findAllByParent(parentId = {})", parentid);
+
+        List<Document> docEntries = repository.findAllByParentAndType(parentid, type);
+
+        LOGGER.debug("leaving findAllByParent(): Found {} Documents", docEntries);
+
+        return transformer.convertList(docEntries, DocumentDTO.class);
+    }
 
     private Document createModel(DocumentDTO dto) {
         return Document.getBuilder(dto.getTitle())

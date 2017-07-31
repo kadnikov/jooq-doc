@@ -76,7 +76,7 @@ public class IAController  extends AbstractController {
         LOGGER.info("findTenants");
         Long parentid = Long.parseLong("0");
         
-        return getIaJson(crudService.findAllByParent(parentid),"tenants");
+        return getIaJson(crudService.findAllByParentAndType(parentid,"tenant"),"tenants");
     }
     
     private JsonNode getIaJson(List<DocumentDTO> docs, String domain){

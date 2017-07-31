@@ -551,4 +551,25 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
         }
     }
 
+
+	@Override
+	public List<Document> findAllByParentAndType(Long parentid, String type) {
+
+        LOGGER.trace("entering findAllByParentAndType(parent = {}, type = {})", parentid , type);
+        Condition cond = DOCUMENTS.SYS_TYPE.equal(type);
+        cond.and(DOCUMENTS.SYS_PARENT.equal(parentid.toString()));
+    	List<DocumentsRecord>  queryResults = jooq.selectFrom(DOCUMENTS)
+                .where(cond)
+                .fetchInto(DocumentsRecord.class);
+
+
+        LOGGER.trace("findAllByParentAndType(): Found {} Document entries, they are going to convert to model objects", queryResults);
+
+        List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
+
+        LOGGER.trace("leaving findAllByParentAndType(): Found {}", documentEntries);
+
+        return documentEntries;
+	}
+
 }
