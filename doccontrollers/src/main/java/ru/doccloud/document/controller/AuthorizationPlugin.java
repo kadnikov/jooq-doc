@@ -15,11 +15,11 @@ public class AuthorizationPlugin {
 	private static final Logger logger = LoggerFactory.getLogger(AuthorizationPlugin.class);
 
 
-	@Pointcut("execution(* ru.doccloud.document.controller.DocumentController.*(..))")
+	@Pointcut("execution(* ru.doccloud.document.controller.DocumentController.*(..)) || execution(* ru.doccloud.document.controller.IAController.*(..))")
 	public void businessMethods() { }
 
 	@Around("businessMethods() && target(documentController)")
-	public Object profile(ProceedingJoinPoint pjp, DocumentController documentController) throws Throwable {
+	public Object profile(ProceedingJoinPoint pjp, AbstractController documentController) throws Throwable {
 		long start = System.currentTimeMillis();
 	    logger.debug("AuthorizationPlugin: Going to call the method: {}", pjp.getSignature().getName());
         documentController.setUser();
