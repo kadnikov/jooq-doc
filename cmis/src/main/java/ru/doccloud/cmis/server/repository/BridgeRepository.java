@@ -165,7 +165,7 @@ abstract class BridgeRepository {
             throw new IllegalArgumentException("File must not be null!");
         }
 
-        boolean isDirectory = isFolder(doc.getType());
+        boolean isDirectory = isFolder(doc.getBaseType());
         String rootId = isDirectory ? (parentDoc != null ? getId(parentDoc.getId()) : null):null;
         String id = getId(doc.getId());
         String name = doc.getTitle();
