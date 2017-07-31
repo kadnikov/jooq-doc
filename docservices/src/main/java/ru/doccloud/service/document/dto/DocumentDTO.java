@@ -8,6 +8,8 @@ import org.jtransfo.DomainClass;
 @DomainClass("ru.doccloud.document.model.Document")
 public class DocumentDTO extends AbstractDocumentDTO{
 
+    private String fileStorage;
+
     public DocumentDTO() {
 
     }
@@ -16,8 +18,18 @@ public class DocumentDTO extends AbstractDocumentDTO{
         super(title, type, author);
     }
 
+    public String getFileStorage() {
+        return fileStorage;
+    }
+
+    public void setFileStorage(String fileStorage) {
+        this.fileStorage = fileStorage;
+    }
+
     @Override
     public String toString() {
-        return "DocumentDTO " + super.toString();
+        return "DocumentDTO{" +
+                "fileStorage='" + fileStorage + '\'' + super.toString() +
+                '}';
     }
 }

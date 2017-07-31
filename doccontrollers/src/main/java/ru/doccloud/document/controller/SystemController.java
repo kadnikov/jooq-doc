@@ -35,7 +35,7 @@ public class SystemController  extends AbstractController {
 
     @Autowired
     public SystemController(SystemCrudService crudService, StorageAreaSettings storageAreaSettings, StorageManager storageManager) throws Exception {
-        super(storageAreaSettings, storageManager);
+        super(storageAreaSettings, storageManager, null);
         LOGGER.info("SystemController(crudService={}, storageAreaSettings= {}, storageManager={})", crudService, storageAreaSettings, storageManager);
         this.crudService = crudService;
     }

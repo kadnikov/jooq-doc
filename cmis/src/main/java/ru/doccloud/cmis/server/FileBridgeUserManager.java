@@ -45,24 +45,26 @@ public class FileBridgeUserManager {
     /**
      * Takes user and password from the CallContext and checks them.
      */
-    public synchronized String authenticate(CallContext context) {
+    public synchronized UserDTO authenticate(CallContext context) {
         // check user and password
-        if (!authenticate(context.getUsername(), context.getPassword())) {
+        final UserDTO authentificatedUser = authenticate(context.getUsername(), context.getPassword());
+
+        if (authentificatedUser == null) {
             throw new CmisPermissionDeniedException("Invalid username or password.");
         }
 
-        return context.getUsername();
+        return authentificatedUser;
     }
 
     /**
      * Authenticates a user against the configured logins.
      */
-    private synchronized boolean authenticate(final String username, final String password) {
+    private synchronized UserDTO authenticate(final String username, final String password) {
         //        todo remove logging after creating auth
-        LOGGER.info("authenticate(userName = {}, password={})", username, password);
+        LOGGER.trace("authenticate(userName = {}, password={})", username, password);
         final UserDTO userDTO = userService.getUserDto(username, password);
-        LOGGER.info("authenticate(): userDto {}",userDTO);
-        return userDTO != null;
+        LOGGER.trace("authenticate(): userDto {}",userDTO);
+        return userDTO;
 
     }
 }

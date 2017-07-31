@@ -16,8 +16,6 @@ public class StorageAreaSettingsImpl implements StorageAreaSettings {
 
     private final SystemCrudService systemCrudService;
 
-    private static final String STORAGE_AREA_KEY = "storage_area";
-
     private Map<String, Object> storage;
 
     @Autowired
@@ -32,28 +30,28 @@ public class StorageAreaSettingsImpl implements StorageAreaSettings {
         return storage;
     }
 
-    private void add(Object object){
-        getStorage().put(STORAGE_AREA_KEY, object);
+    private void add(String settingskey, Object object){
+        getStorage().put(settingskey, object);
     }
 
-    public Object getStorageSetting() throws Exception {
-        LOGGER.debug("getStorageSetting():  Try to find it in cache");
-        Object settings =  getStorage().get(STORAGE_AREA_KEY);
-        LOGGER.debug("getStorageSetting():  settings in cache {}", settings);
+    public Object getSetting(final String settingsKey) throws Exception {
+        LOGGER.debug("getSetting(settingsKey={}):  Try to find it in cache", settingsKey);
+        Object settings =  getStorage().get(settingsKey);
+        LOGGER.debug("getSetting():  settings in cache {}", settings);
         if (settings != null)
             return settings;
 
-        settings = findSettingsInDatabase();
+        settings = findSettingsInDatabase(settingsKey);
         return settings;
     }
 
-    private JsonNode findSettingsInDatabase() throws Exception {
-        LOGGER.debug("findSettingsInDatabase(): settings were not found in the cashe. Try to find it in database");
-        JsonNode settings = systemCrudService.findSettings();
+    private JsonNode findSettingsInDatabase(final String settingsKey) throws Exception {
+        LOGGER.debug("findSettingsInDatabase(settingsKey={}): settings were not found in the cashe. Try to find it in database", settingsKey);
+        JsonNode settings = systemCrudService.findSettings(settingsKey);
         if(settings == null)
             throw new Exception("Storage area settings were not found in database");
         LOGGER.debug("leaving findSettingsInDatabase(): Found {}", settings);
-        add(settings);
+        add(settingsKey, settings);
 
         return settings;
     }

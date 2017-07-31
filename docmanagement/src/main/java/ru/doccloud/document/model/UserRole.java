@@ -1,9 +1,19 @@
 package ru.doccloud.document.model;
 
 
-public class UserRole {
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.Serializable;
+
+public class UserRole implements Serializable {
     private String role;
     private String userId;
+
+    public UserRole(Builder builder) {
+        this.userId = builder.userId;
+        this.role = builder.role;
+    }
+
 
     public String getRole() {
         return role;
@@ -11,6 +21,42 @@ public class UserRole {
 
     public String getUserId() {
         return userId;
+    }
+
+
+    public static class Builder {
+
+        private String userId;
+
+        private String role;
+
+
+        public Builder(String userId) {
+            this.userId = userId;
+        }
+
+        public UserRole.Builder role(String role) {
+            this.role = role;
+            return this;
+        }
+
+
+        public static UserRole.Builder getBuilder(String userId) {
+            return new UserRole.Builder(userId);
+        }
+
+        public UserRole build() {
+            UserRole created = new UserRole(this);
+
+            String userId = created.getUserId();
+
+            if (StringUtils.isBlank(userId)) {
+                throw new IllegalStateException("title cannot be null or empty");
+            }
+
+            return created;
+        }
+
     }
 
     @Override
@@ -30,6 +76,10 @@ public class UserRole {
         int result = role.hashCode();
         result = 31 * result + userId.hashCode();
         return result;
+    }
+
+    public static UserRole.Builder getBuilder(String userId) {
+        return new UserRole.Builder(userId);
     }
 
     @Override

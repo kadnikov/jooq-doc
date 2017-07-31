@@ -11,10 +11,12 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import ru.doccloud.service.DocumentCrudService;
+import ru.doccloud.common.global.SettingsKeys;
 import ru.doccloud.service.document.dto.AbstractDocumentDTO;
 import ru.doccloud.storage.StorageActionsService;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
 import ru.doccloud.storagemanager.StorageManager;
+import ru.doccloud.storagemanager.Storages;
 
 import java.io.IOException;
 import java.util.Enumeration;
@@ -35,12 +37,23 @@ abstract class AbstractController {
     private final DocumentCrudService crudService;
     JsonNode settingsNode;
 
+    JsonNode storageSettingsNode;
+
+    protected final Storages currentStorage;
+
     AbstractController(StorageAreaSettings storageAreaSettings, StorageManager storageManager, DocumentCrudService crudService) throws Exception {
         this.storageManager = storageManager;
         this.crudService = crudService;
         
         settingsNode = (JsonNode) storageAreaSettings.getStorageSetting();
         this.storageActionsService = storageManager.getStorageService(storageManager.getDefaultStorage(settingsNode));
+
+
+        storageSettingsNode = (JsonNode) storageAreaSettings.getSetting(SettingsKeys.STORAGE_AREA_KEY.getSettingsKey());
+        this.storageActionsService = storageManager.getStorageService(storageManager.getCurrentStorage(storageSettingsNode));
+
+        currentStorage = storageManager.getCurrentStorage(storageSettingsNode);
+
     }
 
     void initFileParamsFromRequest(AbstractDocumentDTO dto, MultipartFile mpf) throws Exception {
@@ -50,7 +63,7 @@ abstract class AbstractController {
     }
 
     String writeContent(UUID uuid, byte[] bytes) throws Exception {
-        return storageActionsService.writeFile(storageManager.getRootName(settingsNode), uuid, bytes);
+        return storageActionsService.writeFile(storageManager.getRootName(storageSettingsNode), uuid, bytes);
     }
 
     boolean checkMultipartFile(MultipartFile mpf) throws IOException {

@@ -31,7 +31,7 @@ public interface SystemCrudService {
     public SystemDTO findByUUID(final String uuid);
 
     @Transactional(readOnly = true)
-    JsonNode findSettings();
+    JsonNode findSettings(final String settingsKey);
 
     public SystemDTO update(final SystemDTO updated, final String user);
 	

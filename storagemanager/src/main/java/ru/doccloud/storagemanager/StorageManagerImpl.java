@@ -34,27 +34,29 @@ public class StorageManagerImpl implements StorageManager {
 
 
     public StorageActionsService getStorageService(Storages storage){
-        LOGGER.info("StorageManagerImpl(): amazonActionsService {}, fileActionsService {}", amazonActionsService, fileActionsService);
-        return storage.equals(Storages.AMAZONSTORAGE) ? amazonActionsService : fileActionsService;
+        LOGGER.trace("getStorageService(): amazonActionsService {}, fileActionsService {}", amazonActionsService, fileActionsService);
+        return (storage.equals(Storages.SCALITYAMAZONSTORAGE) || storage.equals(Storages.AMAZONSTORAGE)) ? amazonActionsService : fileActionsService;
     }
 
     @Override
     public String getRootName(JsonNode settingsNode) throws Exception {
-        Storages currentStorage = getDefaultStorage(settingsNode);
-
-        return JsonNodeParser.getValueJsonNode(settingsNode, currentStorage.equals(Storages.AMAZONSTORAGE) ? "bucketName": "repository");
+        LOGGER.trace("entering getRootName(settingsNode= {}) ", settingsNode);
+        final Storages currentStorage = getCurrentStorage(settingsNode);
+        LOGGER.trace("leaving getRootName(): currentStorage ", currentStorage);
+        return JsonNodeParser.getValueJsonNode(settingsNode, currentStorage.getRootName());
     }
 
-    public Storages getDefaultStorage(JsonNode settingsNode) throws Exception {
+    public Storages getCurrentStorage(JsonNode settingsNode) throws Exception {
 
+        LOGGER.trace("entering getCurrentStorage(settingsNode= {}) ", settingsNode);
         String currentStorageId = JsonNodeParser.getValueJsonNode(settingsNode, "currentStorageID");
 
-        LOGGER.debug("getDefaultStorage(): currentStorageId: {} ", currentStorageId);
+        LOGGER.trace("getCurrentStorage(): currentStorageId: {} ", currentStorageId);
         if(StringUtils.isBlank(currentStorageId))
             throw new Exception("StorageId is not set up");
 
         Storages storages = Storages.getStorageByName(currentStorageId);
-        LOGGER.debug("getDefaultStorage(): Storages: {} ", storages);
+        LOGGER.debug("leaving getCurrentStorage(): Storages: {} ", storages);
         return storages;
     }
 }

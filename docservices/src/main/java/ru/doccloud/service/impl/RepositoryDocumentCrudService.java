@@ -280,6 +280,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
                 .fileName(dto.getFileName())
                 .filePath(dto.getFilePath())
                 .docVersion(dto.getDocVersion())
+                .fileStorage(dto.getFileStorage())
                 .build();
     }
 }

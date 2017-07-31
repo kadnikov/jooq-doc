@@ -18,16 +18,17 @@ public class JsonNodeParser {
 
 
     public static String getValueJsonNode(final JsonNode settingsNode, final String paramName) throws Exception {
+        LOGGER.debug("entering  getValueJsonNode(settingsNode={}, paramName={})", settingsNode, paramName);
         if(StringUtils.isBlank(paramName))
             throw new Exception("paramName is empty");
 
-        LOGGER.debug("settingsNode {}", settingsNode);
+        LOGGER.debug("getValueJsonNode(): settingsNode {}", settingsNode);
         JsonNode value = settingsNode.findValue(paramName);
         if(value == null)
             throw new Exception("value for key " + paramName + "was not found in json settings");
 
         String rootFolder = String.valueOf(value.asText());
-        LOGGER.debug("repository for save file {}", rootFolder);
+        LOGGER.debug("leaving getValueJsonNode(): repository for save file {}", rootFolder);
         return rootFolder;
     }
 

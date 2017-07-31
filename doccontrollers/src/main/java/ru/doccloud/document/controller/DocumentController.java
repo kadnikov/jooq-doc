@@ -13,9 +13,9 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import ru.doccloud.common.util.VersionHelper;
-import ru.doccloud.service.document.dto.DocumentDTO;
 import ru.doccloud.service.DocumentCrudService;
 import ru.doccloud.service.DocumentSearchService;
+import ru.doccloud.service.document.dto.DocumentDTO;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
 import ru.doccloud.storagemanager.StorageManager;
 
@@ -40,12 +40,11 @@ public class DocumentController  extends AbstractController {
     @Autowired
     public DocumentController(DocumentCrudService crudService, DocumentSearchService searchService,
                               StorageAreaSettings storageAreaSettings, StorageManager storageManager) throws Exception {
-        super(storageAreaSettings, storageManager);
+        super(storageAreaSettings, storageManager, crudService);
         LOGGER.info("DocumentController(crudService={}, searchService = {}, storageAreaSettings= {}, storageManager={})", crudService, searchService, storageAreaSettings, storageManager);
         this.crudService = crudService;
         this.searchService = searchService;
-
-        LOGGER.info("DocumentController(): storage settings {}", settingsNode);
+        LOGGER.info("DocumentController(): storage settings {}", storageSettingsNode);
 
     }
 
@@ -185,16 +184,6 @@ public class DocumentController  extends AbstractController {
         return crudService.update(dto, request.getRemoteUser());
     }
 
-    void setUser(){
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        LOGGER.info("httpservlet request from setUser {} ", request);
-        if(request == null)
-            crudService.setUser();
-        else
-            crudService.setUser(request.getRemoteUser());
-    }
-
-
     private DocumentDTO addDoc(DocumentDTO dto, String user) {
         dto.setDocVersion(VersionHelper.generateMinorDocVersion(dto.getDocVersion()));
         return crudService.add(dto, user);
@@ -207,6 +196,7 @@ public class DocumentController  extends AbstractController {
             LOGGER.debug("the document: {} has been added", dto);
             LOGGER.debug("start adding file to FS");
             dto.setFilePath(writeContent(dto.getUuid(), mpf.getBytes()));
+            dto.setFileStorage(currentStorage.getStorageName());
             DocumentDTO updated = crudService.update(dto, user);
             LOGGER.debug("Dto object has been updated: {}", updated);
             return updated;

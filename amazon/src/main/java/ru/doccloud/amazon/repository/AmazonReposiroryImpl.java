@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.doccloud.common.global.SettingsKeys;
 import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
 
@@ -36,11 +37,11 @@ public class AmazonReposiroryImpl implements AmazonRepository {
 
     private final AmazonS3 amazonS3;
 
-    private JsonNode settingsNode;
+    private JsonNode storageSettingsNode;
 
     @Autowired
     public AmazonReposiroryImpl(StorageAreaSettings storageAreaSettings) throws Exception {
-        this.settingsNode = (JsonNode) storageAreaSettings.getStorageSetting();
+        this.storageSettingsNode = (JsonNode) storageAreaSettings.getSetting(SettingsKeys.STORAGE_AREA_KEY.getSettingsKey());
         this.amazonS3 = amazonS3(basicAWSCredentials());
     }
 
@@ -86,7 +87,7 @@ public class AmazonReposiroryImpl implements AmazonRepository {
     }
 
     private String getBucketName() throws Exception {
-        final String bucketName = JsonNodeParser.getValueJsonNode(settingsNode, AMAZON_BUCKET_NAME_PARAM);
+        final String bucketName = JsonNodeParser.getValueJsonNode(storageSettingsNode, AMAZON_BUCKET_NAME_PARAM);
         if(StringUtils.isBlank(bucketName))
             throw new Exception("Bucket name was not found in settings");
 
@@ -114,14 +115,14 @@ public class AmazonReposiroryImpl implements AmazonRepository {
 
     private BasicAWSCredentials basicAWSCredentials() throws Exception {
 
-        final String awsAccessKeyId = JsonNodeParser.getValueJsonNode(settingsNode, AMAZON_ACCESS_KEY_PARAM);
-        final String awsSecretAccessKey =  JsonNodeParser.getValueJsonNode(settingsNode, AMAZON_ACCESS_SECRET_KEY_PARAM);
+        final String awsAccessKeyId = JsonNodeParser.getValueJsonNode(storageSettingsNode, AMAZON_ACCESS_KEY_PARAM);
+        final String awsSecretAccessKey =  JsonNodeParser.getValueJsonNode(storageSettingsNode, AMAZON_ACCESS_SECRET_KEY_PARAM);
         return new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey);
     }
 
     private AmazonS3 amazonS3(BasicAWSCredentials basicAWSCredentials) throws Exception {
         AmazonS3 amazonS3 = new AmazonS3Client(basicAWSCredentials);
-        amazonS3.setEndpoint(JsonNodeParser.getValueJsonNode(settingsNode, AMZON_ENDPOINT_PARAM));
+        amazonS3.setEndpoint(JsonNodeParser.getValueJsonNode(storageSettingsNode, AMZON_ENDPOINT_PARAM));
         amazonS3.setS3ClientOptions(S3ClientOptions.builder().setPathStyleAccess(true).build());
         return amazonS3;
     }

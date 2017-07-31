@@ -22,7 +22,6 @@
  */
 package ru.doccloud.cmis.server.repository;
 
-import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -63,10 +62,6 @@ public class FileBridgeRepositoryManager {
     public FileBridgeRepository getRepository(String repositoryId) {
         LOGGER.debug("entering getRepository(repositoryId={})", repositoryId);
         FileBridgeRepository result = repositories.get(repositoryId);
-        if (result == null) {
-            throw new CmisObjectNotFoundException("Unknown repository '" + repositoryId + "'!");
-        }
-
         LOGGER.debug("leaving getRepository(): FileBridgeRepository was found {}", result);
         return result;
     }

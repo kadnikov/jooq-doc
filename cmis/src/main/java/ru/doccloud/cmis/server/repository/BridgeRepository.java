@@ -29,7 +29,6 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
 import static ru.doccloud.cmis.server.util.FileBridgeUtils.*;
@@ -49,13 +48,11 @@ abstract class BridgeRepository {
     static final Pattern IN_FOLDER_QUERY_PATTERN = Pattern
             .compile("(?i)select\\s+.+\\s+from\\s+(\\S*).*\\s+where\\s+in_folder\\('(.*)'\\)");
 
-
-//    final DocumentCrudService crudService;
-
     /** Types. */
     FileBridgeTypeManager typeManager;
     /** Users. */
-    Map<String, Boolean> readWriteUserMap;
+//    todo remove this map, take user from database once and store userinfo somewhere in session
+//    Map<String, Boolean> readWriteUserMap;
 
 
     /** Root directory. */
@@ -73,11 +70,7 @@ abstract class BridgeRepository {
             throw new IllegalArgumentException("Root is not a directory!");
         }
 
-//        this.crudService = crudService;
         this.typeManager = typeManager;
-
-        // set up read-write user map
-        readWriteUserMap = new ConcurrentHashMap<>();
     }
 
     boolean isFolder(String docType) {
@@ -353,7 +346,7 @@ abstract class BridgeRepository {
         }
 
         if (includeAcl) {
-            result.setAcl(compileAcl(file));
+            result.setAcl(compileAcl(file, context.getUsername(), userReadOnly));
             result.setIsExactAcl(true);
         }
 
@@ -449,29 +442,45 @@ abstract class BridgeRepository {
     /**
      * Compiles the ACL for a file or folder.
      */
-    Acl compileAcl(File file) {
+    Acl compileAcl(File file, String userId, boolean userReadOnly) {
         AccessControlListImpl result = new AccessControlListImpl();
-        result.setAces(new ArrayList<Ace>());
+        result.setAces(new ArrayList<>());
+        AccessControlPrincipalDataImpl principal = new AccessControlPrincipalDataImpl(userId);
 
-        for (Map.Entry<String, Boolean> ue : readWriteUserMap.entrySet()) {
-            // create principal
-            AccessControlPrincipalDataImpl principal = new AccessControlPrincipalDataImpl(ue.getKey());
-
-            // create ACE
-            AccessControlEntryImpl entry = new AccessControlEntryImpl();
-            entry.setPrincipal(principal);
-            entry.setPermissions(new ArrayList<String>());
-            entry.getPermissions().add(BasicPermissions.READ);
-            if (!ue.getValue() && file.canWrite()) {
-                entry.getPermissions().add(BasicPermissions.WRITE);
-                entry.getPermissions().add(BasicPermissions.ALL);
-            }
-
-            entry.setDirect(true);
-
-            // add ACE
-            result.getAces().add(entry);
+        // create ACE
+        AccessControlEntryImpl entry = new AccessControlEntryImpl();
+        entry.setPrincipal(principal);
+        entry.setPermissions(new ArrayList<String>());
+        entry.getPermissions().add(BasicPermissions.READ);
+        if (!userReadOnly && file.canWrite()) {
+            entry.getPermissions().add(BasicPermissions.WRITE);
+            entry.getPermissions().add(BasicPermissions.ALL);
         }
+
+        entry.setDirect(true);
+
+        // add ACE
+        result.getAces().add(entry);
+
+//        for (Map.Entry<String, Boolean> ue : readWriteUserMap.entrySet()) {
+//            // create principal
+//            AccessControlPrincipalDataImpl principal = new AccessControlPrincipalDataImpl(ue.getKey());
+//
+//            // create ACE
+//            AccessControlEntryImpl entry = new AccessControlEntryImpl();
+//            entry.setPrincipal(principal);
+//            entry.setPermissions(new ArrayList<String>());
+//            entry.getPermissions().add(BasicPermissions.READ);
+//            if (!ue.getValue() && file.canWrite()) {
+//                entry.getPermissions().add(BasicPermissions.WRITE);
+//                entry.getPermissions().add(BasicPermissions.ALL);
+//            }
+//
+//            entry.setDirect(true);
+//
+//            // add ACE
+//            result.getAces().add(entry);
+//        }
 
         return result;
     }
