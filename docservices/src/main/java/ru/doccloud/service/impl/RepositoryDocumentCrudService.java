@@ -268,14 +268,19 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     }
     
     @Override
-    public List<DocumentDTO> findAllByParentAndType(final Long parentid, String type) {
-        LOGGER.debug("entering findAllByParent(parentId = {})", parentid);
+    public Page<DocumentDTO> findAllByParentAndType(final Long parentid, String type, final Pageable pageable) {
+        LOGGER.debug("entering findAllByParentAndType(parentId = {}, type = {})", parentid, type); 
 
-        List<Document> docEntries = repository.findAllByParentAndType(parentid, type);
+        Page<Document> searchResults = repository.findAllByParentAndType(parentid, type, pageable);
 
-        LOGGER.debug("leaving findAllByParent(): Found {} Documents", docEntries);
+        List<DocumentDTO> dtos = transformer.convertList(searchResults.getContent(), DocumentDTO.class);
 
-        return transformer.convertList(docEntries, DocumentDTO.class);
+        LOGGER.debug("leaving findAllByParentAndType(): Found {} Documents", dtos);
+
+        return new PageImpl<>(dtos,
+                new PageRequest(searchResults.getNumber(), searchResults.getSize(), searchResults.getSort()),
+                searchResults.getTotalElements()
+        );
     }
 
     private Document createModel(DocumentDTO dto) {

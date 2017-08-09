@@ -203,6 +203,7 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
         selectedFields.add(DOCUMENTS.SYS_VERSION);
         selectedFields.add(DOCUMENTS.SYS_UUID);
         selectedFields.add(DOCUMENTS.SYS_PARENT);
+        selectedFields.add(DOCUMENTS.SYS_FILE_STORAGE); 
         if (fields!=null){
             for (String field : fields) {
                 selectedFields.add(jsonObject(DOCUMENTS.DATA, field).as(field));
@@ -553,13 +554,14 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
 
 
 	@Override
-	public List<Document> findAllByParentAndType(Long parentid, String type) {
+	public Page<Document> findAllByParentAndType(Long parentid, String type, Pageable pageable) {
 
         LOGGER.trace("entering findAllByParentAndType(parent = {}, type = {})", parentid , type);
         Condition cond = DOCUMENTS.SYS_TYPE.equal(type);
-        cond.and(DOCUMENTS.SYS_PARENT.equal(parentid.toString()));
+        cond = cond.and(DOCUMENTS.SYS_PARENT.equal(parentid.toString()));
     	List<DocumentsRecord>  queryResults = jooq.selectFrom(DOCUMENTS)
                 .where(cond)
+                .limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .fetchInto(DocumentsRecord.class);
 
 
@@ -568,8 +570,9 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
         List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
 
         LOGGER.trace("leaving findAllByParentAndType(): Found {}", documentEntries);
-
-        return documentEntries;
+        long totalCount = findTotalCountByType(cond, DOCUMENTS);
+        
+        return new PageImpl<>(documentEntries, pageable, totalCount);
 	}
 
 }

@@ -83,6 +83,6 @@ public interface DocumentRepository extends CommonRepository {
 
 	public List<Document> findAllByLinkParent(Long parent);
 
-	public List<Document> findAllByParentAndType(Long parentid, String type);
+	public Page<Document> findAllByParentAndType(Long parentid, String type, Pageable pageable);
 
 }

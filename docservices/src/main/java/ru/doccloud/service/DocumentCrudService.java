@@ -56,6 +56,6 @@ public interface DocumentCrudService {
 
     public DocumentDTO setParent(DocumentDTO dto);
 
-    public List<DocumentDTO> findAllByParentAndType(Long parentid, String type);
+    public Page<DocumentDTO> findAllByParentAndType(Long parentid, String type, final Pageable pageable);
 
 }
