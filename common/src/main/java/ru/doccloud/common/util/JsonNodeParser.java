@@ -1,5 +1,6 @@
 package ru.doccloud.common.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -36,15 +37,27 @@ public class JsonNodeParser {
         ObjectNode data = JsonNodeFactory.instance.objectNode();
         ObjectMapper mapper = new ObjectMapper();
         if (fields!=null){
-            for (String field : fields) {
-                if (queryResult.getValue(field)!=null){
-                    try {
-                        data.put(field,mapper.readTree(queryResult.getValue(field).toString()));
-                    } catch (IllegalArgumentException | IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
+        	if (fields[0].equals("all")){
+        		try {
+					data=(ObjectNode) mapper.readTree(queryResult.getValue("data").toString());
+				} catch (JsonProcessingException e) {
+					e.printStackTrace();
+				} catch (IllegalArgumentException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+        	}else{
+	            for (String field : fields) {
+	                if (queryResult.getValue(field)!=null){
+	                    try {
+	                        data.put(field,mapper.readTree(queryResult.getValue(field).toString()));
+	                    } catch (IllegalArgumentException | IOException e) {
+	                        e.printStackTrace();
+	                    }
+	                }
+	            }
+        	}
         }
         return data;
     }
