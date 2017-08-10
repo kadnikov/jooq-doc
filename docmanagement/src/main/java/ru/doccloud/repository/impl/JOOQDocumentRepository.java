@@ -205,9 +205,13 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
         selectedFields.add(DOCUMENTS.SYS_PARENT);
         selectedFields.add(DOCUMENTS.SYS_FILE_STORAGE); 
         if (fields!=null){
-            for (String field : fields) {
-                selectedFields.add(jsonObject(DOCUMENTS.DATA, field).as(field));
-            }
+        	if (fields[0].equals("all")){
+        		selectedFields.add(DOCUMENTS.DATA); 
+        	}else{
+	            for (String field : fields) {
+	                selectedFields.add(jsonObject(DOCUMENTS.DATA, field).as(field));
+	            }
+        	}
         }
         LOGGER.trace("findAllByType(): selectedFields: {}", selectedFields);
 
