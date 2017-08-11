@@ -29,6 +29,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.basedir>${project.basedir}</main.basedir>
             <phase.prop>none</phase.prop>
+        <spring.boot.version>1.4.3.RELEASE</spring.boot.version>
     </properties>
 
     <modules>
@@ -39,10 +40,11 @@
         <module>filestorage</module>
         <module>config</module>
         <module>cmis</module>
-	<module>docservices</module>
+	    <module>docservices</module>
         <module>docmanagement</module>
         <module>doccontrollers</module>
         <module>jooq-web</module>
+        <module>jooq-spring-boot</module>
     </modules>
 
 
@@ -99,6 +101,11 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-jar-plugin</artifactId>
                     </plugin>
+
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                    </plugin>
                 </plugins>
             </build>
 
@@ -110,6 +117,12 @@
             <id>doccloud</id>
             <build>
                 <plugins>
+
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                    </plugin>
+
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>build-helper-maven-plugin</artifactId>
@@ -322,6 +335,20 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
                     <version>3.0.2</version>
+                </plugin>
+
+
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring.boot.version}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>repackage</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
 
                 <plugin>
@@ -626,6 +653,14 @@
                 <groupId>org.aspectj</groupId>
                 <artifactId>aspectjweaver</artifactId>
                 <version>1.8.6</version>
+            </dependency>
+
+
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-web</artifactId>
+                <version>${spring.boot.version}</version>
             </dependency>
 
 
