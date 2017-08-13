@@ -20,7 +20,8 @@
         <jooq.version>3.6.1</jooq.version>
         <jooq.generator.db.dialect>org.jooq.util.postgres.PostgresDatabase</jooq.generator.db.dialect>
         <slf4j.version>1.7.5</slf4j.version>
-        <spring.version>4.1.2.RELEASE</spring.version>
+        <!--<spring.version>4.1.2.RELEASE</spring.version>-->
+        <spring.version>4.2.5.RELEASE</spring.version>
         <spring.data.commons.version>1.7.1.RELEASE</spring.data.commons.version>
         <build.profile.id>doccloud</build.profile.id>
         <skip.db.creation>false</skip.db.creation>
@@ -29,7 +30,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <main.basedir>${project.basedir}</main.basedir>
             <phase.prop>none</phase.prop>
-        <spring.boot.version>1.4.3.RELEASE</spring.boot.version>
+        <spring.boot.version>1.5.6.RELEASE</spring.boot.version>
     </properties>
 
     <modules>
@@ -102,10 +103,10 @@
                         <artifactId>maven-jar-plugin</artifactId>
                     </plugin>
 
-                    <plugin>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-maven-plugin</artifactId>
-                    </plugin>
+                    <!--<plugin>-->
+                        <!--<groupId>org.springframework.boot</groupId>-->
+                        <!--<artifactId>spring-boot-maven-plugin</artifactId>-->
+                    <!--</plugin>-->
                 </plugins>
             </build>
 
@@ -113,15 +114,16 @@
                 <build.profile.id>dev</build.profile.id>
             </properties>
         </profile>
+        <!--todo create another profile for spring boot version-->
         <profile>
             <id>doccloud</id>
             <build>
                 <plugins>
 
-                    <plugin>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-maven-plugin</artifactId>
-                    </plugin>
+                    <!--<plugin>-->
+                        <!--<groupId>org.springframework.boot</groupId>-->
+                        <!--<artifactId>spring-boot-maven-plugin</artifactId>-->
+                    <!--</plugin>-->
 
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>

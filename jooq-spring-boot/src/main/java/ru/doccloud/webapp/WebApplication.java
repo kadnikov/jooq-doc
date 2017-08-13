@@ -15,7 +15,10 @@ import org.springframework.context.annotation.ImportResource;
 @Configuration
 @EnableAutoConfiguration
 @ComponentScan
-@ImportResource("classpath:context.xml")
+@ImportResource(value = {
+        "classpath:context.xml",
+                        "classpath:server.xml",
+                        "classpath:tomcat-users.xml"})
 @SpringBootApplication
 public class WebApplication extends SpringBootServletInitializer {
 
@@ -33,7 +36,7 @@ public class WebApplication extends SpringBootServletInitializer {
                 .sources(WebApplication.class)
                 .run(args);
     }
-    
+
 	@Bean
 	public TomcatEmbeddedServletContainerFactory tomcatFactory() {
 		return new TomcatEmbeddedServletContainerFactory() {

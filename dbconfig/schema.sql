@@ -19,6 +19,7 @@ create table if not exists documents (
   sys_readers text[],
   sys_editors text[],
   sys_folders text[],
+  sys_base_type text[],
   sys_type text,
   sys_version text,
   sys_parent text,
