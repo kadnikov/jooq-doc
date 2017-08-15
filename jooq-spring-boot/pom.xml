@@ -5,25 +5,32 @@
     <artifactId>jooq-spring-boot</artifactId>
     <version>0.1</version>
     <packaging>jar</packaging>
-    <name>Using jOOQ with Spring</name>
+    <name>Using jOOQ with Spring Boot</name>
     <description>
         This example demonstrates how you can create a repository for your application by using jOOQ.
     </description>
 
 
     <properties>
-        <main.basedir>${project.parent.basedir}</main.basedir>
+        <!--<main.basedir>${project.parent.basedir}</main.basedir>-->
+        <main.basedir>${project.basedir}</main.basedir>
         <phase.prop>none</phase.prop>
     </properties>
 
 
+    <!--<parent>-->
+        <!--<groupId>ru.doccloud</groupId>-->
+        <!--<artifactId>jooq-doc</artifactId>-->
+        <!--<version>0.1</version>-->
+    <!--</parent>-->
+
     <parent>
-        <groupId>ru.doccloud</groupId>
-        <artifactId>jooq-doc</artifactId>
-        <version>0.1</version>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>1.5.6.RELEASE</version>
     </parent>
 
-<build>
+    <build>
 
     <finalName>jooq spring boot</finalName>
     <resources>
@@ -119,11 +126,42 @@
             <version>0.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <version>1.8.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>1.8.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast</artifactId>
+            <version>3.8.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast-all</artifactId>
+            <version>3.8.1</version>
+        </dependency>
+
+        <!-- AMAZON -->
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-s3</artifactId>
+            <version>1.11.6</version>
+        </dependency>
+
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <version>${spring.boot.version}</version>
+            <!--<version>${spring.boot.version}</version>-->
         </dependency>
 
         <!-- Commons Lang -->
@@ -229,7 +267,6 @@
         <dependency>
             <groupId>org.jooq</groupId>
             <artifactId>jooq</artifactId>
-
         </dependency>
 
         <!-- H2 Database -->
@@ -356,5 +393,6 @@
             <artifactId>chemistry-opencmis-server-bindings</artifactId>
 
         </dependency>
+
     </dependencies>
 </project>
