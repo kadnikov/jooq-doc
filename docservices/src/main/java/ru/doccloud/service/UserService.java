@@ -1,6 +1,9 @@
 package ru.doccloud.service;
 
 
+import java.util.List;
+
+import ru.doccloud.service.document.dto.GroupDTO;
 import ru.doccloud.service.document.dto.UserDTO;
 
 /**
@@ -8,4 +11,6 @@ import ru.doccloud.service.document.dto.UserDTO;
  */
 public interface UserService {
     public UserDTO getUserDto(final String login, final String password);
+
+    public List<GroupDTO> getGroups();
 }

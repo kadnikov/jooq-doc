@@ -1,19 +1,22 @@
 package ru.doccloud.service.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import ru.doccloud.document.model.Group;
 import ru.doccloud.document.model.User;
 import ru.doccloud.document.model.UserRole;
 import ru.doccloud.repository.UserRepository;
 import ru.doccloud.service.UserService;
+import ru.doccloud.service.document.dto.GroupDTO;
 import ru.doccloud.service.document.dto.UserDTO;
 import ru.doccloud.service.document.dto.UserRoleDTO;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -26,6 +29,17 @@ public class UserServiceImpl implements UserService {
         this.userRepository = userRepository;
     }
 
+    @Override
+    public List<GroupDTO> getGroups(){
+    	final List<Group> groups = userRepository.getGoups();
+    	if(groups == null)
+            return null;
+        List<GroupDTO> groupsDTOList = new ArrayList<>();
+        for (Group group: groups){
+        	groupsDTOList.add(new GroupDTO(group.getId(),group.getTitle()));
+        }
+        return groupsDTOList;
+    }
     @Override
     public UserDTO getUserDto(final String login, final String password) {
         LOGGER.debug("entering getUserDto(login={}, passw0rdlenght = {})", login, !StringUtils.isBlank(password) ? password.length() : 0);

@@ -1,5 +1,12 @@
 package ru.doccloud.repository.impl;
 
+import static ru.doccloud.document.jooq.db.tables.UserRoles.USER_ROLES;
+import static ru.doccloud.document.jooq.db.tables.Users.USERS;
+import static ru.doccloud.document.jooq.db.tables.Groups.GROUPS;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.DSLContext;
 import org.slf4j.Logger;
@@ -8,17 +15,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+
+import ru.doccloud.document.jooq.db.tables.records.GroupsRecord;
 import ru.doccloud.document.jooq.db.tables.records.UserRolesRecord;
 import ru.doccloud.document.jooq.db.tables.records.UsersRecord;
+import ru.doccloud.document.model.Group;
 import ru.doccloud.document.model.User;
 import ru.doccloud.document.model.UserRole;
 import ru.doccloud.repository.UserRepository;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static ru.doccloud.document.jooq.db.tables.UserRoles.USER_ROLES;
-import static ru.doccloud.document.jooq.db.tables.Users.USERS;
 
 @Repository
 public class UserRepositoryImpl implements UserRepository {
@@ -30,7 +34,13 @@ public class UserRepositoryImpl implements UserRepository {
     public UserRepositoryImpl(DSLContext jooq) {
         this.jooq = jooq;
     }
-
+    @Transactional(readOnly = true)
+    @Override
+    public List<Group> getGoups(){ 
+    	final List<GroupsRecord> queryResult = jooq.selectFrom(GROUPS).fetchInto(GroupsRecord.class);
+    	final List<Group> groups = convertGroupsQueryResultToModelObj(queryResult);
+    	return groups;
+	}
     @Transactional(readOnly = true)
     @Override
     @Cacheable(value = "userByLoginAndPwd", cacheManager = "springCM")
@@ -80,6 +90,19 @@ public class UserRepositoryImpl implements UserRepository {
         }
 
         return userRoles;
+    }
+    
+    private static List<Group> convertGroupsQueryResultToModelObj(List<GroupsRecord> groupsQueryResult){
+        if(groupsQueryResult == null)
+            return null;
+        List<Group> groups = new ArrayList<>();
+
+        for (GroupsRecord queryResult : groupsQueryResult) {
+        	Group group = Group.getBuilder(queryResult.getId()).title(queryResult.getTitle()).build();
+        	groups.add(group);
+        }
+
+        return groups;
     }
 
 }
