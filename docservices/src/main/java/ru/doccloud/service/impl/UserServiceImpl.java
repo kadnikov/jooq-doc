@@ -36,7 +36,7 @@ public class UserServiceImpl implements UserService {
             return null;
         List<GroupDTO> groupsDTOList = new ArrayList<>();
         for (Group group: groups){
-        	groupsDTOList.add(new GroupDTO(group.getId(),group.getTitle()));
+        	groupsDTOList.add(new GroupDTO(group.getTitle(),group.getId()));
         }
         return groupsDTOList;
     }
