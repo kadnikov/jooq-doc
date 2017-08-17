@@ -76,7 +76,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 	        }
         }
         readersArr.add(user);
-        String[] readers = (String[]) readersArr.toArray();
+        String[] readers = readersArr.toArray(new String[0]);
         LOGGER.trace("add(): readers {}", readers);
         dto.setReaders(readers);
         
