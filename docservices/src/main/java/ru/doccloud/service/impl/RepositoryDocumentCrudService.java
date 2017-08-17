@@ -77,10 +77,13 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         }
         readersArr.add(user);
         String[] readers = readersArr.toArray(new String[0]);
-        LOGGER.trace("add(): readers {}", readers);
+        LOGGER.debug("add(): readers {}", readers);
         dto.setReaders(readers);
         
         if (dto.getBaseType() == null) dto.setBaseType("document");
+        
+        LOGGER.debug("dto = {}", dto);
+
         Document persisted = repository.add(createModel(dto));
 
         LOGGER.debug("leaving add(): Added Document entry {}", persisted);
