@@ -121,6 +121,8 @@ public class Document extends AbstractDocument implements Serializable {
         
         private String parent;
         
+        private String[] readers;
+        
         private String author;
         
         private String modifier;
@@ -155,6 +157,11 @@ public class Document extends AbstractDocument implements Serializable {
         
         public Builder parent(String parent) {
             this.parent = parent;
+			return this;
+        }
+        
+        public Builder readers(String[] readers) {
+            this.readers = readers;
 			return this;
         }
         

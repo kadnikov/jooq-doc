@@ -1,5 +1,10 @@
 package ru.doccloud.service.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.jtransfo.JTransfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,15 +17,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import ru.doccloud.service.document.dto.DocumentDTO;
-import ru.doccloud.service.document.dto.LinkDTO;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+
 import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
+import ru.doccloud.document.model.SystemDocument;
 import ru.doccloud.repository.DocumentRepository;
+import ru.doccloud.repository.SystemRepository;
 import ru.doccloud.service.DocumentCrudService;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.List;
+import ru.doccloud.service.document.dto.DocumentDTO;
+import ru.doccloud.service.document.dto.LinkDTO;
 
 /**
  * @author Andrey Kadnikov
@@ -32,11 +40,14 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 
     private final DocumentRepository repository;
 
+    private final SystemRepository sysRepository;
+    
     private final JTransfo transformer;
 
     @Autowired
-    public RepositoryDocumentCrudService(DocumentRepository repository, JTransfo transformer) {
+    public RepositoryDocumentCrudService(DocumentRepository repository, SystemRepository sysRepository, JTransfo transformer) {
         this.repository = repository;
+        this.sysRepository = sysRepository;
         this.transformer = transformer;
     }
 
@@ -51,6 +62,24 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 
         repository.setUser(user);
         dto.setAuthor(user);
+        
+        List<String> readersArr = new ArrayList<String>();
+        
+        SystemDocument typedoc = sysRepository.findBySymbolicName(dto.getType());
+        if (typedoc!=null){
+	        ArrayNode accessFromType = (ArrayNode) typedoc.getData().get("access");
+	        
+	        if (accessFromType.isArray()){
+		        for (JsonNode acc: accessFromType){
+		        	readersArr.add(acc.asText());
+		        }
+	        }
+        }
+        readersArr.add(user);
+        String[] readers = (String[]) readersArr.toArray();
+        LOGGER.trace("add(): readers {}", readers);
+        dto.setReaders(readers);
+        
         if (dto.getBaseType() == null) dto.setBaseType("document");
         Document persisted = repository.add(createModel(dto));
 
@@ -289,6 +318,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
                 .type(dto.getType())
                 .baseType(dto.getBaseType())
                 .parent(dto.getParent())
+                .readers(dto.getReaders())
                 .data(dto.getData())
                 .id(dto.getId())
                 .author(dto.getAuthor())

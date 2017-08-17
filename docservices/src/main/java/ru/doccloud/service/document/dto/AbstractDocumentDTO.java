@@ -48,8 +48,10 @@ public abstract class AbstractDocumentDTO {
     protected String fileName;
     
     protected String parent;
+    
+    protected String[] readers;
 
-    protected Long fileLength;
+	protected Long fileLength;
 
     protected JsonNode data;
 
@@ -168,6 +170,14 @@ public abstract class AbstractDocumentDTO {
 		this.parent = parent;
 	}
 
+    public String[] getReaders() {
+		return readers;
+	}
+
+	public void setReaders(String[] readers) {
+		this.readers = readers;
+	}
+	
 	public Long getFileLength() {
         return fileLength;
     }

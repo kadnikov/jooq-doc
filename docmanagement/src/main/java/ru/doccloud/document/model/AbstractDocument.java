@@ -45,6 +45,8 @@ public abstract class AbstractDocument  implements Serializable{
     protected  String type;
     
     protected  String parent;
+    
+    protected  String[] readers;
 
     protected  String docVersion;
 
@@ -121,6 +123,10 @@ public abstract class AbstractDocument  implements Serializable{
 		return parent;
 	}
 
+    public String[] getReaders() {
+		return readers;
+	}
+    
 	public void setParent(String parent) {
 		this.parent = parent;
 	}
