@@ -56,7 +56,7 @@ public class RepositoryDocsCrudServiceTest {
     public void setUp() {
         initMocks(this);
 
-        service = new RepositoryDocumentCrudService(repositoryMock, transformer);
+        service = new RepositoryDocumentCrudService(repositoryMock, null, transformer);
     }
 
     @Test
