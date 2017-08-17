@@ -5,6 +5,7 @@ import org.joda.time.LocalDateTime;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -53,6 +54,7 @@ public class Document extends AbstractDocument implements Serializable {
         this.baseType = builder.baseType;
                 
         this.parent = builder.parent;
+        this.readers = builder.readers;
         
         this.data = builder.data;
         this.docVersion = builder.docVersion;
@@ -91,6 +93,7 @@ public class Document extends AbstractDocument implements Serializable {
                 ", docVersion='" + docVersion + '\'' +
                 ", data=" + data +
                 ", uuid=" + uuid +
+                ", readers=" + readers +
                 '}';
     }
 

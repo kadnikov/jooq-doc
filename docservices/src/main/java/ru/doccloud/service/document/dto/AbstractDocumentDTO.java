@@ -9,6 +9,7 @@ import org.joda.time.LocalDateTime;
 import ru.doccloud.common.json.CustomLocalDateTimeDeserializer;
 import ru.doccloud.common.json.CustomLocalDateTimeSerializer;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -49,7 +50,7 @@ public abstract class AbstractDocumentDTO {
     
     protected String parent;
     
-    protected String[] readers;
+    protected List<String> readers;
 
 	protected Long fileLength;
 
@@ -170,11 +171,11 @@ public abstract class AbstractDocumentDTO {
 		this.parent = parent;
 	}
 
-    public String[] getReaders() {
+    public List<String> getReaders() {
 		return readers;
 	}
 
-	public void setReaders(String[] readers) {
+	public void setReaders(List<String> readers) {
 		this.readers = readers;
 	}
 	

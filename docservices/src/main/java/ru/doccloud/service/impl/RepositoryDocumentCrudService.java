@@ -72,19 +72,20 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 	        
 	        if (accessFromType.isArray()){
 		        for (JsonNode acc: accessFromType){
+		        	LOGGER.debug("reader - {}",acc.asText());
 		        	readersArr.add(acc.asText());
 		        }
 	        }
         }
         
-        String[] readers = readersArr.toArray(new String[readersArr.size()]);
+        String[] readers = readersArr.toArray(new String[0]);
         LOGGER.debug("add(): readers {}", readers);
-        dto.setReaders(readers);
+        dto.setReaders(readersArr);
         
         if (dto.getBaseType() == null) dto.setBaseType("document");
         
         LOGGER.debug("dto = {}", dto);
-
+        LOGGER.debug("documentEntry= {}", createModel(dto));
         Document persisted = repository.add(createModel(dto));
 
         LOGGER.debug("leaving add(): Added Document entry {}", persisted);
@@ -322,7 +323,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
                 .type(dto.getType())
                 .baseType(dto.getBaseType())
                 .parent(dto.getParent())
-                .readers(dto.getReaders())
+                .readers(dto.getReaders().toArray(new String[0]))
                 .data(dto.getData())
                 .id(dto.getId())
                 .author(dto.getAuthor())

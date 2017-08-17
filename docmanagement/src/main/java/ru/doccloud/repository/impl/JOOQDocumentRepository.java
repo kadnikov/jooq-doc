@@ -52,7 +52,7 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
     @Override
     public Document add(Document documentEntry) {
         LOGGER.trace("entering add(documentEntry= {})", documentEntry);
-        
+        LOGGER.trace("readers {}",documentEntry.getReaders());
         DocumentsRecord persisted = jooq.insertInto(
                 DOCUMENTS, DOCUMENTS.SYS_DESC, DOCUMENTS.SYS_TITLE, DOCUMENTS.SYS_BASE_TYPE, DOCUMENTS.SYS_TYPE, DOCUMENTS.SYS_AUTHOR,
                 DOCUMENTS.SYS_READERS, DOCUMENTS.DATA, DOCUMENTS.SYS_FILE_LENGTH, DOCUMENTS.SYS_FILE_MIME_TYPE,
