@@ -64,6 +64,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         dto.setAuthor(user);
         
         List<String> readersArr = new ArrayList<String>();
+        readersArr.add(user);
         
         SystemDocument typedoc = sysRepository.findBySymbolicName(dto.getType());
         if (typedoc!=null){
@@ -75,8 +76,8 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 		        }
 	        }
         }
-        readersArr.add(user);
-        String[] readers = readersArr.toArray(new String[0]);
+        
+        String[] readers = readersArr.toArray(new String[readersArr.size()]);
         LOGGER.debug("add(): readers {}", readers);
         dto.setReaders(readers);
         

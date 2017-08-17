@@ -238,6 +238,7 @@ public abstract class AbstractDocumentDTO {
                 ", fileLength=" + fileLength +
                 ", data=" + data +
                 ", uuid=" + uuid +
+                ", readers=" + readers +
                 '}';
     }
 }
