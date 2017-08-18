@@ -242,6 +242,9 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 	        validateSchema(schemaNode,dto);
 	        
         }
+        List<String> readersArr = new ArrayList<String>();
+        readersArr.add(user);
+        dto.setReaders(readersArr);
         Document updated = repository.update(createModel(dto));
 
         LOGGER.debug("leaving update(): Updated {}", updated);

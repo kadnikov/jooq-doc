@@ -58,7 +58,7 @@ public class RestErrorHandler {
         RestError.Builder error = RestError.getBuilder()
                 .status(HttpStatus.BAD_REQUEST)
                 .code(HttpStatus.BAD_REQUEST.value())
-                .message(ex.toString());
+                .message(ex.getLocalizedMessage());
         List<ValidationException> fieldErrors = ex.getCausingExceptions();
 
         for (ValidationException fieldError: fieldErrors) {
