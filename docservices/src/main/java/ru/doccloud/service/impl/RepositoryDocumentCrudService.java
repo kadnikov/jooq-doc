@@ -5,6 +5,11 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.everit.json.schema.Schema;
+import org.everit.json.schema.ValidationException;
+import org.everit.json.schema.loader.SchemaLoader;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.jtransfo.JTransfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,9 +23,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
+import ru.doccloud.document.model.AbstractDocument;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
 import ru.doccloud.document.model.SystemDocument;
@@ -76,6 +84,9 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 		        	readersArr.add(acc.asText());
 		        }
 	        }
+	        JsonNode schemaNode = typedoc.getData().get("schema");
+	        validateSchema(schemaNode,dto);
+	        
         }
         
         String[] readers = readersArr.toArray(new String[0]);
@@ -91,6 +102,25 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         LOGGER.debug("leaving add(): Added Document entry {}", persisted);
 
         return transformer.convert(persisted, new DocumentDTO());
+    }
+    
+    private void validateSchema(JsonNode schemaNode, DocumentDTO dto){
+        if (!schemaNode.isNull()){
+        	ObjectMapper mapper = new ObjectMapper();
+        	try {
+        		LOGGER.debug("Schema - {}",mapper.writeValueAsString(schemaNode));
+	        	JSONObject rawSchema = new JSONObject(mapper.writeValueAsString(schemaNode));
+	        	Schema schema = SchemaLoader.load(rawSchema);
+	        	LOGGER.debug("Data - {}",mapper.writeValueAsString(dto.getData()));
+		        schema.validate(new JSONObject(mapper.writeValueAsString(dto.getData())));
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+			}
+	        
+        }
+    
     }
 
     @Transactional
@@ -206,6 +236,12 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         LOGGER.debug("entering update(dto={}, user={})", dto, user);
 
         dto.setModifier(user);
+        SystemDocument typedoc = sysRepository.findBySymbolicName(dto.getType());
+        if (typedoc!=null){
+	        JsonNode schemaNode = typedoc.getData().get("schema");
+	        validateSchema(schemaNode,dto);
+	        
+        }
         Document updated = repository.update(createModel(dto));
 
         LOGGER.debug("leaving update(): Updated {}", updated);

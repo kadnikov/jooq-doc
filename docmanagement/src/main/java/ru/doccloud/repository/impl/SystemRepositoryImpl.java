@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.doccloud.common.exception.DocumentNotFoundException;
+import ru.doccloud.common.exception.TypeNotFoundException;
 import ru.doccloud.common.service.DateTimeService;
 import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.document.jooq.db.tables.records.SystemRecord;
@@ -235,7 +236,7 @@ public class SystemRepositoryImpl extends AbstractJooqRepository implements Syst
                 .fetchOne();
 
         if (queryResult == null) {
-            throw new DocumentNotFoundException("No Document entry found with symbolic name: " + symbolic);
+            throw new TypeNotFoundException("No Type found with symbolic name: " + symbolic);
         }
         LOGGER.trace("leaving findBySymbolicName(): Found {}", queryResult);
         return SystemConverter.convertQueryResultToModelObject(queryResult);

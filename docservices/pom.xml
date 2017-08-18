@@ -61,12 +61,17 @@
             <version>0.1</version>
         </dependency>
 
-	<dependency>
+		<dependency>
             <groupId>ru.doccloud</groupId>
             <artifactId>docmanagement</artifactId>
             <version>0.1</version>
         </dependency>
         
+		<dependency>
+		    <groupId>com.github.everit-org.json-schema</groupId>
+		    <artifactId>org.everit.json.schema</artifactId>
+		    <version>1.6.0</version>
+		</dependency>
 
 
         <dependency>
@@ -251,4 +256,10 @@
         </dependency>
 
     </dependencies>
+    <repositories>
+	    <repository>
+	        <id>jitpack.io</id>
+	        <url>https://jitpack.io</url>
+	    </repository>
+	</repositories>
 </project>
