@@ -405,7 +405,8 @@
                             </generate>
                             <target>
                                 <packageName>ru.doccloud.document.jooq.db</packageName>
-                                <directory>target/generated-sources/jooq</directory>
+                                <directory>src/main/java</directory>
+                                <!--<directory>target/generated-sources/jooq</directory>-->
                             </target>
                         </generator>
                     </configuration>
