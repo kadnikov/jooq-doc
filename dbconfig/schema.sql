@@ -74,6 +74,12 @@ CREATE TABLE if not exists user_roles
   ON UPDATE NO ACTION ON DELETE CASCADE
 );
 
+CREATE TABLE if not exists groups
+(
+    id text NOT NULL,
+    title text,
+    CONSTRAINT id_key PRIMARY KEY (id)
+)
 
 -- CREATE TABLESPACE admin LOCATION '/var/lib/postgresql/9.6/main';
 -- CREATE SEQUENCE IF NOT EXISTS system_id_seq;
