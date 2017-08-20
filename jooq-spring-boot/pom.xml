@@ -13,7 +13,6 @@
 
     <properties>
         <main.basedir>${project.parent.basedir}</main.basedir>
-        <!--<main.basedir>${project.basedir}</main.basedir>-->
         <phase.prop>none</phase.prop>
     </properties>
 
@@ -24,15 +23,9 @@
         <version>0.1</version>
     </parent>
 
-    <!--<parent>-->
-        <!--<groupId>org.springframework.boot</groupId>-->
-        <!--<artifactId>spring-boot-starter-parent</artifactId>-->
-        <!--<version>1.5.6.RELEASE</version>-->
-    <!--</parent>-->
-
     <build>
 
-    <finalName>jooq spring boot</finalName>
+    <finalName>jooq_spring_boot</finalName>
     <resources>
         <resource>
             <filtering>true</filtering>

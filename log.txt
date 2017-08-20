@@ -1,0 +1,726 @@
+[INFO] Error stacktraces are turned on.
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] jooq-doc
+[INFO] Common
+[INFO] docmanagement
+[INFO] docservices
+[INFO] storageactions
+[INFO] filestorage
+[INFO] amazon
+[INFO] storagemanager
+[INFO] Config
+[INFO] cmis
+[INFO] doccontrollers
+[INFO] Using jOOQ with Spring
+[INFO] Using jOOQ with Spring Boot
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building jooq-doc 0.1
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] --- maven-clean-plugin:2.6.1:clean (default-clean) @ jooq-doc ---
+[INFO] 
+[INFO] --- properties-maven-plugin:1.0-alpha-2:read-project-properties (default) @ jooq-doc ---
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-source (add-integration-test-sources) @ jooq-doc ---
+[INFO] Test Source directory: /home/ilya/filenet_workspace/jooq-doc/src/integration-test/java added.
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-resource (add-integration-test-resources) @ jooq-doc ---
+[INFO] 
+[INFO] --- maven-install-plugin:2.5.2:install (default-install) @ jooq-doc ---
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/pom.xml to /home/ilya/.m2/repository/ru/doccloud/jooq-doc/0.1/jooq-doc-0.1.pom
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building Common 0.1
+[INFO] ------------------------------------------------------------------------
+[WARNING] The artifact org.apache.commons:commons-io:jar:1.3.2 has been relocated to commons-io:commons-io:jar:1.3.2
+[INFO] 
+[INFO] --- maven-clean-plugin:2.6.1:clean (default-clean) @ common ---
+[INFO] Deleting /home/ilya/filenet_workspace/jooq-doc/common/target
+[INFO] 
+[INFO] --- properties-maven-plugin:1.0-alpha-2:read-project-properties (default) @ common ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:resources (default-resources) @ common ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/common/src/main/resources
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/common/src/main/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:compile (default-compile) @ common ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 20 source files to /home/ilya/filenet_workspace/jooq-doc/common/target/classes
+[WARNING] /home/ilya/filenet_workspace/jooq-doc/common/src/main/java/ru/doccloud/common/util/JsonNodeParser.java: /home/ilya/filenet_workspace/jooq-doc/common/src/main/java/ru/doccloud/common/util/JsonNodeParser.java uses or overrides a deprecated API.
+[WARNING] /home/ilya/filenet_workspace/jooq-doc/common/src/main/java/ru/doccloud/common/util/JsonNodeParser.java: Recompile with -Xlint:deprecation for details.
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-source (add-integration-test-sources) @ common ---
+[INFO] Test Source directory: /home/ilya/filenet_workspace/jooq-doc/common/src/integration-test/java added.
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-resource (add-integration-test-resources) @ common ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:testResources (default-testResources) @ common ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/common/src/test/resources
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/common/src/integration-test/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:testCompile (default-testCompile) @ common ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 2 source files to /home/ilya/filenet_workspace/jooq-doc/common/target/test-classes
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.16:test (default-test) @ common ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- maven-jar-plugin:3.0.2:jar (default-jar) @ common ---
+[INFO] Building jar: /home/ilya/filenet_workspace/jooq-doc/common/target/common-0.1.jar
+[INFO] 
+[INFO] --- maven-install-plugin:2.5.2:install (default-install) @ common ---
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/common/target/common-0.1.jar to /home/ilya/.m2/repository/ru/doccloud/common/0.1/common-0.1.jar
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/common/pom.xml to /home/ilya/.m2/repository/ru/doccloud/common/0.1/common-0.1.pom
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building docmanagement 0.1
+[INFO] ------------------------------------------------------------------------
+[WARNING] The artifact org.apache.commons:commons-io:jar:1.3.2 has been relocated to commons-io:commons-io:jar:1.3.2
+[INFO] 
+[INFO] --- maven-clean-plugin:2.6.1:clean (default-clean) @ docmanagement ---
+[INFO] Deleting /home/ilya/filenet_workspace/jooq-doc/docmanagement/target
+[INFO] 
+[INFO] --- properties-maven-plugin:1.0-alpha-2:read-project-properties (default) @ docmanagement ---
+[INFO] 
+[INFO] --- sql-maven-plugin:1.5:execute (create-database-pg) @ docmanagement ---
+[INFO] Executing file: /home/ilya/filenet_workspace/jooq-doc/dbconfig/schema.sql
+[INFO] 7 of 7 SQL statements executed successfully
+[INFO] 
+[INFO] --- jooq-codegen-maven:3.6.1:generate (generate-pg) @ docmanagement ---
+[INFO] License parameters       
+[INFO] ----------------------------------------------------------
+[INFO]   Thank you for using jOOQ and jOOQ's code generator
+[INFO]                          
+[INFO] Database parameters      
+[INFO] ----------------------------------------------------------
+[INFO]   dialect                : POSTGRES
+[INFO]   URL                    : jdbc:postgresql://localhost:5432/doccloud
+[INFO]   target dir             : /home/ilya/filenet_workspace/jooq-doc/docmanagement/target/generated-sources/jooq
+[INFO]   target package         : ru.doccloud.document.jooq.db
+[INFO]   includes               : [.*]
+[INFO]   excludes               : []
+[INFO]   includeExcludeColumns  : false
+[INFO] ----------------------------------------------------------
+[INFO]                          
+[INFO] DefaultGenerator parameters
+[INFO] ----------------------------------------------------------
+[INFO]   strategy               : class org.jooq.util.DefaultGeneratorStrategy
+[INFO]   deprecated             : true
+[INFO]   generated annotation   : true
+[INFO]   JPA annotations        : false
+[INFO]   validation annotations : false
+[INFO]   instance fields        : true
+[INFO]   records                : true
+[INFO]   pojos                  : false
+[INFO]   immutable pojos        : false
+[INFO]   interfaces             : false
+[INFO]   daos                   : false
+[INFO]   relations              : true
+[INFO]   global references      : true
+[INFO] ----------------------------------------------------------
+[INFO]                          
+[INFO] Generation remarks       
+[INFO] ----------------------------------------------------------
+[INFO]   none                   
+[INFO]                          
+[INFO] ----------------------------------------------------------
+[INFO] 
+                                      
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@  @@        @@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@        @@@@@@@@@@
+@@@@@@@@@@@@@@@@  @@  @@    @@@@@@@@@@
+@@@@@@@@@@  @@@@  @@  @@    @@@@@@@@@@
+@@@@@@@@@@        @@        @@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@        @@        @@@@@@@@@@
+@@@@@@@@@@    @@  @@  @@@@  @@@@@@@@@@
+@@@@@@@@@@    @@  @@  @@@@  @@@@@@@@@@
+@@@@@@@@@@        @@  @  @  @@@@@@@@@@
+@@@@@@@@@@        @@        @@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@  @@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  Thank you for using jOOQ 3.6.1
+                                      
+[INFO] Generating schemata      : Total: 1
+[INFO] No schema version is applied for schema public. Regenerating.
+[INFO] Generating schema        : Public.java
+[INFO] ----------------------------------------------------------
+[INFO] Sequences fetched        : 3 (3 included, 0 excluded)
+[INFO] Tables fetched           : 7 (7 included, 0 excluded)
+[INFO] UDTs fetched             : 0 (0 included, 0 excluded)
+[INFO] Generating sequences     
+[INFO] ARRAYs fetched           : 0 (0 included, 0 excluded)
+[INFO] Enums fetched            : 0 (0 included, 0 excluded)
+[INFO] Sequences generated      : Total: 508.234ms
+[INFO] Generating tables        
+[INFO] Adding foreign key       : links__links_head_id_fkey (public.links.head_id) referencing documents_pkey
+[INFO] Adding foreign key       : links__links_tail_id_fkey (public.links.tail_id) referencing documents_pkey
+[INFO] Adding foreign key       : user_roles__user_roles_role_fkey (public.user_roles.role) referencing roles_pkey
+[INFO] Adding foreign key       : user_roles__user_roles_userid_fkey (public.user_roles.userid) referencing users_pkey
+[INFO] Synthetic primary keys   : 0 (0 included, 0 excluded)
+[INFO] Overriding primary keys  : 7 (0 included, 7 excluded)
+[INFO] Generating table         : Documents.java [input=documents, output=documents, pk=documents_pkey]
+[INFO] Forcing type             : public.documents.data with type jsonb into com.fasterxml.jackson.databind.JsonNode
+[INFO] Generating table         : Links.java [input=links, output=links, pk=links_pkey]
+[INFO] Generating table         : Roles.java [input=roles, output=roles, pk=roles_pkey]
+[INFO] Generating table         : System.java [input=system, output=system, pk=system_pkey]
+[INFO] Forcing type             : public.system.data with type jsonb into com.fasterxml.jackson.databind.JsonNode
+[INFO] Generating table         : Todos.java [input=todos, output=todos, pk=todos_pkey]
+[INFO] Generating table         : UserRoles.java [input=user_roles, output=user_roles, pk=user_roles_pkey]
+[INFO] Generating table         : Users.java [input=users, output=users, pk=users_pkey]
+[INFO] Tables generated         : Total: 618.342ms, +110.107ms
+[INFO] Generating table references
+[INFO] Table refs generated     : Total: 619.413ms, +1.07ms
+[INFO] Generating Keys          
+[INFO] Keys generated           : Total: 623.671ms, +4.258ms
+[INFO] Generating table records 
+[INFO] Generating record        : DocumentsRecord.java
+[INFO] Generating record        : LinksRecord.java
+[INFO] Generating record        : RolesRecord.java
+[INFO] Generating record        : SystemRecord.java
+[INFO] Generating record        : TodosRecord.java
+[INFO] Generating record        : UserRolesRecord.java
+[INFO] Generating record        : UsersRecord.java
+[INFO] Table records generated  : Total: 649.576ms, +25.905ms
+[INFO] Routines fetched         : 10 (10 included, 0 excluded)
+[INFO] Generating routines and table-valued functions
+[INFO] Generating routine       : UuidGenerateV1.java
+[INFO] Generating routine       : UuidGenerateV1mc.java
+[INFO] Generating routine       : UuidGenerateV3.java
+[INFO] Generating routine       : UuidGenerateV4.java
+[INFO] Generating routine       : UuidGenerateV5.java
+[INFO] Generating routine       : UuidNil.java
+[INFO] Generating routine       : UuidNsDns.java
+[INFO] Generating routine       : UuidNsOid.java
+[INFO] Generating routine       : UuidNsUrl.java
+[INFO] Generating routine       : UuidNsX500.java
+[INFO] Routines generated       : Total: 754.431ms, +104.854ms
+[INFO] Removing excess files    
+[INFO] GENERATION FINISHED: public: Total: 754.984ms, +0.553ms
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:resources (default-resources) @ docmanagement ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/docmanagement/src/main/resources
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/docmanagement/src/main/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:compile (default-compile) @ docmanagement ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 47 source files to /home/ilya/filenet_workspace/jooq-doc/docmanagement/target/classes
+[WARNING] /home/ilya/filenet_workspace/jooq-doc/docmanagement/src/main/java/ru/doccloud/repository/util/DataQueryHelper.java: /home/ilya/filenet_workspace/jooq-doc/docmanagement/src/main/java/ru/doccloud/repository/util/DataQueryHelper.java uses unchecked or unsafe operations.
+[WARNING] /home/ilya/filenet_workspace/jooq-doc/docmanagement/src/main/java/ru/doccloud/repository/util/DataQueryHelper.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-source (add-integration-test-sources) @ docmanagement ---
+[INFO] Test Source directory: /home/ilya/filenet_workspace/jooq-doc/docmanagement/src/integration-test/java added.
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-resource (add-integration-test-resources) @ docmanagement ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:testResources (default-testResources) @ docmanagement ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 1 resource
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/docmanagement/src/integration-test/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:testCompile (default-testCompile) @ docmanagement ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 5 source files to /home/ilya/filenet_workspace/jooq-doc/docmanagement/target/test-classes
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.16:test (default-test) @ docmanagement ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- maven-jar-plugin:3.0.2:jar (default-jar) @ docmanagement ---
+[INFO] Building jar: /home/ilya/filenet_workspace/jooq-doc/docmanagement/target/docmanagement-0.1.jar
+[INFO] 
+[INFO] --- maven-install-plugin:2.5.2:install (default-install) @ docmanagement ---
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/docmanagement/target/docmanagement-0.1.jar to /home/ilya/.m2/repository/ru/doccloud/docmanagement/0.1/docmanagement-0.1.jar
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/docmanagement/pom.xml to /home/ilya/.m2/repository/ru/doccloud/docmanagement/0.1/docmanagement-0.1.pom
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building docservices 0.1
+[INFO] ------------------------------------------------------------------------
+[WARNING] The artifact org.apache.commons:commons-io:jar:1.3.2 has been relocated to commons-io:commons-io:jar:1.3.2
+[INFO] 
+[INFO] --- maven-clean-plugin:2.6.1:clean (default-clean) @ docservices ---
+[INFO] Deleting /home/ilya/filenet_workspace/jooq-doc/docservices/target
+[INFO] 
+[INFO] --- properties-maven-plugin:1.0-alpha-2:read-project-properties (default) @ docservices ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:resources (default-resources) @ docservices ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/docservices/src/main/resources
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/docservices/src/main/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:compile (default-compile) @ docservices ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 15 source files to /home/ilya/filenet_workspace/jooq-doc/docservices/target/classes
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-source (add-integration-test-sources) @ docservices ---
+[INFO] Test Source directory: /home/ilya/filenet_workspace/jooq-doc/docservices/src/integration-test/java added.
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-resource (add-integration-test-resources) @ docservices ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:testResources (default-testResources) @ docservices ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 0 resource
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/docservices/src/integration-test/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:testCompile (default-testCompile) @ docservices ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 5 source files to /home/ilya/filenet_workspace/jooq-doc/docservices/target/test-classes
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.16:test (default-test) @ docservices ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- maven-jar-plugin:3.0.2:jar (default-jar) @ docservices ---
+[INFO] Building jar: /home/ilya/filenet_workspace/jooq-doc/docservices/target/docservices-0.1.jar
+[INFO] 
+[INFO] --- maven-install-plugin:2.5.2:install (default-install) @ docservices ---
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/docservices/target/docservices-0.1.jar to /home/ilya/.m2/repository/ru/doccloud/docservices/0.1/docservices-0.1.jar
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/docservices/pom.xml to /home/ilya/.m2/repository/ru/doccloud/docservices/0.1/docservices-0.1.pom
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building storageactions 0.1
+[INFO] ------------------------------------------------------------------------
+[WARNING] The artifact org.apache.commons:commons-io:jar:1.3.2 has been relocated to commons-io:commons-io:jar:1.3.2
+[INFO] 
+[INFO] --- maven-clean-plugin:2.6.1:clean (default-clean) @ storageactions ---
+[INFO] Deleting /home/ilya/filenet_workspace/jooq-doc/storageactions/target
+[INFO] 
+[INFO] --- properties-maven-plugin:1.0-alpha-2:read-project-properties (default) @ storageactions ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:resources (default-resources) @ storageactions ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/storageactions/src/main/resources
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/storageactions/src/main/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:compile (default-compile) @ storageactions ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 3 source files to /home/ilya/filenet_workspace/jooq-doc/storageactions/target/classes
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-source (add-integration-test-sources) @ storageactions ---
+[INFO] Test Source directory: /home/ilya/filenet_workspace/jooq-doc/storageactions/src/integration-test/java added.
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-resource (add-integration-test-resources) @ storageactions ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:testResources (default-testResources) @ storageactions ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 0 resource
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/storageactions/src/integration-test/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:testCompile (default-testCompile) @ storageactions ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.16:test (default-test) @ storageactions ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- maven-jar-plugin:3.0.2:jar (default-jar) @ storageactions ---
+[INFO] Building jar: /home/ilya/filenet_workspace/jooq-doc/storageactions/target/storageactions-0.1.jar
+[INFO] 
+[INFO] --- maven-install-plugin:2.5.2:install (default-install) @ storageactions ---
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/storageactions/target/storageactions-0.1.jar to /home/ilya/.m2/repository/ru/doccloud/storageactions/0.1/storageactions-0.1.jar
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/storageactions/pom.xml to /home/ilya/.m2/repository/ru/doccloud/storageactions/0.1/storageactions-0.1.pom
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building filestorage 0.1
+[INFO] ------------------------------------------------------------------------
+[WARNING] The artifact org.apache.commons:commons-io:jar:1.3.2 has been relocated to commons-io:commons-io:jar:1.3.2
+[INFO] 
+[INFO] --- maven-clean-plugin:2.6.1:clean (default-clean) @ filestorage ---
+[INFO] Deleting /home/ilya/filenet_workspace/jooq-doc/filestorage/target
+[INFO] 
+[INFO] --- properties-maven-plugin:1.0-alpha-2:read-project-properties (default) @ filestorage ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:resources (default-resources) @ filestorage ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 0 resource
+[INFO] Copying 0 resource
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:compile (default-compile) @ filestorage ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 3 source files to /home/ilya/filenet_workspace/jooq-doc/filestorage/target/classes
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-source (add-integration-test-sources) @ filestorage ---
+[INFO] Test Source directory: /home/ilya/filenet_workspace/jooq-doc/filestorage/src/integration-test/java added.
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-resource (add-integration-test-resources) @ filestorage ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:testResources (default-testResources) @ filestorage ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 1 resource
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/filestorage/src/integration-test/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:testCompile (default-testCompile) @ filestorage ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 5 source files to /home/ilya/filenet_workspace/jooq-doc/filestorage/target/test-classes
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.16:test (default-test) @ filestorage ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- maven-jar-plugin:3.0.2:jar (default-jar) @ filestorage ---
+[INFO] Building jar: /home/ilya/filenet_workspace/jooq-doc/filestorage/target/filestorage-0.1.jar
+[INFO] 
+[INFO] --- maven-install-plugin:2.5.2:install (default-install) @ filestorage ---
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/filestorage/target/filestorage-0.1.jar to /home/ilya/.m2/repository/ru/doccloud/filestorage/0.1/filestorage-0.1.jar
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/filestorage/pom.xml to /home/ilya/.m2/repository/ru/doccloud/filestorage/0.1/filestorage-0.1.pom
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building amazon 0.1
+[INFO] ------------------------------------------------------------------------
+[WARNING] The artifact org.apache.commons:commons-io:jar:1.3.2 has been relocated to commons-io:commons-io:jar:1.3.2
+[INFO] 
+[INFO] --- maven-clean-plugin:2.6.1:clean (default-clean) @ amazon ---
+[INFO] Deleting /home/ilya/filenet_workspace/jooq-doc/amazon/target
+[INFO] 
+[INFO] --- properties-maven-plugin:1.0-alpha-2:read-project-properties (default) @ amazon ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:resources (default-resources) @ amazon ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/amazon/src/main/resources
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/amazon/src/main/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:compile (default-compile) @ amazon ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 5 source files to /home/ilya/filenet_workspace/jooq-doc/amazon/target/classes
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-source (add-integration-test-sources) @ amazon ---
+[INFO] Test Source directory: /home/ilya/filenet_workspace/jooq-doc/amazon/src/integration-test/java added.
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-resource (add-integration-test-resources) @ amazon ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:testResources (default-testResources) @ amazon ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 0 resource
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/amazon/src/integration-test/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:testCompile (default-testCompile) @ amazon ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 3 source files to /home/ilya/filenet_workspace/jooq-doc/amazon/target/test-classes
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.16:test (default-test) @ amazon ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- maven-jar-plugin:3.0.2:jar (default-jar) @ amazon ---
+[INFO] Building jar: /home/ilya/filenet_workspace/jooq-doc/amazon/target/amazon-0.1.jar
+[INFO] 
+[INFO] --- maven-install-plugin:2.5.2:install (default-install) @ amazon ---
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/amazon/target/amazon-0.1.jar to /home/ilya/.m2/repository/ru/doccloud/amazon/0.1/amazon-0.1.jar
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/amazon/pom.xml to /home/ilya/.m2/repository/ru/doccloud/amazon/0.1/amazon-0.1.pom
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building storagemanager 0.1
+[INFO] ------------------------------------------------------------------------
+[WARNING] The artifact org.apache.commons:commons-io:jar:1.3.2 has been relocated to commons-io:commons-io:jar:1.3.2
+[INFO] 
+[INFO] --- maven-clean-plugin:2.6.1:clean (default-clean) @ storagemanager ---
+[INFO] Deleting /home/ilya/filenet_workspace/jooq-doc/storagemanager/target
+[INFO] 
+[INFO] --- properties-maven-plugin:1.0-alpha-2:read-project-properties (default) @ storagemanager ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:resources (default-resources) @ storagemanager ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 0 resource
+[INFO] Copying 0 resource
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:compile (default-compile) @ storagemanager ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 3 source files to /home/ilya/filenet_workspace/jooq-doc/storagemanager/target/classes
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-source (add-integration-test-sources) @ storagemanager ---
+[INFO] Test Source directory: /home/ilya/filenet_workspace/jooq-doc/storagemanager/src/integration-test/java added.
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-resource (add-integration-test-resources) @ storagemanager ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:testResources (default-testResources) @ storagemanager ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 0 resource
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/storagemanager/src/integration-test/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:testCompile (default-testCompile) @ storagemanager ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.16:test (default-test) @ storagemanager ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- maven-jar-plugin:3.0.2:jar (default-jar) @ storagemanager ---
+[INFO] Building jar: /home/ilya/filenet_workspace/jooq-doc/storagemanager/target/storagemanager-0.1.jar
+[INFO] 
+[INFO] --- maven-install-plugin:2.5.2:install (default-install) @ storagemanager ---
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/storagemanager/target/storagemanager-0.1.jar to /home/ilya/.m2/repository/ru/doccloud/storagemanager/0.1/storagemanager-0.1.jar
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/storagemanager/pom.xml to /home/ilya/.m2/repository/ru/doccloud/storagemanager/0.1/storagemanager-0.1.pom
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building Config 0.1
+[INFO] ------------------------------------------------------------------------
+[WARNING] The artifact org.apache.commons:commons-io:jar:1.3.2 has been relocated to commons-io:commons-io:jar:1.3.2
+[INFO] 
+[INFO] --- maven-clean-plugin:2.6.1:clean (default-clean) @ config ---
+[INFO] Deleting /home/ilya/filenet_workspace/jooq-doc/config/target
+[INFO] 
+[INFO] --- properties-maven-plugin:1.0-alpha-2:read-project-properties (default) @ config ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:resources (default-resources) @ config ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/config/src/main/resources
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/config/src/main/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:compile (default-compile) @ config ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 8 source files to /home/ilya/filenet_workspace/jooq-doc/config/target/classes
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-source (add-integration-test-sources) @ config ---
+[INFO] Test Source directory: /home/ilya/filenet_workspace/jooq-doc/config/src/integration-test/java added.
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-resource (add-integration-test-resources) @ config ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:testResources (default-testResources) @ config ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/config/src/test/resources
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/config/src/integration-test/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:testCompile (default-testCompile) @ config ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.16:test (default-test) @ config ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- maven-jar-plugin:3.0.2:jar (default-jar) @ config ---
+[INFO] Building jar: /home/ilya/filenet_workspace/jooq-doc/config/target/config-0.1.jar
+[INFO] 
+[INFO] --- maven-install-plugin:2.5.2:install (default-install) @ config ---
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/config/target/config-0.1.jar to /home/ilya/.m2/repository/ru/doccloud/config/0.1/config-0.1.jar
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/config/pom.xml to /home/ilya/.m2/repository/ru/doccloud/config/0.1/config-0.1.pom
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building cmis 0.1
+[INFO] ------------------------------------------------------------------------
+[WARNING] The artifact org.apache.commons:commons-io:jar:1.3.2 has been relocated to commons-io:commons-io:jar:1.3.2
+[INFO] 
+[INFO] --- maven-clean-plugin:2.6.1:clean (default-clean) @ cmis ---
+[INFO] Deleting /home/ilya/filenet_workspace/jooq-doc/cmis/target
+[INFO] 
+[INFO] --- properties-maven-plugin:1.0-alpha-2:read-project-properties (default) @ cmis ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:resources (default-resources) @ cmis ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/cmis/src/main/resources
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/cmis/src/main/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:compile (default-compile) @ cmis ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 17 source files to /home/ilya/filenet_workspace/jooq-doc/cmis/target/classes
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-source (add-integration-test-sources) @ cmis ---
+[INFO] Test Source directory: /home/ilya/filenet_workspace/jooq-doc/cmis/src/integration-test/java added.
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-resource (add-integration-test-resources) @ cmis ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:testResources (default-testResources) @ cmis ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/cmis/src/test/resources
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/cmis/src/integration-test/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:testCompile (default-testCompile) @ cmis ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.16:test (default-test) @ cmis ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- maven-jar-plugin:3.0.2:jar (default-jar) @ cmis ---
+[INFO] Building jar: /home/ilya/filenet_workspace/jooq-doc/cmis/target/cmis-0.1.jar
+[INFO] 
+[INFO] --- maven-install-plugin:2.5.2:install (default-install) @ cmis ---
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/cmis/target/cmis-0.1.jar to /home/ilya/.m2/repository/ru/doccloud/cmis/0.1/cmis-0.1.jar
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/cmis/pom.xml to /home/ilya/.m2/repository/ru/doccloud/cmis/0.1/cmis-0.1.pom
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building doccontrollers 0.1
+[INFO] ------------------------------------------------------------------------
+[WARNING] The artifact org.apache.commons:commons-io:jar:1.3.2 has been relocated to commons-io:commons-io:jar:1.3.2
+[INFO] 
+[INFO] --- maven-clean-plugin:2.6.1:clean (default-clean) @ doccontrollers ---
+[INFO] Deleting /home/ilya/filenet_workspace/jooq-doc/doccontrollers/target
+[INFO] 
+[INFO] --- properties-maven-plugin:1.0-alpha-2:read-project-properties (default) @ doccontrollers ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:resources (default-resources) @ doccontrollers ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/doccontrollers/src/main/resources
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/doccontrollers/src/main/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:compile (default-compile) @ doccontrollers ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 9 source files to /home/ilya/filenet_workspace/jooq-doc/doccontrollers/target/classes
+[WARNING] /home/ilya/filenet_workspace/jooq-doc/doccontrollers/src/main/java/ru/doccloud/document/controller/IAController.java: /home/ilya/filenet_workspace/jooq-doc/doccontrollers/src/main/java/ru/doccloud/document/controller/IAController.java uses or overrides a deprecated API.
+[WARNING] /home/ilya/filenet_workspace/jooq-doc/doccontrollers/src/main/java/ru/doccloud/document/controller/IAController.java: Recompile with -Xlint:deprecation for details.
+[WARNING] /home/ilya/filenet_workspace/jooq-doc/doccontrollers/src/main/java/ru/doccloud/document/controller/FileUploadController.java: /home/ilya/filenet_workspace/jooq-doc/doccontrollers/src/main/java/ru/doccloud/document/controller/FileUploadController.java uses unchecked or unsafe operations.
+[WARNING] /home/ilya/filenet_workspace/jooq-doc/doccontrollers/src/main/java/ru/doccloud/document/controller/FileUploadController.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-source (add-integration-test-sources) @ doccontrollers ---
+[INFO] Test Source directory: /home/ilya/filenet_workspace/jooq-doc/doccontrollers/src/integration-test/java added.
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-resource (add-integration-test-resources) @ doccontrollers ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:testResources (default-testResources) @ doccontrollers ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 1 resource
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/doccontrollers/src/integration-test/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:testCompile (default-testCompile) @ doccontrollers ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.16:test (default-test) @ doccontrollers ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- maven-jar-plugin:3.0.2:jar (default-jar) @ doccontrollers ---
+[INFO] Building jar: /home/ilya/filenet_workspace/jooq-doc/doccontrollers/target/doccontrollers-0.1.jar
+[INFO] 
+[INFO] --- maven-install-plugin:2.5.2:install (default-install) @ doccontrollers ---
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/doccontrollers/target/doccontrollers-0.1.jar to /home/ilya/.m2/repository/ru/doccloud/doccontrollers/0.1/doccontrollers-0.1.jar
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/doccontrollers/pom.xml to /home/ilya/.m2/repository/ru/doccloud/doccontrollers/0.1/doccontrollers-0.1.pom
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building Using jOOQ with Spring 0.1
+[INFO] ------------------------------------------------------------------------
+[WARNING] The artifact org.apache.commons:commons-io:jar:1.3.2 has been relocated to commons-io:commons-io:jar:1.3.2
+[INFO] 
+[INFO] --- maven-clean-plugin:2.6.1:clean (default-clean) @ jooq-web ---
+[INFO] Deleting /home/ilya/filenet_workspace/jooq-doc/jooq-web/target
+[INFO] 
+[INFO] --- properties-maven-plugin:1.0-alpha-2:read-project-properties (default) @ jooq-web ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:resources (default-resources) @ jooq-web ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 3 resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:compile (default-compile) @ jooq-web ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-source (add-integration-test-sources) @ jooq-web ---
+[INFO] Test Source directory: /home/ilya/filenet_workspace/jooq-doc/jooq-web/src/integration-test/java added.
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-resource (add-integration-test-resources) @ jooq-web ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:testResources (default-testResources) @ jooq-web ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 1 resource
+[INFO] Copying 5 resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:testCompile (default-testCompile) @ jooq-web ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 22 source files to /home/ilya/filenet_workspace/jooq-doc/jooq-web/target/test-classes
+[WARNING] /home/ilya/filenet_workspace/jooq-doc/jooq-web/src/test/java/ru/doccloud/docs/controller/DocsControllerTest.java: Some input files use unchecked or unsafe operations.
+[WARNING] /home/ilya/filenet_workspace/jooq-doc/jooq-web/src/test/java/ru/doccloud/docs/controller/DocsControllerTest.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.16:test (default-test) @ jooq-web ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- maven-war-plugin:2.4:war (default-war) @ jooq-web ---
+[INFO] Packaging webapp
+[INFO] Assembling webapp [jooq-web] in [/home/ilya/filenet_workspace/jooq-doc/jooq-web/target/jooq]
+[INFO] Processing war project
+[INFO] Copying webapp webResources [/home/ilya/filenet_workspace/jooq-doc/jooq-web/frontend/_public/frontend] to [/home/ilya/filenet_workspace/jooq-doc/jooq-web/target/jooq]
+[INFO] Copying webapp resources [/home/ilya/filenet_workspace/jooq-doc/jooq-web/src/main/webapp]
+[INFO] Processing overlay [ id org.apache.chemistry.opencmis:chemistry-opencmis-server-bindings-war]
+[INFO] Webapp assembled in [227 msecs]
+[INFO] Building war: /home/ilya/filenet_workspace/jooq-doc/jooq-web/target/jooq.war
+[INFO] 
+[INFO] --- maven-install-plugin:2.5.2:install (default-install) @ jooq-web ---
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/jooq-web/target/jooq.war to /home/ilya/.m2/repository/ru/doccloud/jooq-web/0.1/jooq-web-0.1.war
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/jooq-web/pom.xml to /home/ilya/.m2/repository/ru/doccloud/jooq-web/0.1/jooq-web-0.1.pom
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building Using jOOQ with Spring Boot 0.1
+[INFO] ------------------------------------------------------------------------
+[WARNING] The artifact org.apache.commons:commons-io:jar:1.3.2 has been relocated to commons-io:commons-io:jar:1.3.2
+[INFO] 
+[INFO] --- maven-clean-plugin:2.6.1:clean (default-clean) @ jooq-spring-boot ---
+[INFO] Deleting /home/ilya/filenet_workspace/jooq-doc/jooq-spring-boot/target
+[INFO] 
+[INFO] --- properties-maven-plugin:1.0-alpha-2:read-project-properties (default) @ jooq-spring-boot ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:resources (default-resources) @ jooq-spring-boot ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 19074 resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:compile (default-compile) @ jooq-spring-boot ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 1 source file to /home/ilya/filenet_workspace/jooq-doc/jooq-spring-boot/target/classes
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-source (add-integration-test-sources) @ jooq-spring-boot ---
+[INFO] Test Source directory: /home/ilya/filenet_workspace/jooq-doc/jooq-spring-boot/src/integration-test/java added.
+[INFO] 
+[INFO] --- build-helper-maven-plugin:1.8:add-test-resource (add-integration-test-resources) @ jooq-spring-boot ---
+[INFO] 
+[INFO] --- maven-resources-plugin:2.5:testResources (default-testResources) @ jooq-spring-boot ---
+[debug] execute contextualize
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] Copying 1 resource
+[INFO] skip non existing resourceDirectory /home/ilya/filenet_workspace/jooq-doc/jooq-spring-boot/src/integration-test/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:testCompile (default-testCompile) @ jooq-spring-boot ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.16:test (default-test) @ jooq-spring-boot ---
+[INFO] Tests are skipped.
+[INFO] 
+[INFO] --- maven-jar-plugin:3.0.2:jar (default-jar) @ jooq-spring-boot ---
+[INFO] Building jar: /home/ilya/filenet_workspace/jooq-doc/jooq-spring-boot/target/jooq_spring_boot.jar
+[INFO] 
+[INFO] --- spring-boot-maven-plugin:1.5.6.RELEASE:repackage (default) @ jooq-spring-boot ---
+[INFO] 
+[INFO] --- maven-install-plugin:2.5.2:install (default-install) @ jooq-spring-boot ---
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/jooq-spring-boot/target/jooq_spring_boot.jar to /home/ilya/.m2/repository/ru/doccloud/jooq-spring-boot/0.1/jooq-spring-boot-0.1.jar
+[INFO] Installing /home/ilya/filenet_workspace/jooq-doc/jooq-spring-boot/pom.xml to /home/ilya/.m2/repository/ru/doccloud/jooq-spring-boot/0.1/jooq-spring-boot-0.1.pom
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary:
+[INFO] 
+[INFO] jooq-doc ........................................... SUCCESS [  0.332 s]
+[INFO] Common ............................................. SUCCESS [  1.477 s]
+[INFO] docmanagement ...................................... SUCCESS [  2.149 s]
+[INFO] docservices ........................................ SUCCESS [  0.246 s]
+[INFO] storageactions ..................................... SUCCESS [  0.082 s]
+[INFO] filestorage ........................................ SUCCESS [  0.108 s]
+[INFO] amazon ............................................. SUCCESS [  0.119 s]
+[INFO] storagemanager ..................................... SUCCESS [  0.057 s]
+[INFO] Config ............................................. SUCCESS [  0.127 s]
+[INFO] cmis ............................................... SUCCESS [  0.333 s]
+[INFO] doccontrollers ..................................... SUCCESS [  0.140 s]
+[INFO] Using jOOQ with Spring ............................. SUCCESS [  2.853 s]
+[INFO] Using jOOQ with Spring Boot ........................ SUCCESS [ 15.014 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 23.645 s
+[INFO] Finished at: 2017-08-20T14:36:06+02:00
+[INFO] Final Memory: 128M/1462M
+[INFO] ------------------------------------------------------------------------
