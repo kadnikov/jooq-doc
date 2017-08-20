@@ -12,6 +12,7 @@ import org.jooq.UniqueKey;
 import org.jooq.impl.AbstractKeys;
 
 import ru.doccloud.document.jooq.db.tables.Documents;
+import ru.doccloud.document.jooq.db.tables.Groups;
 import ru.doccloud.document.jooq.db.tables.Links;
 import ru.doccloud.document.jooq.db.tables.Roles;
 import ru.doccloud.document.jooq.db.tables.System;
@@ -19,6 +20,7 @@ import ru.doccloud.document.jooq.db.tables.Todos;
 import ru.doccloud.document.jooq.db.tables.UserRoles;
 import ru.doccloud.document.jooq.db.tables.Users;
 import ru.doccloud.document.jooq.db.tables.records.DocumentsRecord;
+import ru.doccloud.document.jooq.db.tables.records.GroupsRecord;
 import ru.doccloud.document.jooq.db.tables.records.LinksRecord;
 import ru.doccloud.document.jooq.db.tables.records.RolesRecord;
 import ru.doccloud.document.jooq.db.tables.records.SystemRecord;
@@ -54,6 +56,7 @@ public class Keys {
 	// -------------------------------------------------------------------------
 
 	public static final UniqueKey<DocumentsRecord> DOCUMENTS_PKEY = UniqueKeys0.DOCUMENTS_PKEY;
+	public static final UniqueKey<GroupsRecord> GROUPS_PKEY = UniqueKeys0.GROUPS_PKEY;
 	public static final UniqueKey<LinksRecord> LINKS_PKEY = UniqueKeys0.LINKS_PKEY;
 	public static final UniqueKey<RolesRecord> ROLES_PKEY = UniqueKeys0.ROLES_PKEY;
 	public static final UniqueKey<SystemRecord> SYSTEM_PKEY = UniqueKeys0.SYSTEM_PKEY;
@@ -82,6 +85,7 @@ public class Keys {
 
 	private static class UniqueKeys0 extends AbstractKeys {
 		public static final UniqueKey<DocumentsRecord> DOCUMENTS_PKEY = createUniqueKey(Documents.DOCUMENTS, Documents.DOCUMENTS.ID);
+		public static final UniqueKey<GroupsRecord> GROUPS_PKEY = createUniqueKey(Groups.GROUPS, Groups.GROUPS.ID);
 		public static final UniqueKey<LinksRecord> LINKS_PKEY = createUniqueKey(Links.LINKS, Links.LINKS.HEAD_ID, Links.LINKS.TAIL_ID);
 		public static final UniqueKey<RolesRecord> ROLES_PKEY = createUniqueKey(Roles.ROLES, Roles.ROLES.ROLE);
 		public static final UniqueKey<SystemRecord> SYSTEM_PKEY = createUniqueKey(System.SYSTEM, System.SYSTEM.ID);
