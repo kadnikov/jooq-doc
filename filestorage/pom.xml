@@ -11,7 +11,7 @@
 
     <properties>
         <main.basedir>${project.parent.basedir}</main.basedir>
-        <phase.prop>generate-sources</phase.prop>
+        <phase.prop>none</phase.prop>
     </properties>
 
    <parent>
@@ -57,13 +57,13 @@
         <dependency>
             <groupId>ru.doccloud</groupId>
             <artifactId>common</artifactId>
-            <version>0.1</version>
+            <!--<version>0.1</version>-->
         </dependency>
 
         <dependency>
             <groupId>ru.doccloud</groupId>
             <artifactId>storageactions</artifactId>
-            <version>0.1</version>
+            <!--<version>0.1</version>-->
         </dependency>
 
         <dependency>

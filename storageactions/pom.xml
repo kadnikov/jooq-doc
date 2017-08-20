@@ -11,7 +11,7 @@
 
     <properties>
         <main.basedir>${project.parent.basedir}</main.basedir>
-        <phase.prop>generate-sources</phase.prop>
+        <phase.prop>none</phase.prop>
     </properties>
 
    <parent>

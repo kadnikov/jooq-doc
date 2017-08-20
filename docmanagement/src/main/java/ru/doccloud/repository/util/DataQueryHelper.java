@@ -10,27 +10,23 @@ import org.jooq.impl.TableImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
-import ru.doccloud.common.DateHelper;
 import ru.doccloud.document.model.FilterBean;
 import ru.doccloud.document.model.QueryParam;
 import ru.doccloud.repository.impl.SystemRepositoryImpl;
 
 import java.io.IOException;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static ru.doccloud.document.jooq.db.tables.System.SYSTEM;
+import static ru.doccloud.document.jooq.db.Tables.SYSTEM;
+
 
 public class DataQueryHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SystemRepositoryImpl.class);
-
-
-
 
     public static Field<Object> getFieldValue(QueryParam param) {
         Field<Object> result = null;
