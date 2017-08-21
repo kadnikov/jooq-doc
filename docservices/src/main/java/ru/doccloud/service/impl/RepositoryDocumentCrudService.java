@@ -1,12 +1,14 @@
 package ru.doccloud.service.impl;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.everit.json.schema.Schema;
-import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -27,8 +29,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import ru.doccloud.document.model.AbstractDocument;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
 import ru.doccloud.document.model.SystemDocument;
@@ -84,8 +86,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 		        	readersArr.add(acc.asText());
 		        }
 	        }
-	        JsonNode schemaNode = typedoc.getData().get("schema");
-	        validateSchema(schemaNode,dto);
+	        validateSchema(typedoc,dto);
 	        
         }
         
@@ -104,7 +105,9 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         return transformer.convert(persisted, new DocumentDTO());
     }
     
-    private void validateSchema(JsonNode schemaNode, DocumentDTO dto){
+    private void validateSchema(SystemDocument typedoc, DocumentDTO dto){
+    	JsonNode schemaNode = typedoc.getData().get("schema");
+    	schemaNode = addParentSchema(typedoc, schemaNode);
         if (!schemaNode.isNull()){
         	ObjectMapper mapper = new ObjectMapper();
         	try {
@@ -123,7 +126,30 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     
     }
 
-    @Transactional
+    private JsonNode addParentSchema(SystemDocument typedoc, JsonNode schemaNode) {
+    	if (typedoc.getParent()!=null)
+		if (!typedoc.getParent().equals("0")){
+			LOGGER.info("Parent - {}",typedoc.getParent());
+			SystemDocument parenttype = sysRepository.findById(Long.parseLong(typedoc.getParent()));
+	        if (parenttype!=null){
+	        	JsonNode parentSchema = parenttype.getData().get("schema");
+	        	ObjectNode props=(ObjectNode) schemaNode.get("properties");
+	        	ObjectNode parentprops=(ObjectNode) parentSchema.get("properties");
+	        	props.setAll(parentprops);
+	        	ObjectMapper mapper = new ObjectMapper();
+	        	try {
+					LOGGER.info("schemaNode - {}",mapper.writeValueAsString(schemaNode));
+				} catch (JsonProcessingException e) {
+					e.printStackTrace();
+				}
+	        	schemaNode = addParentSchema(parenttype, schemaNode);
+	        }
+	        
+		}
+		return schemaNode;
+	}
+
+	@Transactional
     @Override
     public DocumentDTO addToFolder(final DocumentDTO dto, final Long folderId) {
         LOGGER.debug("entering addToFolder(dto = {}, folderId={})", dto, folderId);
@@ -238,8 +264,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         dto.setModifier(user);
         SystemDocument typedoc = sysRepository.findBySymbolicName(dto.getType());
         if (typedoc!=null){
-	        JsonNode schemaNode = typedoc.getData().get("schema");
-	        validateSchema(schemaNode,dto);
+	        validateSchema(typedoc,dto);
 	        
         }
         List<String> readersArr = new ArrayList<String>();
