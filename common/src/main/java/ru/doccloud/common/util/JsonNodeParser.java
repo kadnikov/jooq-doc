@@ -24,11 +24,11 @@ public class JsonNodeParser {
             throw new Exception("paramName is empty");
 
         LOGGER.debug("getValueJsonNode(): settingsNode {}", settingsNode);
-        JsonNode value = settingsNode.findValue(paramName);
+        final JsonNode value = settingsNode.findValue(paramName);
         if(value == null)
             throw new Exception("value for key " + paramName + "was not found in json settings");
 
-        String rootFolder = String.valueOf(value.asText());
+        final String rootFolder = String.valueOf(value.asText());
         LOGGER.debug("leaving getValueJsonNode(): repository for save file {}", rootFolder);
         return rootFolder;
     }
