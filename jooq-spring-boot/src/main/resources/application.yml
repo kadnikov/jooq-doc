@@ -1,4 +1,4 @@
 
 server:
   port: 8888
-  contextPath: /jooq/docs
+  contextPath: /jooq

@@ -2,17 +2,23 @@ package ru.doccloud.webapp;
 
 import org.apache.catalina.Context;
 import org.apache.catalina.startup.Tomcat;
+import org.apache.chemistry.opencmis.server.impl.atompub.CmisAtomPubServlet;
+import org.apache.chemistry.opencmis.server.impl.webservices.CmisWebServicesServlet;
 import org.apache.tomcat.util.descriptor.web.ContextResource;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainer;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import ru.doccloud.cmis.server.MyCmisBrowserBindingServlet;
 
 import javax.sql.DataSource;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 //@EnableAutoConfiguration
@@ -77,6 +83,83 @@ public class WebApplication extends SpringBootServletInitializer {
 			}
 		};
 	}
+
+
+    @Bean
+    public CmisWebServicesServlet cmis10WebServiceServlet(){
+        return new CmisWebServicesServlet();
+    }
+
+    @Bean
+    public ServletRegistrationBean cmisws10() {
+        ServletRegistrationBean registration = new ServletRegistrationBean(cmis10WebServiceServlet(), "/services/*");
+        Map<String,String> params = new HashMap<>();
+        params.put("cmisVersion","1.0");
+        registration.setInitParameters(params);
+        return registration;
+    }
+
+    @Bean
+    public CmisWebServicesServlet cmis11WebServiceServlet(){
+        return new CmisWebServicesServlet();
+    }
+
+    @Bean
+    public ServletRegistrationBean cmisws11() {
+        ServletRegistrationBean registration = new ServletRegistrationBean(cmis11WebServiceServlet(), "/services11/*");
+        Map<String,String> params = new HashMap<>();
+        params.put("cmisVersion","1.1");
+        registration.setInitParameters(params);
+        return registration;
+    }
+
+
+    @Bean
+    public CmisAtomPubServlet cmis10AtomPubServlet(){
+        return new CmisAtomPubServlet();
+    }
+
+    @Bean
+    public ServletRegistrationBean cmisatom10() {
+        ServletRegistrationBean registration = new ServletRegistrationBean(cmis10AtomPubServlet(), "/atom/*");
+        Map<String,String> params = new HashMap<>();
+        params.put("callContextHandler","org.apache.chemistry.opencmis.server.impl.browser.token.TokenCallContextHandler");
+        params.put("cmisVersion","1.0");
+        registration.setInitParameters(params);
+        return registration;
+    }
+
+    @Bean
+    public CmisAtomPubServlet cmis11AtomPubServlet(){
+        return new CmisAtomPubServlet();
+    }
+
+    @Bean
+    public ServletRegistrationBean cmisatom11() {
+        ServletRegistrationBean registration = new ServletRegistrationBean(cmis11AtomPubServlet(), "/atom11/*");
+        Map<String,String> params = new HashMap<>();
+        params.put("callContextHandler","org.apache.chemistry.opencmis.server.impl.browser.token.TokenCallContextHandler");
+        params.put("cmisVersion","1.1");
+        registration.setInitParameters(params);
+        return registration;
+    }
+
+    @Bean
+    public MyCmisBrowserBindingServlet cmisbrowserServlet(){
+        return new MyCmisBrowserBindingServlet();
+    }
+
+    @Bean
+    public ServletRegistrationBean cmisbrowser() {
+        ServletRegistrationBean registration = new ServletRegistrationBean(cmisbrowserServlet(), "/browser/*");
+        Map<String,String> params = new HashMap<>();
+        params.put("callContextHandler","org.apache.chemistry.opencmis.server.impl.browser.token.TokenCallContextHandler");
+        registration.setInitParameters(params);
+        return registration;
+    }
+
+
+
 
 
 //    @Bean(destroyMethod="")

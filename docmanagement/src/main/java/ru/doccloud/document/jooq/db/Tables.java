@@ -7,6 +7,7 @@ package ru.doccloud.document.jooq.db;
 import javax.annotation.Generated;
 
 import ru.doccloud.document.jooq.db.tables.Documents;
+import ru.doccloud.document.jooq.db.tables.Groups;
 import ru.doccloud.document.jooq.db.tables.Links;
 import ru.doccloud.document.jooq.db.tables.Roles;
 import ru.doccloud.document.jooq.db.tables.System;
@@ -32,6 +33,11 @@ public class Tables {
 	 * The table public.documents
 	 */
 	public static final Documents DOCUMENTS = ru.doccloud.document.jooq.db.tables.Documents.DOCUMENTS;
+
+	/**
+	 * The table public.groups
+	 */
+	public static final Groups GROUPS = ru.doccloud.document.jooq.db.tables.Groups.GROUPS;
 
 	/**
 	 * The table public.links
