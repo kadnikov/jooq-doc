@@ -8,6 +8,7 @@ import org.apache.chemistry.opencmis.server.impl.webservices.CmisWebServicesServ
 import org.apache.tomcat.util.descriptor.web.ContextResource;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.embedded.tomcat.TomcatContextCustomizer;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainer;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
@@ -37,7 +38,7 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
 
 	@Bean
 	public TomcatEmbeddedServletContainerFactory tomcatFactory() {
-		return new TomcatEmbeddedServletContainerFactory() {
+        TomcatEmbeddedServletContainerFactory factory =  new TomcatEmbeddedServletContainerFactory() {
 
 			@Override
 			protected TomcatEmbeddedServletContainer getTomcatEmbeddedServletContainer(
@@ -70,24 +71,64 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
 				context.getNamingResources().addResource(resource);
 
 
-                final JDBCRealm realm = new JDBCRealm();
-
-                realm.setDriverName("org.postgresql.Driver");
-                realm.setConnectionURL("jdbc:postgresql://postgres:5432/doccloud");
-                realm.setConnectionName("doccloud");
-                realm.setConnectionPassword("doccloud");
-                realm.setUserTable("users");
-                realm.setUserNameCol("userid");
-                realm.setUserCredCol("password");
-                realm.setUserRoleTable("user_roles");
-                realm.setRoleNameCol("role");
-                realm.setAllRolesMode("authOnly");
-
-				context.setRealm(realm);
+//                final JDBCRealm realm = new JDBCRealm();
+//
+//                realm.setDriverName("org.postgresql.Driver");
+//                realm.setConnectionURL("jdbc:postgresql://postgres:5432/doccloud");
+//                realm.setConnectionName("doccloud");
+//                realm.setConnectionPassword("doccloud");
+//                realm.setUserTable("users");
+//                realm.setUserNameCol("userid");
+//                realm.setUserCredCol("password");
+//                realm.setUserRoleTable("user_roles");
+//                realm.setRoleNameCol("role");
+//                realm.setAllRolesMode("authOnly");
+//
+//				context.setRealm(realm);
 
 			}
+
 		};
+
+        factory.addContextCustomizers((TomcatContextCustomizer) context -> {
+//            final JDBCRealm realm = new JDBCRealm();
+//
+//            realm.setDriverName("org.postgresql.Driver");
+//            realm.setConnectionURL("jdbc:postgresql://postgres:5432/doccloud");
+//            realm.setConnectionName("doccloud");
+//            realm.setConnectionPassword("doccloud");
+//            realm.setUserTable("users");
+//            realm.setUserNameCol("userid");
+//            realm.setUserCredCol("password");
+//            realm.setUserRoleTable("user_roles");
+//            realm.setRoleNameCol("role");
+//            realm.setAllRolesMode("authOnly");
+
+            context.setRealm(jdbcRealm());
+        });
+
+        return factory;
 	}
+
+
+    @Bean
+//    @DependsOn("lifecycleBeanPostProcessor")
+    public JDBCRealm jdbcRealm()  {
+        final JDBCRealm realm = new JDBCRealm();
+
+        realm.setDriverName("org.postgresql.Driver");
+        realm.setConnectionURL("jdbc:postgresql://postgres:5432/doccloud");
+        realm.setConnectionName("doccloud");
+        realm.setConnectionPassword("doccloud");
+        realm.setUserTable("users");
+        realm.setUserNameCol("userid");
+        realm.setUserCredCol("password");
+        realm.setUserRoleTable("user_roles");
+        realm.setRoleNameCol("role");
+        realm.setAllRolesMode("authOnly");
+//        realm.init();
+        return realm;
+    }
 
 
     @Bean

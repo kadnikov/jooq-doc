@@ -6,5 +6,7 @@ server:
 security:
   basic:
     enabled: true
-
+  user:
+    name: test
+    password: test
 
