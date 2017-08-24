@@ -1,6 +1,7 @@
 package ru.doccloud.webapp;
 
 import org.apache.catalina.Context;
+import org.apache.catalina.realm.JDBCRealm;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.chemistry.opencmis.server.impl.atompub.CmisAtomPubServlet;
 import org.apache.chemistry.opencmis.server.impl.webservices.CmisWebServicesServlet;
@@ -14,6 +15,7 @@ import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.WebApplicationInitializer;
 import ru.doccloud.cmis.server.MyCmisBrowserBindingServlet;
 
 import javax.sql.DataSource;
@@ -21,27 +23,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-//@EnableAutoConfiguration
-//@ComponentScan
 @ComponentScan({
                 "ru.doccloud.config"
 })
-//@ConditionalOnProperty(prefix = "spring.datasource", name = "jndi-name")
-//@ImportResource(value = {
-//        "classpath:context.xml",
-//                        "classpath:server.xml",
-//                        "classpath:tomcat-users.xml"})
 @SpringBootApplication
-public class WebApplication extends SpringBootServletInitializer {
-
-//	@Override
-//	protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-//		return application.sources(WebApplication.class);
-//	}
-//
-//	public static void main(String[] args) throws Exception {
-//		SpringApplication.run(WebApplication.class, args);
-//	}
+public class WebApplication extends SpringBootServletInitializer implements WebApplicationInitializer {
 
     public static void main(String[] args) throws Exception {
         new SpringApplicationBuilder()
@@ -62,24 +48,43 @@ public class WebApplication extends SpringBootServletInitializer {
 
 			@Override
 			protected void postProcessContext(Context context) {
-				ContextResource resource = new ContextResource();
+				final ContextResource resource = new ContextResource();
+
 				resource.setName("jdbc/DOCCLOUDDB");
 				resource.setType(DataSource.class.getName());
                 resource.setProperty("factory", "org.apache.tomcat.jdbc.pool.DataSourceFactory");
 				resource.setProperty("driverClassName", "org.postgresql.Driver");
 				resource.setProperty("url", "jdbc:postgresql://localhost:5432/doccloud");
+
+                resource.setProperty("maxTotal", "100");
+                resource.setProperty("maxIdle", "20");
+                resource.setProperty("minIdle", "5");
+                resource.setProperty("maxWaitMillis", "10000");
+
+
                 resource.setProperty("username", "pupkin");
                 resource.setProperty("password", "pupkin");
 
+                resource.setAuth("Container");
+
 				context.getNamingResources().addResource(resource);
 
-//                ContextResourceLink resourceLink = new ContextResourceLink();
-//                resourceLink.setName("jdbc/DOCCLOUDDB");
-//                resourceLink.setGlobal("jdbc/DOCCLOUDDB");
-//                resourceLink.setType("javax.sql.DataSource");
-//                resourceLink.setProperty("auth", "Container");
-//
-//                context.getNamingResources().addResourceLink(resourceLink);
+
+                final JDBCRealm realm = new JDBCRealm();
+
+                realm.setDriverName("org.postgresql.Driver");
+                realm.setConnectionURL("jdbc:postgresql://postgres:5432/doccloud");
+                realm.setConnectionName("doccloud");
+                realm.setConnectionPassword("doccloud");
+                realm.setUserTable("users");
+                realm.setUserNameCol("userid");
+                realm.setUserCredCol("password");
+                realm.setUserRoleTable("user_roles");
+                realm.setRoleNameCol("role");
+                realm.setAllRolesMode("authOnly");
+
+				context.setRealm(realm);
+
 			}
 		};
 	}
@@ -157,40 +162,4 @@ public class WebApplication extends SpringBootServletInitializer {
         registration.setInitParameters(params);
         return registration;
     }
-
-
-
-
-
-//    @Bean(destroyMethod="")
-//    public DataSource jndiDataSource() throws IllegalArgumentException, NamingException {
-//        JndiObjectFactoryBean bean = new JndiObjectFactoryBean();
-//        bean.setJndiName("java:comp/env/jdbc/DOCCLOUDDB");
-//        bean.setProxyInterface(DataSource.class);
-//        bean.setLookupOnStartup(false);
-//        bean.afterPropertiesSet();
-//        return (DataSource)bean.getObject();
-//    }
-
-//    @Bean(destroyMethod = "")
-//    @ConditionalOnMissingBean
-//    public DataSource dataSource(DataSourceProperties properties) {
-//        JndiDataSourceLookup dataSourceLookup = new JndiDataSourceLookup();
-//        DataSource dataSource = dataSourceLookup.getDataSource(properties.getJndiName());
-//        return dataSource;
-//    }
-
-//	@Bean
-//	public TomcatEmbeddedServletContainerFactory tomcatFactory() {
-//		return new TomcatEmbeddedServletContainerFactory() {
-//
-//			@Override
-//			protected TomcatEmbeddedServletContainer getTomcatEmbeddedServletContainer(
-//					Tomcat tomcat) {
-//				tomcat.enableNaming();
-//				return super.getTomcatEmbeddedServletContainer(tomcat);
-//			}
-//		};
-//	}
-
 }

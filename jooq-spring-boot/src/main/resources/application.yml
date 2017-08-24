@@ -2,3 +2,11 @@
 server:
   port: 8888
   contextPath: /jooq
+
+security:
+  basic:
+    enabled: true
+  user:
+    name: test
+    password: test
+
