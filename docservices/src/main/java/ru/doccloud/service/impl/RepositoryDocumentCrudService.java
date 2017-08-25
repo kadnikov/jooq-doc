@@ -92,7 +92,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         
         String[] readers = readersArr.toArray(new String[0]);
         LOGGER.debug("add(): readers {}", readers);
-        dto.setReaders(readersArr);
+        dto.setReaders(readersArr.toArray(new String[0]));
         
         if (dto.getBaseType() == null) dto.setBaseType("document");
         
@@ -269,7 +269,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         }
         List<String> readersArr = new ArrayList<String>();
         readersArr.add(user);
-        dto.setReaders(readersArr);
+        dto.setReaders(readersArr.toArray(new String[0]));
         Document updated = repository.update(createModel(dto));
 
         LOGGER.debug("leaving update(): Updated {}", updated);
@@ -281,6 +281,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     @Override
     public DocumentDTO updateFileInfo(final DocumentDTO dto){
         LOGGER.debug("entering updateFileInfo(dto={})", dto);
+
         final Document updated = repository.updateFileInfo(createModel(dto));
 
         LOGGER.debug("leaving updateFileInfo(): Updated {}", updated);
@@ -291,10 +292,11 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     @Transactional
     @Override
     public DocumentDTO setParent(final DocumentDTO dto){
-        LOGGER.debug("entering updateFileInfo(dto={})", dto);
+        LOGGER.debug("entering setParent(dto={})", dto);
+
         final Document updated = repository.setParent(createModel(dto));
 
-        LOGGER.debug("leaving updateFileInfo(): Updated {}", updated);
+        LOGGER.debug("leaving setParent(): Updated {}", updated);
 
         return transformer.convert(updated, new DocumentDTO());
     }
@@ -387,7 +389,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
                 .type(dto.getType())
                 .baseType(dto.getBaseType())
                 .parent(dto.getParent())
-                .readers(dto.getReaders().toArray(new String[0]))
+                .readers(dto.getReaders())
                 .data(dto.getData())
                 .id(dto.getId())
                 .author(dto.getAuthor())

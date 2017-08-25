@@ -50,7 +50,7 @@ public abstract class AbstractDocumentDTO {
     
     protected String parent;
     
-    protected List<String> readers;
+    protected String[] readers;
 
 	protected Long fileLength;
 
@@ -171,11 +171,11 @@ public abstract class AbstractDocumentDTO {
 		this.parent = parent;
 	}
 
-    public List<String> getReaders() {
+    public String[] getReaders() {
 		return readers;
 	}
 
-	public void setReaders(List<String> readers) {
+	public void setReaders(String[] readers) {
 		this.readers = readers;
 	}
 	
