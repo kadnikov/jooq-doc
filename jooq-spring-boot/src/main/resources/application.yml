@@ -6,7 +6,15 @@ server:
 security:
   basic:
     enabled: true
-  user:
-    name: test
-    password: test
+
+spring:
+  datasource:
+    jndi-name: jdbc/DOCCLOUDDB
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+#  user:
+#    name: test
+#    password: test
 

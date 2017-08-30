@@ -6,9 +6,10 @@ import org.apache.catalina.startup.Tomcat;
 import org.apache.chemistry.opencmis.server.impl.atompub.CmisAtomPubServlet;
 import org.apache.chemistry.opencmis.server.impl.webservices.CmisWebServicesServlet;
 import org.apache.tomcat.util.descriptor.web.ContextResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.embedded.tomcat.TomcatContextCustomizer;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainer;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
@@ -30,6 +31,9 @@ import java.util.Map;
 @SpringBootApplication
 public class WebApplication extends SpringBootServletInitializer implements WebApplicationInitializer {
 
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebApplication.class);
+
     public static void main(String[] args) throws Exception {
         new SpringApplicationBuilder()
                 .sources(WebApplication.class)
@@ -38,7 +42,8 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
 
 	@Bean
 	public TomcatEmbeddedServletContainerFactory tomcatFactory() {
-        TomcatEmbeddedServletContainerFactory factory =  new TomcatEmbeddedServletContainerFactory() {
+
+        return new TomcatEmbeddedServletContainerFactory() {
 
 			@Override
 			protected TomcatEmbeddedServletContainer getTomcatEmbeddedServletContainer(
@@ -50,6 +55,8 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
 			@Override
 			protected void postProcessContext(Context context) {
 				final ContextResource resource = new ContextResource();
+
+                LOGGER.info("entering postProcessContext(context={})", context);
 
 				resource.setName("jdbc/DOCCLOUDDB");
 				resource.setType(DataSource.class.getName());
@@ -70,66 +77,28 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
 
 				context.getNamingResources().addResource(resource);
 
+                LOGGER.info("postProcessContext(): creating realm");
+                final JDBCRealm realm = new JDBCRealm();
 
-//                final JDBCRealm realm = new JDBCRealm();
+                realm.setDriverName("org.postgresql.Driver");
+                realm.setConnectionURL("jdbc:postgresql://postgres:5432/doccloud");
+                realm.setConnectionName("pupkin");
+                realm.setConnectionPassword("pupkin");
+                realm.setUserTable("users");
+                realm.setUserNameCol("userid");
+                realm.setUserCredCol("password");
+                realm.setUserRoleTable("user_roles");
+                realm.setRoleNameCol("role");
+                realm.setAllRolesMode("authOnly");
 //
-//                realm.setDriverName("org.postgresql.Driver");
-//                realm.setConnectionURL("jdbc:postgresql://postgres:5432/doccloud");
-//                realm.setConnectionName("doccloud");
-//                realm.setConnectionPassword("doccloud");
-//                realm.setUserTable("users");
-//                realm.setUserNameCol("userid");
-//                realm.setUserCredCol("password");
-//                realm.setUserRoleTable("user_roles");
-//                realm.setRoleNameCol("role");
-//                realm.setAllRolesMode("authOnly");
-//
-//				context.setRealm(realm);
+				context.setRealm(realm);
+
+                LOGGER.info("leaving postProcessContext(): context={}", context.getRealm());
 
 			}
 
 		};
-
-        factory.addContextCustomizers((TomcatContextCustomizer) context -> {
-//            final JDBCRealm realm = new JDBCRealm();
-//
-//            realm.setDriverName("org.postgresql.Driver");
-//            realm.setConnectionURL("jdbc:postgresql://postgres:5432/doccloud");
-//            realm.setConnectionName("doccloud");
-//            realm.setConnectionPassword("doccloud");
-//            realm.setUserTable("users");
-//            realm.setUserNameCol("userid");
-//            realm.setUserCredCol("password");
-//            realm.setUserRoleTable("user_roles");
-//            realm.setRoleNameCol("role");
-//            realm.setAllRolesMode("authOnly");
-
-            context.setRealm(jdbcRealm());
-        });
-
-        return factory;
 	}
-
-
-    @Bean
-//    @DependsOn("lifecycleBeanPostProcessor")
-    public JDBCRealm jdbcRealm()  {
-        final JDBCRealm realm = new JDBCRealm();
-
-        realm.setDriverName("org.postgresql.Driver");
-        realm.setConnectionURL("jdbc:postgresql://postgres:5432/doccloud");
-        realm.setConnectionName("doccloud");
-        realm.setConnectionPassword("doccloud");
-        realm.setUserTable("users");
-        realm.setUserNameCol("userid");
-        realm.setUserCredCol("password");
-        realm.setUserRoleTable("user_roles");
-        realm.setRoleNameCol("role");
-        realm.setAllRolesMode("authOnly");
-//        realm.init();
-        return realm;
-    }
-
 
     @Bean
     public CmisWebServicesServlet cmis10WebServiceServlet(){
