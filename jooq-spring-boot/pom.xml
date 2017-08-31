@@ -4,7 +4,7 @@
 
     <artifactId>jooq-spring-boot</artifactId>
     <version>0.1</version>
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
     <name>Using jOOQ with Spring Boot</name>
     <description>
         This example demonstrates how you can create a repository for your application by using jOOQ.
@@ -154,6 +154,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>

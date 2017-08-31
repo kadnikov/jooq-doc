@@ -1,11 +1,19 @@
 package ru.doccloud.webapp;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.sql.DataSource;
+
 import org.apache.catalina.Context;
 import org.apache.catalina.realm.JDBCRealm;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.chemistry.opencmis.server.impl.atompub.CmisAtomPubServlet;
 import org.apache.chemistry.opencmis.server.impl.webservices.CmisWebServicesServlet;
 import org.apache.tomcat.util.descriptor.web.ContextResource;
+import org.apache.tomcat.util.descriptor.web.LoginConfig;
+import org.apache.tomcat.util.descriptor.web.SecurityCollection;
+import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.embedded.tomcat.TomcatContextCustomizer;
@@ -17,11 +25,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.WebApplicationInitializer;
-import ru.doccloud.cmis.server.MyCmisBrowserBindingServlet;
 
-import javax.sql.DataSource;
-import java.util.HashMap;
-import java.util.Map;
+import ru.doccloud.cmis.server.MyCmisBrowserBindingServlet;
 
 @Configuration
 @ComponentScan({
@@ -30,6 +35,11 @@ import java.util.Map;
 @SpringBootApplication
 public class WebApplication extends SpringBootServletInitializer implements WebApplicationInitializer {
 
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+    	return application.sources(WebApplication.class);
+    }
+    
     public static void main(String[] args) throws Exception {
         new SpringApplicationBuilder()
                 .sources(WebApplication.class)
@@ -63,50 +73,42 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
                 resource.setProperty("maxWaitMillis", "10000");
 
 
-                resource.setProperty("username", "pupkin");
-                resource.setProperty("password", "pupkin");
+                resource.setProperty("username", "doccloud");
+                resource.setProperty("password", "doccloud");
 
                 resource.setAuth("Container");
 
 				context.getNamingResources().addResource(resource);
 
-
-//                final JDBCRealm realm = new JDBCRealm();
-//
-//                realm.setDriverName("org.postgresql.Driver");
-//                realm.setConnectionURL("jdbc:postgresql://postgres:5432/doccloud");
-//                realm.setConnectionName("doccloud");
-//                realm.setConnectionPassword("doccloud");
-//                realm.setUserTable("users");
-//                realm.setUserNameCol("userid");
-//                realm.setUserCredCol("password");
-//                realm.setUserRoleTable("user_roles");
-//                realm.setRoleNameCol("role");
-//                realm.setAllRolesMode("authOnly");
-//
-//				context.setRealm(realm);
-
 			}
 
 		};
 
-        factory.addContextCustomizers((TomcatContextCustomizer) context -> {
-//            final JDBCRealm realm = new JDBCRealm();
-//
-//            realm.setDriverName("org.postgresql.Driver");
-//            realm.setConnectionURL("jdbc:postgresql://postgres:5432/doccloud");
-//            realm.setConnectionName("doccloud");
-//            realm.setConnectionPassword("doccloud");
-//            realm.setUserTable("users");
-//            realm.setUserNameCol("userid");
-//            realm.setUserCredCol("password");
-//            realm.setUserRoleTable("user_roles");
-//            realm.setRoleNameCol("role");
-//            realm.setAllRolesMode("authOnly");
+		factory.addContextCustomizers(new TomcatContextCustomizer() {
+	        @Override
+	        public void customize(Context context) {
+	        	System.out.println("Customize jdbcRealm");
+	            context.setRealm(jdbcRealm());
+	            
+	            LoginConfig config = new LoginConfig();
+                config.setAuthMethod("BASIC");
+                context.setLoginConfig(config);
+                context.addSecurityRole("tomcat");
 
-            context.setRealm(jdbcRealm());
-        });
+                SecurityConstraint constraint = new SecurityConstraint();
+                constraint.addAuthRole("tomcat");
 
+                SecurityCollection collection = new SecurityCollection();
+                collection.addPattern("/*");
+                constraint.addCollection(collection);
+
+                context.addConstraint(constraint);
+                ContextResource dummyContextResource = new ContextResource();
+                dummyContextResource.setName("JDBCRealm");
+                dummyContextResource.setAuth("Container");
+                context.getNamingResources().addResource(dummyContextResource);
+	        }
+	    });
         return factory;
 	}
 
