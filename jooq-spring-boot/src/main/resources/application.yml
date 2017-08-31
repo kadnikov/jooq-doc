@@ -3,3 +3,17 @@ server:
   port: 8888
   contextPath: /jooq
 
+security:
+  basic:
+    enabled: true
+
+spring:
+  datasource:
+    jndi-name: jdbc/DOCCLOUDDB
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+#  user:
+#    name: test
+#    password: test
