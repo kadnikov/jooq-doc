@@ -48,6 +48,8 @@ CREATE TABLE if not exists roles
 CREATE TABLE if not exists users
 (
   userid character varying(255) NOT NULL,
+  username character varying(255),
+  enabled integer DEFAULT 1,
   password character varying(50),
   groups text[],
   fullname character varying(255),
@@ -71,7 +73,7 @@ CREATE TABLE if not exists user_roles
   REFERENCES public.roles (role) MATCH SIMPLE
   ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT user_roles_userid_fkey FOREIGN KEY (userid)
-  REFERENCES public.users (userid) MATCH SIMPLE
+  REFERENCES public.users (username) MATCH SIMPLE
   ON UPDATE NO ACTION ON DELETE CASCADE
 );
 

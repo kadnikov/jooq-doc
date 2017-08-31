@@ -71,7 +71,6 @@ public class Keys {
 	public static final ForeignKey<LinksRecord, DocumentsRecord> LINKS__LINKS_HEAD_ID_FKEY = ForeignKeys0.LINKS__LINKS_HEAD_ID_FKEY;
 	public static final ForeignKey<LinksRecord, DocumentsRecord> LINKS__LINKS_TAIL_ID_FKEY = ForeignKeys0.LINKS__LINKS_TAIL_ID_FKEY;
 	public static final ForeignKey<UserRolesRecord, RolesRecord> USER_ROLES__USER_ROLES_ROLE_FKEY = ForeignKeys0.USER_ROLES__USER_ROLES_ROLE_FKEY;
-	public static final ForeignKey<UserRolesRecord, UsersRecord> USER_ROLES__USER_ROLES_USERID_FKEY = ForeignKeys0.USER_ROLES__USER_ROLES_USERID_FKEY;
 
 	// -------------------------------------------------------------------------
 	// [#1459] distribute members to avoid static initialisers > 64kb
@@ -98,6 +97,5 @@ public class Keys {
 		public static final ForeignKey<LinksRecord, DocumentsRecord> LINKS__LINKS_HEAD_ID_FKEY = createForeignKey(ru.doccloud.document.jooq.db.Keys.DOCUMENTS_PKEY, Links.LINKS, Links.LINKS.HEAD_ID);
 		public static final ForeignKey<LinksRecord, DocumentsRecord> LINKS__LINKS_TAIL_ID_FKEY = createForeignKey(ru.doccloud.document.jooq.db.Keys.DOCUMENTS_PKEY, Links.LINKS, Links.LINKS.TAIL_ID);
 		public static final ForeignKey<UserRolesRecord, RolesRecord> USER_ROLES__USER_ROLES_ROLE_FKEY = createForeignKey(ru.doccloud.document.jooq.db.Keys.ROLES_PKEY, UserRoles.USER_ROLES, UserRoles.USER_ROLES.ROLE);
-		public static final ForeignKey<UserRolesRecord, UsersRecord> USER_ROLES__USER_ROLES_USERID_FKEY = createForeignKey(ru.doccloud.document.jooq.db.Keys.USERS_PKEY, UserRoles.USER_ROLES, UserRoles.USER_ROLES.USERID);
 	}
 }

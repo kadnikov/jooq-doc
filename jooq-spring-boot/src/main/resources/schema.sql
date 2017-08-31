@@ -48,6 +48,8 @@ OIDS=FALSE
 CREATE TABLE if not exists users
 (
   userid character varying(255) NOT NULL,
+  username character varying(255),
+  enabled integer DEFAULT 1,
   password character varying(50),
   groups text[],
   fullname character varying(255),

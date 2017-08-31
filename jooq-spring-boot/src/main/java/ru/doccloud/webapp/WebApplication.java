@@ -1,10 +1,5 @@
 package ru.doccloud.webapp;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.sql.DataSource;
-
 import org.apache.catalina.Context;
 import org.apache.catalina.realm.JDBCRealm;
 import org.apache.catalina.startup.Tomcat;
@@ -16,9 +11,9 @@ import org.apache.tomcat.util.descriptor.web.SecurityCollection;
 import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.context.embedded.tomcat.TomcatContextCustomizer;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainer;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
@@ -26,9 +21,15 @@ import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.web.WebApplicationInitializer;
-
 import ru.doccloud.cmis.server.MyCmisBrowserBindingServlet;
+
+import javax.sql.DataSource;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @ComponentScan({
@@ -82,8 +83,8 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
                 resource.setProperty("maxWaitMillis", "10000");
 
 
-                resource.setProperty("username", "doccloud");
-                resource.setProperty("password", "doccloud");
+                resource.setProperty("username", "pupkin");
+                resource.setProperty("password", "pupkin");
 
                 resource.setAuth("Container");
 
@@ -197,5 +198,33 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
         params.put("callContextHandler","org.apache.chemistry.opencmis.server.impl.browser.token.TokenCallContextHandler");
         registration.setInitParameters(params);
         return registration;
+    }
+
+    @Configuration
+    @ComponentScan({
+            "ru.doccloud.config"
+    })
+    protected static class ApplicationSecurity extends WebSecurityConfigurerAdapter {
+
+        @Autowired
+        private DataSource dataSource;
+
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
+            LOGGER.info("configure(): http: {}", http);
+            http.authorizeRequests().antMatchers("/css/**").permitAll().anyRequest().fullyAuthenticated()
+            .and().antMatcher("/docs/**").httpBasic();
+        }
+
+        @Override
+        public void configure(AuthenticationManagerBuilder auth) throws Exception {
+            LOGGER.info("configure(): datasource: {}", dataSource);
+            auth.jdbcAuthentication().dataSource(this.dataSource).authoritiesByUsernameQuery(getAuthoritiesQuery());
+        }
+
+        private String getAuthoritiesQuery() {
+            return "select u.username,r.role from users u inner join user_roles ur on(u.userid=ur.userid) " +
+                    "inner join roles r on(ur.role=r.role)  where u.username=?";
+        }
     }
 }

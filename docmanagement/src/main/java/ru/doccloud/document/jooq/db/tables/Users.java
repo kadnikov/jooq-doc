@@ -33,7 +33,7 @@ import ru.doccloud.document.jooq.db.tables.records.UsersRecord;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Users extends TableImpl<UsersRecord> {
 
-	private static final long serialVersionUID = 326529134;
+	private static final long serialVersionUID = 688381846;
 
 	/**
 	 * The reference instance of <code>public.users</code>
@@ -107,6 +107,16 @@ public class Users extends TableImpl<UsersRecord> {
 	 * The column <code>public.users.status</code>.
 	 */
 	public final TableField<UsersRecord, Integer> STATUS = createField("status", org.jooq.impl.SQLDataType.INTEGER.defaulted(true), this, "");
+
+	/**
+	 * The column <code>public.users.username</code>.
+	 */
+	public final TableField<UsersRecord, String> USERNAME = createField("username", org.jooq.impl.SQLDataType.VARCHAR.length(255), this, "");
+
+	/**
+	 * The column <code>public.users.enabled</code>.
+	 */
+	public final TableField<UsersRecord, Integer> ENABLED = createField("enabled", org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaulted(true), this, "");
 
 	/**
 	 * Create a <code>public.users</code> table reference
