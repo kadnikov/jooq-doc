@@ -83,8 +83,8 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
                 resource.setProperty("maxWaitMillis", "10000");
 
 
-                resource.setProperty("username", "pupkin");
-                resource.setProperty("password", "pupkin");
+                resource.setProperty("username", "doccloud");
+                resource.setProperty("password", "doccloud");
 
                 resource.setAuth("Container");
 
@@ -96,8 +96,8 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
 
                 realm.setDriverName("org.postgresql.Driver");
                 realm.setConnectionURL("jdbc:postgresql://postgres:5432/doccloud");
-                realm.setConnectionName("pupkin");
-                realm.setConnectionPassword("pupkin");
+                realm.setConnectionName("doccloud");
+                realm.setConnectionPassword("doccloud");
                 realm.setUserTable("users");
                 realm.setUserNameCol("userid");
                 realm.setUserCredCol("password");
@@ -213,7 +213,7 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
         protected void configure(HttpSecurity http) throws Exception {
             LOGGER.info("configure(): http: {}", http);
             http.authorizeRequests().antMatchers("/css/**").permitAll().anyRequest().fullyAuthenticated()
-            .and().antMatcher("/docs/**").httpBasic();
+            .and().antMatcher("/**").httpBasic();
         }
 
         @Override
