@@ -68,9 +68,12 @@
         </dependency>
         
 		<dependency>
-		    <groupId>com.github.everit-org.json-schema</groupId>
+		    <!-- groupId>com.github.everit-org.json-schema</groupId>
 		    <artifactId>org.everit.json.schema</artifactId>
-		    <version>1.6.0</version>
+		    <version>1.6.0</version-->
+			<groupId>org.everit.json</groupId>
+			<artifactId>org.everit.json.schema</artifactId>
+			<version>1.5.1</version>
 		</dependency>
 
 
@@ -256,10 +259,10 @@
         </dependency>
 
     </dependencies>
-    <repositories>
+    <!-- repositories>
 	    <repository>
 	        <id>jitpack.io</id>
 	        <url>https://jitpack.io</url>
 	    </repository>
-	</repositories>
+	</repositories-->
 </project>

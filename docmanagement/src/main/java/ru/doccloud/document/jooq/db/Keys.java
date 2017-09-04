@@ -56,7 +56,7 @@ public class Keys {
 	// -------------------------------------------------------------------------
 
 	public static final UniqueKey<DocumentsRecord> DOCUMENTS_PKEY = UniqueKeys0.DOCUMENTS_PKEY;
-	public static final UniqueKey<GroupsRecord> GROUPS_PKEY = UniqueKeys0.GROUPS_PKEY;
+	public static final UniqueKey<GroupsRecord> ID_KEY = UniqueKeys0.ID_KEY;
 	public static final UniqueKey<LinksRecord> LINKS_PKEY = UniqueKeys0.LINKS_PKEY;
 	public static final UniqueKey<RolesRecord> ROLES_PKEY = UniqueKeys0.ROLES_PKEY;
 	public static final UniqueKey<SystemRecord> SYSTEM_PKEY = UniqueKeys0.SYSTEM_PKEY;
@@ -85,7 +85,7 @@ public class Keys {
 
 	private static class UniqueKeys0 extends AbstractKeys {
 		public static final UniqueKey<DocumentsRecord> DOCUMENTS_PKEY = createUniqueKey(Documents.DOCUMENTS, Documents.DOCUMENTS.ID);
-		public static final UniqueKey<GroupsRecord> GROUPS_PKEY = createUniqueKey(Groups.GROUPS, Groups.GROUPS.ID);
+		public static final UniqueKey<GroupsRecord> ID_KEY = createUniqueKey(Groups.GROUPS, Groups.GROUPS.ID);
 		public static final UniqueKey<LinksRecord> LINKS_PKEY = createUniqueKey(Links.LINKS, Links.LINKS.HEAD_ID, Links.LINKS.TAIL_ID);
 		public static final UniqueKey<RolesRecord> ROLES_PKEY = createUniqueKey(Roles.ROLES, Roles.ROLES.ROLE);
 		public static final UniqueKey<SystemRecord> SYSTEM_PKEY = createUniqueKey(System.SYSTEM, System.SYSTEM.ID);

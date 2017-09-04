@@ -38,7 +38,7 @@ import ru.doccloud.document.jooq.db.tables.Users;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Public extends SchemaImpl {
 
-	private static final long serialVersionUID = 1592719100;
+	private static final long serialVersionUID = 1128255280;
 
 	/**
 	 * The reference instance of <code>public</code>
@@ -62,8 +62,7 @@ public class Public extends SchemaImpl {
 	private final List<Sequence<?>> getSequences0() {
 		return Arrays.<Sequence<?>>asList(
 			Sequences.DOCUMENTS_ID_SEQ,
-			Sequences.SYSTEM_ID_SEQ,
-			Sequences.TODOS_ID_SEQ);
+			Sequences.SYSTEM_ID_SEQ);
 	}
 
 	@Override

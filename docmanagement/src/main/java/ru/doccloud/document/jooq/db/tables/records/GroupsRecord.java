@@ -29,33 +29,33 @@ import ru.doccloud.document.jooq.db.tables.Groups;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class GroupsRecord extends UpdatableRecordImpl<GroupsRecord> implements Record2<String, String> {
 
-	private static final long serialVersionUID = 741266580;
-
-	/**
-	 * Setter for <code>public.groups.id</code>.
-	 */
-	public void setId(String value) {
-		setValue(0, value);
-	}
-
-	/**
-	 * Getter for <code>public.groups.id</code>.
-	 */
-	public String getId() {
-		return (String) getValue(0);
-	}
+	private static final long serialVersionUID = -1134477598;
 
 	/**
 	 * Setter for <code>public.groups.title</code>.
 	 */
 	public void setTitle(String value) {
-		setValue(1, value);
+		setValue(0, value);
 	}
 
 	/**
 	 * Getter for <code>public.groups.title</code>.
 	 */
 	public String getTitle() {
+		return (String) getValue(0);
+	}
+
+	/**
+	 * Setter for <code>public.groups.id</code>.
+	 */
+	public void setId(String value) {
+		setValue(1, value);
+	}
+
+	/**
+	 * Getter for <code>public.groups.id</code>.
+	 */
+	public String getId() {
 		return (String) getValue(1);
 	}
 
@@ -96,14 +96,6 @@ public class GroupsRecord extends UpdatableRecordImpl<GroupsRecord> implements R
 	 */
 	@Override
 	public Field<String> field1() {
-		return Groups.GROUPS.ID;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Field<String> field2() {
 		return Groups.GROUPS.TITLE;
 	}
 
@@ -111,15 +103,15 @@ public class GroupsRecord extends UpdatableRecordImpl<GroupsRecord> implements R
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String value1() {
-		return getId();
+	public Field<String> field2() {
+		return Groups.GROUPS.ID;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String value2() {
+	public String value1() {
 		return getTitle();
 	}
 
@@ -127,8 +119,16 @@ public class GroupsRecord extends UpdatableRecordImpl<GroupsRecord> implements R
 	 * {@inheritDoc}
 	 */
 	@Override
+	public String value2() {
+		return getId();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
 	public GroupsRecord value1(String value) {
-		setId(value);
+		setTitle(value);
 		return this;
 	}
 
@@ -137,7 +137,7 @@ public class GroupsRecord extends UpdatableRecordImpl<GroupsRecord> implements R
 	 */
 	@Override
 	public GroupsRecord value2(String value) {
-		setTitle(value);
+		setId(value);
 		return this;
 	}
 
@@ -165,10 +165,10 @@ public class GroupsRecord extends UpdatableRecordImpl<GroupsRecord> implements R
 	/**
 	 * Create a detached, initialised GroupsRecord
 	 */
-	public GroupsRecord(String id, String title) {
+	public GroupsRecord(String title, String id) {
 		super(Groups.GROUPS);
 
-		setValue(0, id);
-		setValue(1, title);
+		setValue(0, title);
+		setValue(1, id);
 	}
 }

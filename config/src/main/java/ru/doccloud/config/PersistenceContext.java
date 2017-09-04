@@ -1,17 +1,12 @@
 package ru.doccloud.config;
 
-import com.jolbox.bonecp.BoneCPDataSource;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.datasource.lookup.JndiDataSourceLookup;
-import ru.doccloud.config.exception.JOOQToSpringExceptionTransformer;
-
 import org.jooq.SQLDialect;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultDSLContext;
 import org.jooq.impl.DefaultExecuteListenerProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -24,11 +19,10 @@ import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
 import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
+import org.springframework.jdbc.datasource.lookup.JndiDataSourceLookup;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import ru.doccloud.config.exception.JOOQToSpringExceptionTransformer;
 
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 /**
@@ -43,12 +37,7 @@ import javax.sql.DataSource;
 @PropertySource("classpath:application.properties")
 public class PersistenceContext {
 
-    private static final String PROPERTY_NAME_DB_DRIVER = "db.driver";
-    private static final String PROPERTY_NAME_DB_PASSWORD = "db.password";
     private static final String PROPERTY_NAME_DB_SCHEMA_SCRIPT = "db.schema.script";
-    private static final String PROPERTY_NAME_DB_URL = "db.url";
-    private static final String PROPERTY_NAME_DB_USERNAME = "db.username";
-    private static final String PROPERTY_NAME_JOOQ_SQL_DIALECT = "jooq.sql.dialect";
 
     private static final String DATASOURCE_JNDI_NAME = "jdbc/DOCCLOUDDB";
 
@@ -57,38 +46,32 @@ public class PersistenceContext {
     @Autowired
     private Environment env;
 
+
     @Bean(destroyMethod = "")
     public DataSource dataSource() throws Exception {
-//        Context ctx = new InitialContext();
-//
-//        DataSource ds = (DataSource)ctx.lookup(DATASOURCE_JNDI_NAME);
-        JndiDataSourceLookup dataSource = new JndiDataSourceLookup();
-        dataSource.setResourceRef(true);
-        DataSource ds =  dataSource.getDataSource(DATASOURCE_JNDI_NAME);
-        if(ds == null)
-            throw new Exception("Datasource with jndi " + DATASOURCE_JNDI_NAME + " was not found. Please create datasource");
-        LOGGER.trace("datasource " + ds) ;
-        return ds;
-    }
+        try {
+            JndiDataSourceLookup dataSource = new JndiDataSourceLookup();
+            dataSource.setResourceRef(true);
+            final DataSource ds = dataSource.getDataSource(DATASOURCE_JNDI_NAME);
 
-    @Bean
-    public LazyConnectionDataSourceProxy lazyConnectionDataSource() throws Exception {
-        return new LazyConnectionDataSourceProxy(dataSource());
-    }
-
-    @Bean
-    public TransactionAwareDataSourceProxy transactionAwareDataSource() throws Exception {
-        return new TransactionAwareDataSourceProxy(lazyConnectionDataSource());
+            LOGGER.info("dataSource(): {}", ds);
+            if (ds == null)
+                throw new Exception("Datasource with jndi " + DATASOURCE_JNDI_NAME + " was not found. Please create datasource");
+            LOGGER.trace("datasource {}", ds);
+            return ds;
+        } catch (Exception e) {
+            throw new Exception(e);
+        }
     }
 
     @Bean
     public DataSourceTransactionManager transactionManager() throws Exception {
-        return new DataSourceTransactionManager(lazyConnectionDataSource());
+        return new DataSourceTransactionManager(new LazyConnectionDataSourceProxy(dataSource()));
     }
 
     @Bean
     public DataSourceConnectionProvider connectionProvider() throws Exception {
-        return new DataSourceConnectionProvider(transactionAwareDataSource());
+        return new DataSourceConnectionProvider(new TransactionAwareDataSourceProxy(new LazyConnectionDataSourceProxy(dataSource())));
     }
 
     @Bean
@@ -105,9 +88,7 @@ public class PersistenceContext {
             jooqToSpringExceptionTransformer()
         ));
 
-        String sqlDialectName = env.getRequiredProperty(PROPERTY_NAME_JOOQ_SQL_DIALECT);
-        SQLDialect dialect = SQLDialect.valueOf(sqlDialectName);
-        jooqConfiguration.set(dialect);
+        jooqConfiguration.set(SQLDialect.POSTGRES);
 
         return jooqConfiguration;
     }

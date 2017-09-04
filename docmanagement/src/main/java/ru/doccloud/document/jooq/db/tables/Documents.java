@@ -39,7 +39,7 @@ import ru.doccloud.document.jooq.db.tables.records.DocumentsRecord;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Documents extends TableImpl<DocumentsRecord> {
 
-	private static final long serialVersionUID = -942487570;
+	private static final long serialVersionUID = 1058405137;
 
 	/**
 	 * The reference instance of <code>public.documents</code>
@@ -130,11 +130,6 @@ public class Documents extends TableImpl<DocumentsRecord> {
 	public final TableField<DocumentsRecord, String> SYS_FILE_MIME_TYPE = createField("sys_file_mime_type", org.jooq.impl.SQLDataType.CLOB, this, "");
 
 	/**
-	 * The column <code>public.documents.sys_file_name</code>.
-	 */
-	public final TableField<DocumentsRecord, String> SYS_FILE_NAME = createField("sys_file_name", org.jooq.impl.SQLDataType.CLOB, this, "");
-
-	/**
 	 * The column <code>public.documents.sys_file_length</code>.
 	 */
 	public final TableField<DocumentsRecord, Long> SYS_FILE_LENGTH = createField("sys_file_length", org.jooq.impl.SQLDataType.BIGINT, this, "");
@@ -145,19 +140,24 @@ public class Documents extends TableImpl<DocumentsRecord> {
 	public final TableField<DocumentsRecord, JsonNode> DATA = createField("data", org.jooq.impl.DefaultDataType.getDefaultDataType("jsonb"), this, "", new PostgresJSONJacksonJsonNodeBinding());
 
 	/**
-	 * The column <code>public.documents.sys_uuid</code>.
+	 * The column <code>public.documents.sys_file_name</code>.
 	 */
-	public final TableField<DocumentsRecord, UUID> SYS_UUID = createField("sys_uuid", org.jooq.impl.SQLDataType.UUID.defaulted(true), this, "");
+	public final TableField<DocumentsRecord, String> SYS_FILE_NAME = createField("sys_file_name", org.jooq.impl.SQLDataType.CLOB, this, "");
 
 	/**
-	 * The column <code>public.documents.sys_file_storage</code>.
+	 * The column <code>public.documents.sys_uuid</code>.
 	 */
-	public final TableField<DocumentsRecord, String> SYS_FILE_STORAGE = createField("sys_file_storage", org.jooq.impl.SQLDataType.CLOB, this, "");
+	public final TableField<DocumentsRecord, UUID> SYS_UUID = createField("sys_uuid", org.jooq.impl.SQLDataType.UUID.nullable(false).defaulted(true), this, "");
 
 	/**
 	 * The column <code>public.documents.sys_base_type</code>.
 	 */
 	public final TableField<DocumentsRecord, String> SYS_BASE_TYPE = createField("sys_base_type", org.jooq.impl.SQLDataType.CLOB, this, "");
+
+	/**
+	 * The column <code>public.documents.sys_file_storage</code>.
+	 */
+	public final TableField<DocumentsRecord, String> SYS_FILE_STORAGE = createField("sys_file_storage", org.jooq.impl.SQLDataType.CLOB, this, "");
 
 	/**
 	 * Create a <code>public.documents</code> table reference
