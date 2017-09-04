@@ -122,6 +122,9 @@
         <!--todo create another profile for spring boot version-->
         <profile>
             <id>doccloud</id>
+            <properties>
+	          <spring.boot.mainclass>ru.doccloud.webapp.WebApplication</spring.boot.mainclass>
+	        </properties>
             <build>
                 <plugins>
 
