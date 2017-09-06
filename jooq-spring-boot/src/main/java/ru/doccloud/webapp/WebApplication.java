@@ -1,7 +1,6 @@
 package ru.doccloud.webapp;
 
 import org.apache.catalina.Context;
-import org.apache.catalina.realm.JDBCRealm;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.chemistry.opencmis.server.impl.atompub.CmisAtomPubServlet;
 import org.apache.chemistry.opencmis.server.impl.webservices.CmisWebServicesServlet;
@@ -91,21 +90,21 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
 				context.getNamingResources().addResource(resource);
 
 
-                LOGGER.info("postProcessContext(): creating realm");
-                final JDBCRealm realm = new JDBCRealm();
+//                LOGGER.info("postProcessContext(): creating realm");
+//                final JDBCRealm realm = new JDBCRealm();
+//
+//                realm.setDriverName("org.postgresql.Driver");
+//                realm.setConnectionURL("jdbc:postgresql://postgres:5432/doccloud");
+//                realm.setConnectionName("doccloud");
+//                realm.setConnectionPassword("doccloud");
+//                realm.setUserTable("users");
+//                realm.setUserNameCol("userid");
+//                realm.setUserCredCol("password");
+//                realm.setUserRoleTable("user_roles");
+//                realm.setRoleNameCol("role");
+//                realm.setAllRolesMode("authOnly");
+//				context.setRealm(realm);
 
-                realm.setDriverName("org.postgresql.Driver");
-                realm.setConnectionURL("jdbc:postgresql://postgres:5432/doccloud");
-                realm.setConnectionName("doccloud");
-                realm.setConnectionPassword("doccloud");
-                realm.setUserTable("users");
-                realm.setUserNameCol("userid");
-                realm.setUserCredCol("password");
-                realm.setUserRoleTable("user_roles");
-                realm.setRoleNameCol("role");
-                realm.setAllRolesMode("authOnly");
-				context.setRealm(realm);
-				
 				LoginConfig config = new LoginConfig();
                 config.setAuthMethod("BASIC");
                 context.setLoginConfig(config);
@@ -120,7 +119,7 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
 
                 context.addConstraint(constraint);
 
-                LOGGER.info("leaving postProcessContext(): context={}", context.getRealm());
+//                LOGGER.info("leaving postProcessContext(): context={}", context.getRealm());
 			}
 
 		};
