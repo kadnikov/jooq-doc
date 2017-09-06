@@ -202,7 +202,8 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
         selectedFields.add(DOCUMENTS.SYS_VERSION);
         selectedFields.add(DOCUMENTS.SYS_UUID);
         selectedFields.add(DOCUMENTS.SYS_PARENT);
-        selectedFields.add(DOCUMENTS.SYS_FILE_STORAGE); 
+        selectedFields.add(DOCUMENTS.SYS_FILE_STORAGE);
+        selectedFields.add(DOCUMENTS.SYS_READERS); 
         if (fields!=null){
         	if (fields[0].equals("all")){
         		selectedFields.add(DOCUMENTS.DATA); 
@@ -506,6 +507,7 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
                     .fileStorage(queryResult.getValue(DOCUMENTS.SYS_FILE_STORAGE))
                     .uuid(queryResult.getValue(DOCUMENTS.SYS_UUID))
                     .parent(queryResult.getValue(DOCUMENTS.SYS_PARENT))
+                    .readers(queryResult.getValue(DOCUMENTS.SYS_READERS))
                     .data(JsonNodeParser.buildObjectNode(queryResult, fields))
                     .build();
         }

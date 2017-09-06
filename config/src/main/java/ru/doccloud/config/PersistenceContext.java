@@ -37,7 +37,7 @@ import javax.sql.DataSource;
 @PropertySource("classpath:application.properties")
 public class PersistenceContext {
 
-    private static final String PROPERTY_NAME_DB_SCHEMA_SCRIPT = "db.schema.script";
+    private static final String DB_SCHEMA_SCRIPT = "schema.sql";
 
     private static final String DATASOURCE_JNDI_NAME = "jdbc/DOCCLOUDDB";
 
@@ -105,7 +105,7 @@ public class PersistenceContext {
 
         ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
         populator.addScript(
-                new ClassPathResource(env.getRequiredProperty(PROPERTY_NAME_DB_SCHEMA_SCRIPT))
+                new ClassPathResource(DB_SCHEMA_SCRIPT)
         );
 
         initializer.setDatabasePopulator(populator);
