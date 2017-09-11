@@ -39,7 +39,9 @@ public class JsonNodeParser {
         if (fields!=null){
         	if (fields[0].equals("all")){
         		try {
-					data=(ObjectNode) mapper.readTree(queryResult.getValue("data").toString());
+        			if (!"".equals(queryResult.getValue("data").toString())){
+        				data=(ObjectNode) mapper.readTree(queryResult.getValue("data").toString());
+        			}
 				} catch (JsonProcessingException e) {
 					e.printStackTrace();
 				} catch (IllegalArgumentException e) {
