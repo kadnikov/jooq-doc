@@ -11,6 +11,7 @@ public class User implements Serializable{
     private String password;
     private String fullName;
     private String email;
+    private String[] groups;
 
     private List<UserRole> userRoleList;
 
@@ -19,6 +20,7 @@ public class User implements Serializable{
         this.password = builder.password;
         this.fullName = builder.fullName;
         this.email = builder.email;
+        this.groups = builder.groups;
     }
 
     public String getUserId() {
@@ -37,7 +39,11 @@ public class User implements Serializable{
         return email;
     }
 
-    public List<UserRole> getUserRoleList() {
+    public String[] getGroups() {
+		return groups;
+	}
+
+	public List<UserRole> getUserRoleList() {
         return userRoleList;
     }
 
@@ -75,6 +81,7 @@ public class User implements Serializable{
                 ", password lenght='" + (!StringUtils.isBlank(password) ? password.length() : 0) + '\'' +
                 ", fullName='" + fullName + '\'' +
                 ", email='" + email + '\'' +
+                ", groups='" + groups + '\'' +
                 '}';
     }
 
@@ -88,6 +95,8 @@ public class User implements Serializable{
         private String fullName;
 
         private String email;
+        
+        private String[] groups;
 
 
         public Builder(String userId) {
@@ -106,6 +115,11 @@ public class User implements Serializable{
 
         public User.Builder email(String email) {
             this.email = email;
+            return this;
+        }
+        
+        public User.Builder groups(String[] groups) {
+            this.groups = groups;
             return this;
         }
 

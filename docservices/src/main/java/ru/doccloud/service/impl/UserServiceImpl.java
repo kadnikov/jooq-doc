@@ -53,7 +53,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserDTO toUserDto(User user) {
-        return new UserDTO(user.getUserId(), user.getPassword(), user.getFullName(), user.getEmail(), convertUserRolesToDTOist(user.getUserRoleList()));
+        return new UserDTO(user.getUserId(), user.getPassword(), user.getFullName(), user.getEmail(), user.getGroups(), convertUserRolesToDTOist(user.getUserRoleList()));
     }
 
     private List<UserRoleDTO> convertUserRolesToDTOist(List<UserRole> userRoles) {

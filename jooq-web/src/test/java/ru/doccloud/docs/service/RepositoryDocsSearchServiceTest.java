@@ -11,9 +11,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import ru.doccloud.docs.PageBuilder;
+import ru.doccloud.docs.PageBuilder; 
 import ru.doccloud.docs.common.TestDateUtil;
-import ru.doccloud.docs.config.ServiceTestContext;
+import ru.doccloud.docs.config.ServiceTestContext; 
+import ru.doccloud.service.UserService;
 import ru.doccloud.service.document.dto.DocumentDTO;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.repository.DocumentRepository;
@@ -61,12 +62,15 @@ public class RepositoryDocsSearchServiceTest {
 
     @Autowired
     private JTransfo transformer;
+    
+    @Autowired
+    private UserService userService;
 
     @Before
     public void setUp() {
         initMocks(this);
 
-        service = new RepositoryDocumentSearchService(repositoryMock, transformer);
+        service = new RepositoryDocumentSearchService(repositoryMock, transformer, userService);
     }
 
     @Test

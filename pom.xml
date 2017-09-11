@@ -785,7 +785,23 @@
             <version>${spring.version}</version>
         </dependency>
 
-
+    	<dependency>
+    		<groupId>org.elasticsearch.client</groupId>
+    		<artifactId>transport</artifactId>
+    		<version>5.5.2</version>
+    		<exclusions>
+    			<exclusion>
+    				<groupId>org.elasticsearch</groupId>
+    				<artifactId>elasticsearch</artifactId>
+    			</exclusion>
+    		</exclusions>
+    	</dependency>
+		
+		<dependency>
+			<groupId>org.elasticsearch</groupId>
+			<artifactId>elasticsearch</artifactId>
+			<version>5.5.2</version>
+		</dependency>
 
 
         <!-- Spring Data Commons -->
@@ -1100,5 +1116,4 @@
     </dependencies>
 
     </dependencyManagement>  
-
 </project>

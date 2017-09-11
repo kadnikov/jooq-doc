@@ -9,13 +9,15 @@ public class UserDTO {
     private String password;
     private String fullName;
     private String email;
+    private String[] groups;
     private List<UserRoleDTO> userRoleList;
 
-    public UserDTO(String userId, String password, String fullName, String email, List<UserRoleDTO> userRoleList) {
+    public UserDTO(String userId, String password, String fullName, String email, String[] groups, List<UserRoleDTO> userRoleList) {
         this.userId = userId;
         this.password = password;
         this.fullName = fullName;
         this.email = email;
+        this.groups = groups;
         this.userRoleList = userRoleList;
     }
 
@@ -35,6 +37,10 @@ public class UserDTO {
         return email;
     }
 
+    public String[] getGroups() {
+		return groups;
+	}
+    
     public List<UserRoleDTO> getUserRoleList() {
         return userRoleList;
     }
@@ -65,6 +71,7 @@ public class UserDTO {
                 ", password lenght='" +  (!StringUtils.isBlank(password) ? password.length() : 0) + '\'' +
                 ", fullName='" + fullName + '\'' +
                 ", email='" + email + '\'' +
+                ", groups='" + groups + '\'' +
                 ", userRoleList=" + userRoleList +
                 '}';
     }

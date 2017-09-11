@@ -74,6 +74,7 @@ public class UserRepositoryImpl implements UserRepository {
                 .password(queryResult.getPassword())
                 .fullName(queryResult.getFullname())
                 .email(queryResult.getEmail())
+                .groups(queryResult.getGroups())
                 .build();
         user.setUserRoleList(convertUserRolesQueryResultToModelObj(userRolesQueryResult));
         return user;
