@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Record;
@@ -39,8 +40,12 @@ public class JsonNodeParser {
         if (fields!=null){
         	if (fields[0].equals("all")){
         		try {
-        			if (!"".equals(queryResult.getValue("data").toString())){
-        				data=(ObjectNode) mapper.readTree(queryResult.getValue("data").toString());
+        			LOGGER.debug("Data node - {}",queryResult.getValue("data").toString());
+        			if (queryResult.getValue("data")!=null && queryResult.getValue("data").toString()!="null"){
+        				JsonNode json = mapper.readTree(queryResult.getValue("data").toString());
+        				if (!json.isNull() && json.getClass()!=NullNode.class){
+        					data=(ObjectNode) json;
+        				}
         			}
 				} catch (JsonProcessingException e) {
 					e.printStackTrace();
