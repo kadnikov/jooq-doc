@@ -76,8 +76,10 @@ public class RepositoryDocumentSearchService implements DocumentSearchService {
 			Client client = new PreBuiltTransportClient(Settings.EMPTY)
 			        .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("doccloud.ru"), 9300));
 			HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+			LOGGER.info("httpservlet request from findBySearchTerm {} ", request);
+	        
 			String username = "test";
-	        if(request == null){
+	        if(request != null){
 	        	username = request.getRemoteUser();
 	        }
 			UserDTO userDTO = userService.getUserDto(username, "password");
