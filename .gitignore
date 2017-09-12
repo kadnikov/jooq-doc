@@ -15,4 +15,4 @@
 log/
 target/
 
-
+docmanagement/src/main/java/ru/doccloud/document/jooq/
