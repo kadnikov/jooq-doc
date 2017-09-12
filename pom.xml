@@ -221,11 +221,14 @@
 
             <properties>
                 <build.profile.id>dev</build.profile.id>
+                <packaging.type>jar</packaging.type>
             </properties>
         </profile>
-        <!--todo create another profile for spring boot version-->
         <profile>
             <id>doccloud</id>
+            <properties>
+                <packaging.type>jar</packaging.type>
+            </properties>
             <build>
                 <plugins>
 
