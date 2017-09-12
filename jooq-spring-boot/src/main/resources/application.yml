@@ -8,6 +8,8 @@ security:
     enabled: true
 
 spring:
+  jmx:
+    enabled: false
   datasource:
     jndi-name: jdbc/DOCCLOUDDB
 

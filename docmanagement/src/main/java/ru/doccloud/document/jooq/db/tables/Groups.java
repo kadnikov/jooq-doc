@@ -33,7 +33,7 @@ import ru.doccloud.document.jooq.db.tables.records.GroupsRecord;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Groups extends TableImpl<GroupsRecord> {
 
-	private static final long serialVersionUID = -1581612041;
+	private static final long serialVersionUID = -421436051;
 
 	/**
 	 * The reference instance of <code>public.groups</code>
@@ -49,14 +49,14 @@ public class Groups extends TableImpl<GroupsRecord> {
 	}
 
 	/**
-	 * The column <code>public.groups.title</code>.
-	 */
-	public final TableField<GroupsRecord, String> TITLE = createField("title", org.jooq.impl.SQLDataType.CLOB, this, "");
-
-	/**
 	 * The column <code>public.groups.id</code>.
 	 */
 	public final TableField<GroupsRecord, String> ID = createField("id", org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "");
+
+	/**
+	 * The column <code>public.groups.title</code>.
+	 */
+	public final TableField<GroupsRecord, String> TITLE = createField("title", org.jooq.impl.SQLDataType.CLOB, this, "");
 
 	/**
 	 * Create a <code>public.groups</code> table reference
@@ -85,7 +85,7 @@ public class Groups extends TableImpl<GroupsRecord> {
 	 */
 	@Override
 	public UniqueKey<GroupsRecord> getPrimaryKey() {
-		return Keys.ID_KEY;
+		return Keys.GROUPS_PKEY;
 	}
 
 	/**
@@ -93,7 +93,7 @@ public class Groups extends TableImpl<GroupsRecord> {
 	 */
 	@Override
 	public List<UniqueKey<GroupsRecord>> getKeys() {
-		return Arrays.<UniqueKey<GroupsRecord>>asList(Keys.ID_KEY);
+		return Arrays.<UniqueKey<GroupsRecord>>asList(Keys.GROUPS_PKEY);
 	}
 
 	/**

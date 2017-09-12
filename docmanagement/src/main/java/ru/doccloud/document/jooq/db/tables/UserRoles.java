@@ -34,7 +34,7 @@ import ru.doccloud.document.jooq.db.tables.records.UserRolesRecord;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class UserRoles extends TableImpl<UserRolesRecord> {
 
-	private static final long serialVersionUID = -298193854;
+	private static final long serialVersionUID = -886990909;
 
 	/**
 	 * The reference instance of <code>public.user_roles</code>
@@ -102,7 +102,7 @@ public class UserRoles extends TableImpl<UserRolesRecord> {
 	 */
 	@Override
 	public List<ForeignKey<UserRolesRecord, ?>> getReferences() {
-		return Arrays.<ForeignKey<UserRolesRecord, ?>>asList(Keys.USER_ROLES__USER_ROLES_ROLE_FKEY, Keys.USER_ROLES__USER_ROLES_USERID_FKEY);
+		return Arrays.<ForeignKey<UserRolesRecord, ?>>asList(Keys.USER_ROLES__USER_ROLES_ROLE_FKEY);
 	}
 
 	/**
