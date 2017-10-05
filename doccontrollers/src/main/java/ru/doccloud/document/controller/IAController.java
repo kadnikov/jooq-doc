@@ -1,6 +1,8 @@
 package ru.doccloud.document.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -395,8 +397,13 @@ public class IAController  extends AbstractController {
         Long id = Long.parseLong(searchCompId);
         DocumentDTO searchDoc = crudService.findById(id);
         String docType = searchDoc.getData().get("type").textValue();
-        String[] docFields = searchDoc.getData().get("fields").textValue().split(",");
         
+        ArrayNode fieldsArr = (ArrayNode) searchDoc.getData().get("fields");
+        List<String> fieldsNameList = new ArrayList<>();
+        for (JsonNode node : fieldsArr) {
+        	fieldsNameList.add(node.get("name").asText());
+        }
+        String[] docFields = fieldsNameList.toArray(new String[0]);
     	JsonNode res = null;
     	try {
     		ObjectNode params = (ObjectNode) mapper.readTree("{}");
