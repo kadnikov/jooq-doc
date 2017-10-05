@@ -276,17 +276,19 @@ public class IAController  extends AbstractController {
 			tabNode.put("title", "null");
 			tabNode.put("description", "null");
 			ArrayNode colsnodes = (ArrayNode) tabNode.path("columns");
+			colsnodes=(ArrayNode) doc.getData().get("fields");
 			
-			String[] docFields = doc.getData().get("fields").textValue().split(",");
-	        for (String field: docFields){
-	        	ObjectNode colNode = (ObjectNode) mapper.readTree("{}");
-				colNode.put("name", field);
-	        	colNode.put("label", field);
-	        	colNode.put("dataType", "STRING");
-	        	colNode.put("hidden", false);
-	        	colNode.put("sortable", true);
-	        	colsnodes.add(colNode);
-	        }
+			
+//			String[] docFields = doc.getData().get("fields").textValue().split(",");
+//	        for (String field: docFields){
+//	        	ObjectNode colNode = (ObjectNode) mapper.readTree("{}");
+//				colNode.put("name", field);
+//	        	colNode.put("label", field);
+//	        	colNode.put("dataType", "STRING");
+//	        	colNode.put("hidden", false);
+//	        	colNode.put("sortable", true);
+//	        	colsnodes.add(colNode);
+//	        }
 			
 			tabsnodes.add(tabNode);
 			
