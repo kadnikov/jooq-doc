@@ -158,18 +158,24 @@ public class SystemController  extends AbstractController {
     }
     
     @RequestMapping(value = "/types", method = RequestMethod.GET)
-    public Page<SystemDTO> getTypes(@RequestParam(value = "fields",required=false) String fields, @RequestParam(value = "filters",required=false) String query,Pageable pageable) {
-        LOGGER.info("findByType(type = {}, fields={}, query={}, pageSize= {}, pageNumber = {})",
-                "type", fields, query,
+    public Page<SystemDTO> getTypes(@RequestParam(value = "parent",required=false) Long parent, @RequestParam(value = "fields",required=false) String fields, @RequestParam(value = "filters",required=false) String query,Pageable pageable) {
+        LOGGER.info("findByType(type = {}, fields={}, query={}, parent={}, pageSize= {}, pageNumber = {})",
+                "type", fields, query, parent,
                 pageable.getPageSize(),
                 pageable.getPageNumber()
         );
-        String[] fieldsArr = null;
-        if (fields!=null){
-        	fieldsArr = fields.split(",");
+        Page<SystemDTO> result;
+        if (parent!=null){
+        	result = crudService.findAllByParentAndType(parent, "type", pageable);
+        }else{
+	        String[] fieldsArr = null;
+	        if (fields!=null){
+	        	fieldsArr = fields.split(",");
+	        }
+	        result = crudService.findAllByType("type", fieldsArr, pageable, query);
         }
 
-        return crudService.findAllByType("type", fieldsArr, pageable, query);
+        return result;
     }
     
     @RequestMapping(value = "/groups", method = RequestMethod.GET)

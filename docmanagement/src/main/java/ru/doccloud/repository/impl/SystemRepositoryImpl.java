@@ -193,6 +193,28 @@ public class SystemRepositoryImpl extends AbstractJooqRepository implements Syst
 
     }
 
+    @Override
+	public Page<SystemDocument> findAllByParentAndType(Long parentid, String type, Pageable pageable) {
+
+        LOGGER.trace("entering findAllByParentAndType(parent = {}, type = {})", parentid , type);
+        Condition cond = SYSTEM.SYS_TYPE.equal(type);
+        cond = cond.and(SYSTEM.SYS_PARENT.equal(parentid.toString()));
+    	List<SystemRecord>  queryResults = jooq.selectFrom(SYSTEM)
+                .where(cond)
+                .limit(pageable.getPageSize()).offset(pageable.getOffset())
+                .fetchInto(SystemRecord.class);
+
+
+        LOGGER.trace("findAllByParentAndType(): Found {} SystemDocument entries, they are going to convert to model objects", queryResults);
+
+        List<SystemDocument> documentEntries = SystemConverter.convertQueryResultsToModelObjects(queryResults);
+
+        LOGGER.trace("leaving findAllByParentAndType(): Found {}", documentEntries);
+        long totalCount = findTotalCountByType(cond, SYSTEM);
+        
+        return new PageImpl<>(documentEntries, pageable, totalCount);
+	}
+    
 	@Transactional(readOnly = true)
     @Override
     public SystemDocument findById(Long id) {

@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
+
+import ru.doccloud.service.document.dto.DocumentDTO;
 import ru.doccloud.service.document.dto.SystemDTO;
 
 import java.util.List;
@@ -49,6 +51,8 @@ public interface SystemCrudService {
     void setUser(String userName);
 
     public Page<SystemDTO> findAllByType(final String type, final String[] fields, final Pageable pageable, final String query);
+
+    public Page<SystemDTO> findAllByParentAndType(Long parentid, String type, final Pageable pageable);
 
 	SystemDTO findBySymbolicName(String symbolic);
 

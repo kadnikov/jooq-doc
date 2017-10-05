@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+
 import ru.doccloud.service.document.dto.SystemDTO;
 import ru.doccloud.document.model.SystemDocument;
 import ru.doccloud.repository.SystemRepository;
@@ -207,6 +208,22 @@ public class SystemDocumentCrudService implements SystemCrudService {
         List<SystemDTO> dtos = transformer.convertList(searchResults.getContent(), SystemDTO.class);
 
         LOGGER.debug("leaving findAllByType(): Found {} Documents", searchResults.getNumber());
+        return new PageImpl<>(dtos,
+                new PageRequest(searchResults.getNumber(), searchResults.getSize(), searchResults.getSort()),
+                searchResults.getTotalElements()
+        );
+    }
+    
+    @Override
+    public Page<SystemDTO> findAllByParentAndType(final Long parentid, String type, final Pageable pageable) {
+        LOGGER.debug("entering findAllByParentAndType(parentId = {}, type = {})", parentid, type); 
+
+        Page<SystemDocument> searchResults = repository.findAllByParentAndType(parentid, type, pageable);
+
+        List<SystemDTO> dtos = transformer.convertList(searchResults.getContent(), SystemDTO.class);
+
+        LOGGER.debug("leaving findAllByParentAndType(): Found {} Documents", dtos);
+
         return new PageImpl<>(dtos,
                 new PageRequest(searchResults.getNumber(), searchResults.getSize(), searchResults.getSort()),
                 searchResults.getTotalElements()

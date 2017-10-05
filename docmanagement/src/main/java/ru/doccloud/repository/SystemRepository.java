@@ -73,4 +73,6 @@ public interface SystemRepository extends CommonRepository {
 
 	public SystemDocument findBySymbolicName(String symbolic);
 
+	public Page<SystemDocument> findAllByParentAndType(Long parentid, String type, Pageable pageable);
+
 }
