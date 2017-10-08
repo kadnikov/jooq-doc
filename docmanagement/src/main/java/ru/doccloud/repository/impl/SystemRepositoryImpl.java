@@ -201,6 +201,7 @@ public class SystemRepositoryImpl extends AbstractJooqRepository implements Syst
         cond = cond.and(SYSTEM.SYS_PARENT.equal(parentid.toString()));
     	List<SystemRecord>  queryResults = jooq.selectFrom(SYSTEM)
                 .where(cond)
+                .orderBy(getSortFields(pageable.getSort(), SYSTEM, SYSTEM.DATA))
                 .limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .fetchInto(SystemRecord.class);
 

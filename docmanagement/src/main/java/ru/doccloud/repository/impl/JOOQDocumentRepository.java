@@ -31,6 +31,7 @@ import java.util.UUID;
 
 import static ru.doccloud.document.jooq.db.tables.Documents.DOCUMENTS;
 import static ru.doccloud.document.jooq.db.tables.Links.LINKS;
+import static ru.doccloud.document.jooq.db.tables.System.SYSTEM;
 import static ru.doccloud.repository.util.DataQueryHelper.*;
 
 /**
@@ -566,6 +567,7 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
         cond = cond.and(DOCUMENTS.SYS_PARENT.equal(parentid.toString()));
     	List<DocumentsRecord>  queryResults = jooq.selectFrom(DOCUMENTS)
                 .where(cond)
+                .orderBy(getSortFields(pageable.getSort(), DOCUMENTS, DOCUMENTS.DATA))
                 .limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .fetchInto(DocumentsRecord.class);
 
