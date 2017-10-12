@@ -242,6 +242,7 @@ public class IAController  extends AbstractController {
 		if (domain=="applications"){
 			itemNode.put("structuredDataStorageAllocationStrategy","DEFAULT");
 			itemNode.put("type", "APP_DECOMM");
+			itemNode.put("platform", "PG");
 			itemNode.put("archiveType", "TABLE");
 			itemNode.put("searchCreated", true);
 			itemNode.put("xdbLibraryAssociated", true);
