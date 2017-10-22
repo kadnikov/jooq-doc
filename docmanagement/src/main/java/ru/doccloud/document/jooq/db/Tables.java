@@ -6,6 +6,7 @@ package ru.doccloud.document.jooq.db;
 
 import javax.annotation.Generated;
 
+import ru.doccloud.document.jooq.db.tables.Authority;
 import ru.doccloud.document.jooq.db.tables.Documents;
 import ru.doccloud.document.jooq.db.tables.Groups;
 import ru.doccloud.document.jooq.db.tables.Links;
@@ -28,6 +29,11 @@ import ru.doccloud.document.jooq.db.tables.Users;
 )
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Tables {
+
+	/**
+	 * The table public.authority
+	 */
+	public static final Authority AUTHORITY = ru.doccloud.document.jooq.db.tables.Authority.AUTHORITY;
 
 	/**
 	 * The table public.documents

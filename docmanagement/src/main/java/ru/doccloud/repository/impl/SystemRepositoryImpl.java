@@ -252,12 +252,12 @@ public class SystemRepositoryImpl extends AbstractJooqRepository implements Syst
     @Transactional(readOnly = true)
     @Override
     public SystemDocument findBySymbolicName(String symbolic) {
-        LOGGER.debug("entering findBySymbolicName(symbolic = {})", symbolic);
+        LOGGER.trace("entering findBySymbolicName(symbolic = {})", symbolic);
 
-        SystemRecord queryResult = jooq.selectFrom(SYSTEM)
+        final SystemRecord queryResult = jooq.selectFrom(SYSTEM)
                 .where(SYSTEM.SYS_SYMBOLIC_NAME.equal(symbolic))
                 .fetchOne();
-
+        LOGGER.trace("findBySymbolicName()", queryResult);
         if (queryResult == null) {
             throw new TypeNotFoundException("No Type found with symbolic name: " + symbolic);
         }

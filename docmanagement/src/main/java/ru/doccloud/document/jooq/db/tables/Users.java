@@ -33,7 +33,7 @@ import ru.doccloud.document.jooq.db.tables.records.UsersRecord;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Users extends TableImpl<UsersRecord> {
 
-	private static final long serialVersionUID = 688381846;
+	private static final long serialVersionUID = -1011413707;
 
 	/**
 	 * The reference instance of <code>public.users</code>
@@ -56,7 +56,7 @@ public class Users extends TableImpl<UsersRecord> {
 	/**
 	 * The column <code>public.users.password</code>.
 	 */
-	public final TableField<UsersRecord, String> PASSWORD = createField("password", org.jooq.impl.SQLDataType.VARCHAR.length(50), this, "");
+	public final TableField<UsersRecord, String> PASSWORD = createField("password", org.jooq.impl.SQLDataType.VARCHAR.length(60), this, "");
 
 	/**
 	 * The column <code>public.users.groups</code>.

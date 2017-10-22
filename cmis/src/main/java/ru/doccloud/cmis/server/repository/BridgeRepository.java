@@ -59,6 +59,8 @@ abstract class BridgeRepository {
     protected final File root;
 
     BridgeRepository(String rootPath,  FileBridgeTypeManager typeManager) {
+
+        LOGGER.trace("entering BridgeRepository(rootPath={}, typeManager={})", rootPath, typeManager);
         // check root folder
         if (StringUtils.isBlank(rootPath)) {
             throw new IllegalArgumentException("Invalid root folder!");
@@ -66,11 +68,15 @@ abstract class BridgeRepository {
 
         root = new File(rootPath);
 
+        LOGGER.trace("BridgeRepository(): root {} is directory", root, root.isDirectory());
+
         if (!root.isDirectory()) {
             throw new IllegalArgumentException("Root is not a directory!");
         }
 
         this.typeManager = typeManager;
+
+        LOGGER.trace("leaving BridgeRepository()");
     }
 
     boolean isFolder(String docType) {

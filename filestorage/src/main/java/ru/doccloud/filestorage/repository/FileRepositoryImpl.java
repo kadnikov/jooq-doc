@@ -18,8 +18,6 @@ import java.util.UUID;
 @Component("fileRepository")
 public class FileRepositoryImpl implements FileRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileRepositoryImpl.class);
-//    private static final String CONFIG_FILENAME = "/repository.properties";
-//    private static final String FILE_PATH_PROPERTY = "repository.test";
 
 
     public String writeFile(final String rootFolder, final UUID uuid, final byte[] fileArr) throws Exception {

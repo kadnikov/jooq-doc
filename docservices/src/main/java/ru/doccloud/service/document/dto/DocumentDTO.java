@@ -12,7 +12,7 @@ public class DocumentDTO extends AbstractDocumentDTO{
     private String baseType;
 
     public DocumentDTO() {
-
+        super();
     }
 
     public DocumentDTO(String title, String type, String author) {

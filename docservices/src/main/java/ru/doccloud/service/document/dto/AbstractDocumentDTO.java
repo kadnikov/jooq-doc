@@ -9,7 +9,6 @@ import org.joda.time.LocalDateTime;
 import ru.doccloud.common.json.CustomLocalDateTimeDeserializer;
 import ru.doccloud.common.json.CustomLocalDateTimeSerializer;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -59,6 +58,7 @@ public abstract class AbstractDocumentDTO {
     protected UUID uuid;
 
     public AbstractDocumentDTO() {
+        this.type = "document"; //default type is "document"
     }
 
     public AbstractDocumentDTO(String title, String type, String author) {

@@ -1,11 +1,6 @@
 package ru.doccloud.document.controller;
 
-import java.util.Iterator;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,18 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-
 import ru.doccloud.common.util.VersionHelper;
 import ru.doccloud.service.SystemCrudService;
 import ru.doccloud.service.UserService;
@@ -32,6 +20,11 @@ import ru.doccloud.service.document.dto.GroupDTO;
 import ru.doccloud.service.document.dto.SystemDTO;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
 import ru.doccloud.storagemanager.StorageManager;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author Andrey Kadnikov
@@ -108,10 +101,12 @@ public class SystemController  extends AbstractController {
         final String filePath = dto.getFilePath();
         if(StringUtils.isBlank(filePath)) {
             LOGGER.error("Filepath is empty. Content for document {} does not exist", dto);
-            throw new Exception("Filepath is empty, conteny for document " + dto + "does not exist");
+            throw new Exception("Filepath is empty, content for document " + dto + "does not exist");
         }
 
-        return storageActionsService.readFile(filePath);
+        JsonNode storageSettings = getStorageSetting(dto.getType());
+
+        return getStorageActionService(storageSettings).readFile(storageSettings, filePath);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
@@ -236,7 +231,7 @@ public class SystemController  extends AbstractController {
             if(!checkMultipartFile(mpf))
                 throw new Exception("The multipart file contains either empty content type or empty filename or does not contain data");
             LOGGER.debug("the document: {} has been added", dto);
-            dto.setFilePath(writeContent(dto.getUuid(), mpf.getBytes()));
+            dto.setFilePath(writeContent(dto.getUuid(), mpf.getBytes(), getStorageSetting(dto.getType())));
             SystemDTO updated = crudService.update(dto, user);
             LOGGER.debug("Dto object has been updated: {}", updated);
             return updated;

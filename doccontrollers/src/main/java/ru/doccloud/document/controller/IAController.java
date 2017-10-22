@@ -1,11 +1,11 @@
 package ru.doccloud.document.controller;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.format.DateTimeFormat;
@@ -19,19 +19,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-
 import ru.doccloud.service.DocumentCrudService;
 import ru.doccloud.service.DocumentSearchService;
 import ru.doccloud.service.document.dto.DocumentDTO;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
 import ru.doccloud.storagemanager.StorageManager;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Andrey Kadnikov
@@ -59,9 +56,6 @@ public class IAController  extends AbstractController {
         LOGGER.info("DocumentController(crudService={}, searchService = {}, storageAreaSettings= {}, storageManager={})", crudService, searchService, storageAreaSettings, storageManager);
         this.crudService = crudService;
         this.searchService = searchService;
-
-        LOGGER.info("DocumentController(): storage settings {}", storageSettingsNode);
-
     }
 
     @RequestMapping(value = "/tenants", method = RequestMethod.GET)
@@ -91,15 +85,16 @@ public class IAController  extends AbstractController {
 			final String filePath = doc.getFilePath();
 	        if(StringUtils.isBlank(filePath)) {
 	            LOGGER.error("Filepath is empty. Content for document {} does not exist", doc);
-	            throw new Exception("Filepath is empty, content for document " + doc + "does not exist");
+	            throw new Exception(String.format("Filepath is empty, content for document %s does not exist", doc));
 	        }
-	        byte[] file = storageActionsService.readFile(filePath);
+
+			JsonNode storageSettings = getStorageSetting(doc.getType());
+
+	        byte[] file = getStorageActionServiceByStorageName(doc.getFileStorage()).readFile(storageSettings, filePath);
 	        String fileString = new String(file);
 	        res.put("form", fileString);
 
-    	} catch (IOException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
+    	} catch (Exception e) {
 			e.printStackTrace();
 		}
 		

@@ -23,7 +23,9 @@ public abstract class AbstractFileBridgeRepository extends BridgeRepository {
     private RepositoryInfo repositoryInfo;
 
     AbstractFileBridgeRepository(String repositoryId, FileBridgeTypeManager typeManager, String rootPath) {
+
         super(rootPath, typeManager);
+        LOGGER.trace("entering AbstractFileBridgeRepository(repositoryId ={}, rootPath={}, typeManager={})", repositoryId, rootPath, typeManager);
 
         // check repository id
         if (StringUtils.isBlank(repositoryId)) {
@@ -31,6 +33,8 @@ public abstract class AbstractFileBridgeRepository extends BridgeRepository {
         }
 
         this.repositoryId = repositoryId;
+
+        LOGGER.trace("leaving AbstractFileBridgeRepository()");
     }
 
     /**

@@ -1,13 +1,10 @@
 package ru.doccloud.service.impl;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.servlet.http.HttpServletRequest;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONException;
@@ -24,13 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
 import ru.doccloud.document.model.SystemDocument;
@@ -39,6 +29,10 @@ import ru.doccloud.repository.SystemRepository;
 import ru.doccloud.service.DocumentCrudService;
 import ru.doccloud.service.document.dto.DocumentDTO;
 import ru.doccloud.service.document.dto.LinkDTO;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Andrey Kadnikov
@@ -73,16 +67,18 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         repository.setUser(user);
         dto.setAuthor(user);
         
-        List<String> readersArr = new ArrayList<String>();
+        List<String> readersArr = new ArrayList<>();
         readersArr.add(user);
         
-        SystemDocument typedoc = sysRepository.findBySymbolicName(dto.getType());
+        final SystemDocument typedoc = sysRepository.findBySymbolicName(dto.getType());
+
+        LOGGER.debug(" add(): typeDoc {}", typedoc);
         if (typedoc!=null){
 	        ArrayNode accessFromType = (ArrayNode) typedoc.getData().get("access");
 	        
 	        if (accessFromType.isArray()){
 		        for (JsonNode acc: accessFromType){
-		        	LOGGER.debug("reader - {}",acc.asText());
+		        	LOGGER.debug("add(): reader - {}",acc.asText());
 		        	readersArr.add(acc.asText());
 		        }
 	        }
@@ -96,9 +92,11 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         
         if (dto.getBaseType() == null) dto.setBaseType("document");
         
-        LOGGER.debug("dto = {}", dto);
-        LOGGER.debug("documentEntry= {}", createModel(dto));
-        Document persisted = repository.add(createModel(dto));
+        LOGGER.debug("add(): dto = {}", dto);
+
+        final Document document = createModel(dto);
+        LOGGER.debug("add(): documentEntry= {}", document);
+        Document persisted = repository.add(document);
 
         LOGGER.debug("leaving add(): Added Document entry {}", persisted);
 
@@ -111,10 +109,10 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
         if (!schemaNode.isNull()){
         	ObjectMapper mapper = new ObjectMapper();
         	try {
-        		LOGGER.debug("Schema - {}",mapper.writeValueAsString(schemaNode));
+        		LOGGER.debug("validateSchema(): Schema - {}",mapper.writeValueAsString(schemaNode));
 	        	JSONObject rawSchema = new JSONObject(mapper.writeValueAsString(schemaNode));
 	        	Schema schema = SchemaLoader.load(rawSchema);
-	        	LOGGER.debug("Data - {}",mapper.writeValueAsString(dto.getData()));
+	        	LOGGER.debug("validateSchema(): Data - {}",mapper.writeValueAsString(dto.getData()));
 		        schema.validate(new JSONObject(mapper.writeValueAsString(dto.getData())));
 			} catch (JSONException e) {
 				e.printStackTrace();

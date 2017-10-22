@@ -1,12 +1,9 @@
 package ru.doccloud.storagemanager;
 
-
 public enum Storages {
 
-//    DEFAULT("fileStorage", ""),
-    FILESTORAGE ("fileStorage", "repository"),
-    SCALITYAMAZONSTORAGE("scalityAmazonStorage", "bucketName"),
-    AMAZONSTORAGE("amazonStorage", "bucketName");
+    FILESTORAGE ("file_storage_area", "fs_storage"),
+    AMAZONSTORAGE("amazon_storage_area", "bucketName");
 
     private String storageName;
 

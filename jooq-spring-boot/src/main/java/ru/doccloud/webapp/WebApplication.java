@@ -24,6 +24,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.WebApplicationInitializer;
 import ru.doccloud.cmis.server.MyCmisBrowserBindingServlet;
 
@@ -200,6 +201,11 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
         return registration;
     }
 
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
     @Configuration
     @ComponentScan({
             "ru.doccloud.config"
@@ -208,6 +214,9 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
 
         @Autowired
         private DataSource dataSource;
+
+        @Autowired
+        BCryptPasswordEncoder passwordEncoder;
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {
@@ -220,7 +229,10 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
         @Override
         public void configure(AuthenticationManagerBuilder auth) throws Exception {
             LOGGER.info("configure(): datasource: {}", dataSource);
-            auth.jdbcAuthentication().dataSource(this.dataSource).authoritiesByUsernameQuery(getAuthoritiesQuery());
+            auth.jdbcAuthentication()
+                    .dataSource(this.dataSource)
+                    .authoritiesByUsernameQuery(getAuthoritiesQuery())
+                    .passwordEncoder(passwordEncoder);
         }
 
         private String getAuthoritiesQuery() {

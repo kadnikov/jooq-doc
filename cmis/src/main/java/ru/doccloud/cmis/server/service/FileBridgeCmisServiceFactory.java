@@ -150,7 +150,7 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
             UserDTO userDTO = userManager.authenticate(context);
 
     //        if login successfull, create cmis repository
-            final JsonNode cmisSettings = (JsonNode)storageAreaSettings.getSetting(SettingsKeys.CMIS_SETTINGS_KEY.getSettingsKey());
+            final JsonNode cmisSettings = storageAreaSettings.getSettingBySymbolicName(SettingsKeys.CMIS_SETTINGS_KEY.getSettingsKey());
 
             LOGGER.trace("getService(): cmisSettings {}", cmisSettings);
             final String repositoryId = JsonNodeParser.getValueJsonNode(cmisSettings, "repositoryId");
@@ -168,6 +168,9 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
                 LOGGER.trace("getService(): rootPath {}", rootPath);
                 if(StringUtils.isBlank(rootPath))
                     throw new DocumentNotFoundException("root path was not found for repository " + repositoryId);
+
+                LOGGER.trace("getService() creating FileBridgeRepository(repositoryId={}, rootPath = {}, typeManager={},  crudService= {}, storageAreaSettings = {}, storageManager={})",
+                        repositoryId, rootPath, typeManager, crudService, storageAreaSettings, storageManager);
                 fsr = new FileBridgeRepository(repositoryId, rootPath, typeManager, crudService, storageAreaSettings, storageManager, userService);
                 repositoryManager.addRepository(fsr);
                 LOGGER.trace("getService(): repository was creatd and added to repositoryManager {}", repositoryId);

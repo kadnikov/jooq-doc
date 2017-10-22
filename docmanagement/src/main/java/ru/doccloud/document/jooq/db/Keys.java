@@ -11,6 +11,7 @@ import org.jooq.Identity;
 import org.jooq.UniqueKey;
 import org.jooq.impl.AbstractKeys;
 
+import ru.doccloud.document.jooq.db.tables.Authority;
 import ru.doccloud.document.jooq.db.tables.Documents;
 import ru.doccloud.document.jooq.db.tables.Groups;
 import ru.doccloud.document.jooq.db.tables.Links;
@@ -19,6 +20,7 @@ import ru.doccloud.document.jooq.db.tables.System;
 import ru.doccloud.document.jooq.db.tables.Todos;
 import ru.doccloud.document.jooq.db.tables.UserRoles;
 import ru.doccloud.document.jooq.db.tables.Users;
+import ru.doccloud.document.jooq.db.tables.records.AuthorityRecord;
 import ru.doccloud.document.jooq.db.tables.records.DocumentsRecord;
 import ru.doccloud.document.jooq.db.tables.records.GroupsRecord;
 import ru.doccloud.document.jooq.db.tables.records.LinksRecord;
@@ -55,6 +57,7 @@ public class Keys {
 	// UNIQUE and PRIMARY KEY definitions
 	// -------------------------------------------------------------------------
 
+	public static final UniqueKey<AuthorityRecord> AUTHORITY_PKEY = UniqueKeys0.AUTHORITY_PKEY;
 	public static final UniqueKey<DocumentsRecord> DOCUMENTS_PKEY = UniqueKeys0.DOCUMENTS_PKEY;
 	public static final UniqueKey<GroupsRecord> GROUPS_PKEY = UniqueKeys0.GROUPS_PKEY;
 	public static final UniqueKey<LinksRecord> LINKS_PKEY = UniqueKeys0.LINKS_PKEY;
@@ -83,6 +86,7 @@ public class Keys {
 	}
 
 	private static class UniqueKeys0 extends AbstractKeys {
+		public static final UniqueKey<AuthorityRecord> AUTHORITY_PKEY = createUniqueKey(Authority.AUTHORITY, Authority.AUTHORITY.AUTHORITY_ID);
 		public static final UniqueKey<DocumentsRecord> DOCUMENTS_PKEY = createUniqueKey(Documents.DOCUMENTS, Documents.DOCUMENTS.ID);
 		public static final UniqueKey<GroupsRecord> GROUPS_PKEY = createUniqueKey(Groups.GROUPS, Groups.GROUPS.ID);
 		public static final UniqueKey<LinksRecord> LINKS_PKEY = createUniqueKey(Links.LINKS, Links.LINKS.HEAD_ID, Links.LINKS.TAIL_ID);

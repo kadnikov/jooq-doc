@@ -1,5 +1,7 @@
 package ru.doccloud.amazon.repository;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import java.util.UUID;
 
 /**
@@ -8,11 +10,11 @@ import java.util.UUID;
 
 public interface AmazonRepository {
 
-    public String uploadFile(String rootName, UUID uuid, byte[] fileArr) throws Exception;
+    public String uploadFile(JsonNode settingsNode, UUID uuid, byte[] fileArr) throws Exception;
 
-    public byte[] readFile(String key) throws Exception;
+    public byte[] readFile(JsonNode settingsNode, String key) throws Exception;
 
-    public String createBucket(final String bucketName) throws Exception;
-    public void deleteBucket(final String bucketName) throws Exception;
+    public String createBucket(JsonNode storageSettings) throws Exception;
+    public void deleteBucket(JsonNode storageSettings) throws Exception;
 
 }

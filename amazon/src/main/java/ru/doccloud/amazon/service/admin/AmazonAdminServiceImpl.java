@@ -1,5 +1,6 @@
 package ru.doccloud.amazon.service.admin;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.doccloud.amazon.repository.AmazonRepository;
@@ -20,12 +21,12 @@ public class AmazonAdminServiceImpl implements AmazonAdminService {
     }
 
     @Override
-    public String createBucket(String bucketName) throws Exception {
-        return amazonRepository.createBucket(bucketName);
+    public String createBucket(JsonNode storageSettings) throws Exception {
+        return amazonRepository.createBucket(storageSettings);
     }
 
     @Override
-    public void deleteBucket(String bucketName) throws Exception {
-        amazonRepository.deleteBucket(bucketName);
+    public void deleteBucket(JsonNode storageSettings) throws Exception {
+        amazonRepository.deleteBucket(storageSettings);
     }
 }

@@ -15,6 +15,7 @@ import org.jooq.Table;
 import org.jooq.impl.SchemaImpl;
 
 import ru.doccloud.document.jooq.db.Sequences;
+import ru.doccloud.document.jooq.db.tables.Authority;
 import ru.doccloud.document.jooq.db.tables.Documents;
 import ru.doccloud.document.jooq.db.tables.Groups;
 import ru.doccloud.document.jooq.db.tables.Links;
@@ -38,7 +39,7 @@ import ru.doccloud.document.jooq.db.tables.Users;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Public extends SchemaImpl {
 
-	private static final long serialVersionUID = 1592719100;
+	private static final long serialVersionUID = 890689779;
 
 	/**
 	 * The reference instance of <code>public</code>
@@ -75,6 +76,7 @@ public class Public extends SchemaImpl {
 
 	private final List<Table<?>> getTables0() {
 		return Arrays.<Table<?>>asList(
+			Authority.AUTHORITY,
 			Documents.DOCUMENTS,
 			Groups.GROUPS,
 			Links.LINKS,

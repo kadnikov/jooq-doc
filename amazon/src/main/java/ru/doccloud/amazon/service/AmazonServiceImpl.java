@@ -1,5 +1,6 @@
 package ru.doccloud.amazon.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,28 +22,24 @@ public class AmazonServiceImpl implements StorageActionsService {
         this.amazonRepository = amazonRepository;
     }
 
-
     @Override
-    public String writeFile(String rootName, UUID uuid, byte[] fileArr) throws Exception {
-        LOGGER.debug("entering writeFile(rootFolder={}, uuid={}, byte.lenght={})", rootName, uuid, fileArr.length);
+    public String writeFile(JsonNode storageSettings, UUID uuid, byte[] fileArr) throws Exception {
+        LOGGER.debug("entering writeFile(storageSettings={}, uuid={}, byte.length={})", storageSettings, uuid, fileArr.length);
 
-        String pathToFile = amazonRepository.uploadFile(rootName, uuid, fileArr);;
+        String pathToFile = amazonRepository.uploadFile(storageSettings, uuid, fileArr);
 
         LOGGER.debug("leaving writeFile(): result {}", pathToFile);
-
         return pathToFile;
     }
 
     @Override
-    public byte[] readFile(String filePath) throws Exception {
-        LOGGER.debug("entering readFile(filePath={})", filePath);
+    public byte[] readFile(JsonNode storageSettings, String filePath) throws Exception {
+        LOGGER.debug("entering readFile(storageSettings={}, filePath={})", storageSettings, filePath);
 
-        byte[] foundFile = amazonRepository.readFile(filePath);
+        byte[] foundFile = amazonRepository.readFile(storageSettings, filePath);
         LOGGER.debug("leaving readFile(): found {}", foundFile.length);
 
         return foundFile;
     }
-
-
 }
 

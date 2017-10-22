@@ -1,4 +1,4 @@
-package ru.dodcloud.document.controller.util;
+package ru.doccloud.controller.util;
 
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;

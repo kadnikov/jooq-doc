@@ -24,7 +24,7 @@ import org.springframework.data.domain.Pageable;
 import ru.doccloud.cmis.server.FileBridgeTypeManager;
 import ru.doccloud.cmis.server.util.FileBridgeUtils;
 import ru.doccloud.common.exception.DocumentNotFoundException;
-import ru.doccloud.common.global.SettingsKeys;
+import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.common.util.VersionHelper;
 import ru.doccloud.service.DocumentCrudService;
 import ru.doccloud.service.UserService;
@@ -56,38 +56,35 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
     private static final String CMIS_READ_WRITE_ROLE_NAME = "readwrite";
 
-    private final StorageActionsService storageActionsService;
+//    private final StorageActionsService storageActionsService;
 
     private final DocumentCrudService crudService;
 
     private UserService userService;
 
-    private JsonNode storageSettingsNode;
+//    private JsonNode storageSettingsNode;
 
     private final StorageManager storageManager;
 
-    private final Storages currentStorage;
+    private final StorageAreaSettings storageAreaSettings;
+
+//    private final Storages currentStorage;
 
 //    todo make local cache with objectId and appropriate dto object to avoid redundant calls of getDocument method
 //    private final Map<String, DocumentDTO> localDocumentDtoCache;
 
     public FileBridgeRepository(final String repositoryId, String rootPath,
-                                final FileBridgeTypeManager typeManager,  DocumentCrudService crudService, StorageAreaSettings storageAreaSettings, StorageManager storageManager, UserService userService) throws Exception {
+                                final FileBridgeTypeManager typeManager,  DocumentCrudService crudService,
+                                StorageAreaSettings storageAreaSettings, StorageManager storageManager, UserService userService) throws Exception {
         super(repositoryId, typeManager, rootPath);
 
         LOGGER.trace("FileBridgeRepository(repositoryId={}, rootPath = {}, typeManager={},  crudService= {}, storageAreaSettings = {}, storageManager={})",
                 repositoryId, rootPath, typeManager, crudService, storageAreaSettings, storageManager);
 
+        this.storageAreaSettings = storageAreaSettings;
         this.storageManager = storageManager;
-        storageSettingsNode = (JsonNode) storageAreaSettings.getSetting(SettingsKeys.STORAGE_AREA_KEY.getSettingsKey());
-
-        currentStorage = storageManager.getCurrentStorage(storageSettingsNode);
-        LOGGER.trace("FileBridgeRepository( currentStorage = {})", currentStorage);
-
-        storageActionsService = storageManager.getStorageService(currentStorage);
         this.crudService = crudService;
         this.userService = userService;
-//        localDocumentDtoCache = new ConcurrentHashMap<>();
     }
 
     // --- CMIS operations ---
@@ -172,8 +169,6 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
             final String name = FileBridgeUtils.getStringProperty(properties, PropertyIds.NAME);
 
-            LOGGER.trace("createDocument(): name is {}, currentStorage {}, curerentStorageName {}", name, currentStorage, currentStorage.getStorageName());
-
             doc = new DocumentDTO(name, "document", context.getUsername());
             doc.setDocVersion(VersionHelper.generateMinorDocVersion(doc.getDocVersion()));
             doc = crudService.add(doc, context.getUsername());
@@ -185,9 +180,11 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
             // write content, if available
             if (contentStream != null && contentStream.getStream() != null && contentStream.getLength() >0 ) {
+                final JsonNode storageSettings = storageAreaSettings.getStorageSettingsByType(doc.getType());
 
-                final String filePath = writeContent(doc, contentStream.getStream());
-                LOGGER.debug("createDocument(): content was written filePath {}", filePath);
+                final String filePath = writeContent(doc, contentStream.getStream(), storageSettings);
+
+                LOGGER.debug("createDocument(): content was written filePath {}, storage={}", filePath);
                 if (!StringUtils.isBlank(filePath)) {
                     BigInteger fileLength = contentStream.getBigLength();
                     String mimeType = contentStream.getMimeType();
@@ -202,7 +199,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
                     doc.setFileMimeType(mimeType);
                     doc.setModifier(context.getUsername());
                     doc.setFileName(fileName);
-                    doc.setFileStorage(currentStorage.getStorageName());
+                    doc.setFileStorage(getStorageAreaName(storageSettings));
                     crudService.updateFileInfo(doc);
                 }
             }
@@ -227,7 +224,6 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
                 context, sourceId, properties, folderId, versioningState);
         checkUser(context, true);
 
-
         // get parent
         final DocumentDTO parent = getParentDocument(folderId);
 
@@ -248,16 +244,16 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
             crudService.addToFolder(doc, parent.getId());
 
             // copy content
-
-            String filePath = writeContent(doc, new FileInputStream(source.getFilePath()));
-            LOGGER.debug("createDocumentFromSource(): content was written filePath {}", filePath);
+            final JsonNode storageSettings = storageAreaSettings.getStorageSettingsByType(doc.getType());
+            String filePath = writeContent(doc, new FileInputStream(source.getFilePath()), storageSettings);
+            LOGGER.debug("createDocumentFromSource(): content was written filePath {}, storage = {}", filePath);
             if(filePath != null) {
                 doc.setFilePath(filePath);
                 doc.setFileMimeType(source.getFileMimeType());
                 doc.setFileLength(source.getFileLength());
                 doc.setFileName(source.getFileName());
                 doc.setModifier(context.getUsername());
-                doc.setFileStorage(currentStorage.getStorageName());
+                doc.setFileStorage(getStorageAreaName(storageSettings));
                 doc = crudService.update(doc, context.getUsername());
             }
 
@@ -478,15 +474,12 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
     /**
      * Writes the content to disc.
      */
-    private String writeContent(DocumentDTO doc, InputStream stream) throws Exception {
+    private String writeContent(DocumentDTO doc, InputStream stream, JsonNode storageSettings) throws Exception {
         try {
-            LOGGER.trace("entering writeContent(doc={})", doc);
-            final String rootName = storageManager.getRootName(storageSettingsNode);
-            LOGGER.trace("writeContent(): rootName, path to file {}", rootName);
-            if(StringUtils.isBlank(rootName))
-                throw new Exception("rootName was not found in settings");
+            LOGGER.trace("entering writeContent(doc={}, storageSettings={}, storages={})", doc, storageSettings);
+            final StorageActionsService storageActionsService = getStorageActionService(storageSettings);
 
-            final String filePath = storageActionsService.writeFile(rootName,  doc.getUuid(), org.apache.commons.io.IOUtils.toByteArray(stream));
+            final String filePath = storageActionsService.writeFile(storageSettings,  doc.getUuid(), org.apache.commons.io.IOUtils.toByteArray(stream));
             LOGGER.debug("writeContent(): File has been saved on the disc, path to file {}", filePath);
             doc.setFilePath(filePath);
 
@@ -655,7 +648,6 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         final DocumentDTO parent = getParentDocument(doc.getParent());
         LOGGER.debug("updateProperties(): parent document {}", parent);
 
-//        localDocumentDtoCache.put(objectId.getValue(), doc);
         LOGGER.debug("leaving updateProperties(context={}, objectId={}, properties={}, objectInfos ={})", context, objectId, properties, objectInfos);
         return compileObjectData(context, doc, parent, null, false, false, userReadOnly, objectInfos);
     }
@@ -778,11 +770,13 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         if(StringUtils.isBlank(doc.getFileStorage()))
             throw new CmisConstraintException("Document has no filestorage!");
 
-        StorageActionsService storageActionsService4Read = getStorageActionsServiceForReadFiles(doc.getFileStorage());
+        JsonNode settingsNode = getStorageSettingByStorageAreaName(doc.getFileStorage());
 
-        LOGGER.trace("getContentStream(): storageActionsService4Read {}", storageActionsService4Read);
+        StorageActionsService storageActionsService = getStorageActionServiceByStorageName(doc.getFileStorage());
 
-        byte[] contentByteArr = storageActionsService4Read.readFile(doc.getFilePath());
+        LOGGER.trace("getContentStream(): settingsNode {}, storageActionsService {}", settingsNode, storageActionsService);
+
+        byte[] contentByteArr = storageActionsService.readFile(settingsNode, doc.getFilePath());
 
         LOGGER.trace("getContentStream(): contentByte {}", contentByteArr != null ? contentByteArr.length : 0);
         // compile data
@@ -1195,7 +1189,6 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
         crudService.setUser(context.getUsername());
 
-
         LOGGER.trace("leaving checkUser(): is user {} readOnly? {}", context.getUsername(), readOnly);
         return readOnly;
     }
@@ -1207,13 +1200,45 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
                 " length " + contentStream.getLength() + " }") : null;
     }
 
-    private StorageActionsService getStorageActionsServiceForReadFiles(String storageName){
-        LOGGER.trace("entering getStorageActionsServiceForReadFiles( storageName = {})", storageName);
-        Storages storages = Storages.getStorageByName(storageName);
-        LOGGER.trace(" getStorageActionsServiceForReadFiles(): current {}", storages);
-        StorageActionsService storageActionsService =  storageManager.getStorageService(storages);
-        LOGGER.trace(" getStorageActionsServiceForReadFiles(): current {}", storages);
+    private StorageActionsService getStorageActionServiceByStorageName(final String storageName) throws Exception {
+
+        LOGGER.trace("entering getStorageActionServiceByStorageName(storageName={})", storageName);
+        final String storageType = storageAreaSettings.getStorageTypeByStorageName(storageName);
+
+        LOGGER.trace("getStorageActionServiceByStorageName(): storageType {}", storageType);
+        final Storages storage = Storages.getStorageByName(storageType);
+
+        LOGGER.trace("getStorageActionServiceByStorageName(): storage {}", storage);
+        if(storage == null)
+            throw new Exception(String.format("current storage type %s is neither amazon nor filestorage", storageType));
+
+        LOGGER.trace("getStorageActionServiceByStorageName(): storageType {}", storageType);
+
+        StorageActionsService storageActionsService = storageManager.getStorageService(storage);
+
+        LOGGER.trace("leaving getStorageActionServiceByStorageName(): storageActionsService {}", storageActionsService);
         return storageActionsService;
     }
 
+    private JsonNode getStorageSettingByStorageAreaName(String storageArea) throws Exception {
+        LOGGER.debug("getStorageSettingByStorageAreaName(): docType: {}", storageArea);
+
+        final JsonNode storageSetting = storageAreaSettings.getSettingBySymbolicName(storageArea);
+
+        LOGGER.debug("getStorageSettingByStorageAreaName(): storageSetting: {}", storageSetting);
+
+        return storageSetting;
+    }
+
+    private StorageActionsService getStorageActionService(JsonNode storageSettings) throws Exception {
+        return getStorageActionServiceByStorageName(getStorageAreaName(storageSettings));
+    }
+
+    private String getStorageAreaName(JsonNode storageSettings) throws Exception {
+        LOGGER.trace("entering getStorageAreaName(storageSettings= {})", storageSettings);
+        final String storageName = JsonNodeParser.getValueJsonNode(storageSettings, "symbolicName");
+        LOGGER.trace("leaving getStorageAreaName(): storageName {}", storageName);
+
+        return storageName;
+    }
 }
