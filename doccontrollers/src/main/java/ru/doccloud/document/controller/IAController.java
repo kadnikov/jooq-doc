@@ -88,7 +88,7 @@ public class IAController  extends AbstractController {
 	            throw new Exception(String.format("Filepath is empty, content for document %s does not exist", doc));
 	        }
 
-			JsonNode storageSettings = getStorageSetting(doc.getType());
+			JsonNode storageSettings = getStorageSettingByStorageAreaName(doc.getFileStorage()); // getStorageSetting(doc.getType());
 
 	        byte[] file = getStorageActionServiceByStorageName(doc.getFileStorage()).readFile(storageSettings, filePath);
 	        String fileString = new String(file);
