@@ -12,11 +12,14 @@ spring:
     enabled: false
   datasource:
     jndi-name: jdbc/DOCCLOUDDB
+  ldap:
+    embedded:
+      ldif: classpath:test-server.ldif
+      base-dn: dc=springframework,dc=org
+      port: 8389
+
 
 logging:
   level:
-    org.springframework.security: DEBUG
-    ru.doccloud: DEBUG
-#  user:
-#    name: test
-#    password: test
+    org.springframework.security: TRACE
+    ru.doccloud.webapp: TRACE

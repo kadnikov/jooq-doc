@@ -21,6 +21,7 @@ import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.encoding.LdapShaPasswordEncoder;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -42,6 +43,7 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
 
     @Override 
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        JWTTokenGenerator.INSTANCE.generateRandomSecretKey();
     	return application.sources(WebApplication.class);
     }
 
@@ -228,11 +230,22 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
 
         @Override
         public void configure(AuthenticationManagerBuilder auth) throws Exception {
-            LOGGER.info("configure(): datasource: {}", dataSource);
+
             auth.jdbcAuthentication()
                     .dataSource(this.dataSource)
                     .authoritiesByUsernameQuery(getAuthoritiesQuery())
-                    .passwordEncoder(passwordEncoder);
+                    .passwordEncoder(passwordEncoder)
+                    .and()
+                    .ldapAuthentication()
+                    .userDnPatterns("uid={0},ou=people")
+                    .groupSearchBase("ou=groups")
+                    .contextSource()
+                    .url("ldap://localhost:8389/dc=springframework,dc=org")
+                    .and()
+                    .passwordCompare()
+                    .passwordEncoder(new LdapShaPasswordEncoder())
+                    .passwordAttribute("userPassword");
+
         }
 
         private String getAuthoritiesQuery() {
