@@ -208,7 +208,7 @@ public class DocumentController  extends AbstractController {
             LOGGER.debug("writeContent(): file has been saved, filePath {}", filePath);
             dto.setFilePath(filePath);
             dto.setFileStorage(getStorageAreaName(settingsNode));
-            DocumentDTO updated = crudService.update(dto, user);
+            DocumentDTO updated = crudService.updateFileInfo(dto);
             LOGGER.debug("leaving writeContent(): Dto object has been updated: {}", updated);
             return updated;
         }
