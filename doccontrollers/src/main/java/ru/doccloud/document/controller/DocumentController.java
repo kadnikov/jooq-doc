@@ -95,6 +95,15 @@ public class DocumentController  extends AbstractController {
         return crudService.update(dto, request.getRemoteUser());
     }
 
+    @RequestMapping(value = "/updatefileinfo/{id}", method = RequestMethod.PUT)
+    public DocumentDTO updateFileInfo(HttpServletRequest request, @PathVariable("id") Long id, @RequestBody @Valid DocumentDTO dto) {
+        dto.setId(id);
+        LOGGER.info("update file info (id={})", id);
+        dto.setDocVersion(VersionHelper.generateMinorDocVersion(dto.getDocVersion()));
+
+        return crudService.updateFileInfo(dto);
+    }
+    
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     public DocumentDTO delete(@PathVariable("id") Long id) {
         LOGGER.info("delete(id={})", id);

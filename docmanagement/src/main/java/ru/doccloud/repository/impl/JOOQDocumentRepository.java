@@ -325,22 +325,17 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
         Timestamp currentTime = dateTimeService.getCurrentTimestamp();
         LOGGER.trace("update(): The current time is: {}", currentTime);
 
-        int updatedRecordCount = jooq.update(DOCUMENTS)
-                .set(DOCUMENTS.SYS_DESC, documentEntry.getDescription())
+        UpdateSetMoreStep<DocumentsRecord> s = jooq.update(DOCUMENTS)
                 .set(DOCUMENTS.SYS_DATE_MOD, currentTime)
-                .set(DOCUMENTS.SYS_TITLE, documentEntry.getTitle())
                 .set(DOCUMENTS.SYS_MODIFIER, documentEntry.getModifier())
-                .set(DOCUMENTS.DATA, documentEntry.getData())
-                .set(DOCUMENTS.SYS_FILE_PATH, documentEntry.getFilePath())
-                .set(DOCUMENTS.SYS_FILE_LENGTH, documentEntry.getFileLength())
-                .set(DOCUMENTS.SYS_FILE_MIME_TYPE, documentEntry.getFileMimeType())
-                .set(DOCUMENTS.SYS_FILE_NAME, documentEntry.getFileName())
-                .set(DOCUMENTS.SYS_VERSION, documentEntry.getDocVersion())
-                .set(DOCUMENTS.SYS_TYPE, documentEntry.getType())
-                .set(DOCUMENTS.SYS_FILE_STORAGE, documentEntry.getFileStorage())
-                .where(DOCUMENTS.ID.equal(documentEntry.getId().intValue()))
-                .execute();
-
+                .set(DOCUMENTS.SYS_VERSION, documentEntry.getDocVersion());
+        
+        if (documentEntry.getTitle() != null) s.set(DOCUMENTS.SYS_TITLE, documentEntry.getTitle());
+        if (documentEntry.getDescription() != null) s.set(DOCUMENTS.SYS_DESC, documentEntry.getDescription());
+        if (documentEntry.getData() != null) s.set(DOCUMENTS.DATA, documentEntry.getData());
+        
+        int updatedRecordCount = s.where(DOCUMENTS.ID.equal(documentEntry.getId().intValue())).execute();
+        
         LOGGER.trace("leaving update(): Updated {}", updatedRecordCount);
         //If you are using Firebird or PostgreSQL databases, you can use the RETURNING
         //clause in the update statement (and avoid the extra select clause):
