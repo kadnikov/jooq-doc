@@ -16,7 +16,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Enumeration;
 
 class JWTLoginFilter extends AbstractAuthenticationProcessingFilter {
 
@@ -54,14 +53,15 @@ class JWTLoginFilter extends AbstractAuthenticationProcessingFilter {
     }
 
     private void traceHttpServletRequest(String methodName, HttpServletRequest httpRequest){
-        if(LOGGER.isTraceEnabled()){
-            Enumeration<String> headerNames = httpRequest.getHeaderNames();
-
-            if (headerNames != null) {
-                while (headerNames.hasMoreElements()) {
-                    LOGGER.trace("{} traceHttpServletRequest(): Header: {}", methodName, httpRequest.getHeader(headerNames.nextElement()));
-                }
-            }
-        }
+        LOGGER.trace("{} traceHttpServletRequest(): Header: {} : {}", methodName, httpRequest.getHeader("authorization"));
+//        if(LOGGER.isTraceEnabled()){
+//            Enumeration<String> headerNames = httpRequest.getHeaderNames();
+//
+//            if (headerNames != null) {
+//                while (headerNames.hasMoreElements()) {
+//                    LOGGER.trace("{} traceHttpServletRequest(): Header: {}", methodName, httpRequest.getHeader(headerNames.nextElement()));
+//                }
+//            }
+//        }
     }
 }

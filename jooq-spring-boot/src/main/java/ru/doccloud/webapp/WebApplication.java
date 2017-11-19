@@ -16,69 +16,74 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainer;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.encoding.LdapShaPasswordEncoder;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.WebApplicationInitializer;
+import org.springframework.web.filter.HiddenHttpMethodFilter;
 import ru.doccloud.cmis.server.MyCmisBrowserBindingServlet;
 
+import javax.servlet.Filter;
 import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
 @ComponentScan({
-                "ru.doccloud.config"
+        "ru.doccloud.config"
 })
 @SpringBootApplication
 public class WebApplication extends SpringBootServletInitializer implements WebApplicationInitializer {
 
 
-    @Override 
+    @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        JWTTokenGenerator.INSTANCE.generateRandomSecretKey();
-    	return application.sources(WebApplication.class);
+        return application.sources(WebApplication.class);
     }
 
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WebApplication.class);
 
     public static void main(String[] args) throws Exception {
+        JWTTokenGenerator.INSTANCE.generateRandomSecretKey();
         new SpringApplicationBuilder()
                 .sources(WebApplication.class)
                 .run(args);
     }
 
-	@Bean
-	public TomcatEmbeddedServletContainerFactory tomcatFactory() {
+    @Bean
+    public TomcatEmbeddedServletContainerFactory tomcatFactory() {
 
         return new TomcatEmbeddedServletContainerFactory() {
 
-			@Override
-			protected TomcatEmbeddedServletContainer getTomcatEmbeddedServletContainer(
-					Tomcat tomcat) {
-				tomcat.enableNaming();
-				return super.getTomcatEmbeddedServletContainer(tomcat);
-			}
+            @Override
+            protected TomcatEmbeddedServletContainer getTomcatEmbeddedServletContainer(
+                    Tomcat tomcat) {
+                tomcat.enableNaming();
+                return super.getTomcatEmbeddedServletContainer(tomcat);
+            }
 
-			@Override
-			protected void postProcessContext(Context context) {
-				final ContextResource resource = new ContextResource();
+            @Override
+            protected void postProcessContext(Context context) {
+                final ContextResource resource = new ContextResource();
 
                 LOGGER.info("entering postProcessContext(context={})", context);
 
-				resource.setName("jdbc/DOCCLOUDDB");
-				resource.setType(DataSource.class.getName());
+                resource.setName("jdbc/DOCCLOUDDB");
+                resource.setType(DataSource.class.getName());
                 resource.setProperty("factory", "org.apache.tomcat.jdbc.pool.DataSourceFactory");
-				resource.setProperty("driverClassName", "org.postgresql.Driver");
-				resource.setProperty("url", "jdbc:postgresql://localhost:5432/doccloud");
+                resource.setProperty("driverClassName", "org.postgresql.Driver");
+                resource.setProperty("url", "jdbc:postgresql://192.168.99.100:5432/doccloud");
 
                 resource.setProperty("maxTotal", "100");
                 resource.setProperty("maxIdle", "20");
@@ -91,14 +96,14 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
 
                 resource.setAuth("Container");
 
-				context.getNamingResources().addResource(resource);
+                context.getNamingResources().addResource(resource);
 
 
                 LOGGER.info("postProcessContext(): creating realm");
                 final JDBCRealm realm = new JDBCRealm();
 
                 realm.setDriverName("org.postgresql.Driver");
-                realm.setConnectionURL("jdbc:postgresql://postgres:5432/doccloud");
+                realm.setConnectionURL("jdbc:postgresql://192.168.99.100:5432/doccloud");
                 realm.setConnectionName("doccloud");
                 realm.setConnectionPassword("doccloud");
                 realm.setUserTable("users");
@@ -107,9 +112,9 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
                 realm.setUserRoleTable("user_roles");
                 realm.setRoleNameCol("role");
                 realm.setAllRolesMode("authOnly");
-				context.setRealm(realm);
-				
-				LoginConfig config = new LoginConfig();
+                context.setRealm(realm);
+
+                LoginConfig config = new LoginConfig();
                 config.setAuthMethod("BASIC");
                 context.setLoginConfig(config);
                 context.addSecurityRole("tomcat");
@@ -124,11 +129,11 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
                 context.addConstraint(constraint);
 
                 LOGGER.info("leaving postProcessContext(): context={}", context.getRealm());
-			}
+            }
 
-		};
+        };
 
-	}
+    }
 
     @Bean
     public CmisWebServicesServlet cmis10WebServiceServlet(){
@@ -203,6 +208,22 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
         return registration;
     }
 
+//    @Bean
+//    public FilterRegistrationBean hiddenHttpMethodFilterRegistration() {
+//
+//        FilterRegistrationBean registration = new FilterRegistrationBean();
+//        registration.setFilter(hiddenHttpMethodFilter());
+//        registration.addUrlPatterns("/updatecontent/*");
+//        registration.setName("hiddenHttpMethodFilter");
+//        registration.setOrder(1);
+//        return registration;
+//    }
+
+//    @Bean
+//    public Filter hiddenHttpMethodFilter() {
+//        return new HiddenHttpMethodFilter();
+//    }
+
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -223,8 +244,18 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             LOGGER.info("configure(): http: {}", http);
-            http.authorizeRequests().antMatchers("/css/**").permitAll().anyRequest().fullyAuthenticated()
-            .and().antMatcher("/**").httpBasic();
+            http.authorizeRequests().antMatchers("/css/**").permitAll()
+                    .antMatchers("/").permitAll()
+                    .antMatchers(HttpMethod.POST, "/login/*").permitAll()
+                    .anyRequest().fullyAuthenticated()
+                    .and().antMatcher("/**").httpBasic()
+                    .and()
+                    // We filter the api/login requests
+                    .addFilterAfter(new JWTLoginFilter("/login", authenticationManager()),
+                            UsernamePasswordAuthenticationFilter.class)
+                    // And filter other requests to check the presence of JWT in header
+                    .addFilterAfter(new JWTAuthenticationFilter(),
+                            UsernamePasswordAuthenticationFilter.class);
             http.csrf().disable();
         }
 

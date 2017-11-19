@@ -4,14 +4,12 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security
-        .authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
-import java.util.Enumeration;
 
 import static java.util.Collections.emptyList;
 
@@ -48,16 +46,17 @@ class TokenAuthenticationService {
         return null;
     }
 
-//    todo move this method from here and from JWTLoginFilter to common
+    //    todo move this method from here and from JWTLoginFilter to common
     private static void traceHttpServletRequest(String methodName, HttpServletRequest httpRequest){
-        if(LOGGER.isTraceEnabled()){
-            Enumeration<String> headerNames = httpRequest.getHeaderNames();
-
-            if (headerNames != null) {
-                while (headerNames.hasMoreElements()) {
-                    LOGGER.trace("{} traceHttpServletRequest(): Header: {} : {}", methodName, headerNames.nextElement()!= null ? headerNames.nextElement() : "", httpRequest.getHeader(headerNames.nextElement()));
-                }
-            }
-        }
+        LOGGER.trace("{} traceHttpServletRequest(): Header: {} : {}", methodName, httpRequest.getHeader("authorization"));
+//        if(LOGGER.isTraceEnabled()){
+//            Enumeration<String> headerNames = httpRequest.getHeaderNames();
+//
+//            if (headerNames != null) {
+//                while (headerNames.hasMoreElements()) {
+//                    LOGGER.trace("{} traceHttpServletRequest(): Header: {} : {}", methodName, headerNames.nextElement()!= null ? headerNames.nextElement() : "", httpRequest.getHeader(headerNames.nextElement()));
+//                }
+//            }
+//        }
     }
 }
