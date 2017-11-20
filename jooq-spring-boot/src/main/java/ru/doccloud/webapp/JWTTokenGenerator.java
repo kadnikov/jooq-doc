@@ -13,11 +13,11 @@ public enum JWTTokenGenerator {
 
     private final long expirationtime = 864_000_000; // 10 days
     private final String tokenPrefix = "Bearer";
-    private final String headerString = "Authorization";
+    private final String jwtHeaderAuth = "cmisJwtAuthorization";
+    private final String standardHeaderAuth = "Authorization";
 
     void generateRandomSecretKey(){
         secretKey = UUID.randomUUID().toString();
-
     }
 
     public synchronized String getSecretKey() {
@@ -32,7 +32,11 @@ public enum JWTTokenGenerator {
         return tokenPrefix;
     }
 
-    public String getHeaderString() {
-        return headerString;
+    public String getJwtHeaderAuth() {
+        return jwtHeaderAuth;
+    }
+
+    public String getStandardHeaderAuth() {
+        return standardHeaderAuth;
     }
 }

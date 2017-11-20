@@ -2,6 +2,7 @@ package ru.doccloud.webapp;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,18 +19,23 @@ class TokenAuthenticationService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TokenAuthenticationService.class);
 
     static void addAuthentication(HttpServletResponse res, String username) {
-        String JWT = Jwts.builder()
+        final String jwt = Jwts.builder()
                 .setSubject(username)
                 .setExpiration(new Date(System.currentTimeMillis() + JWTTokenGenerator.INSTANCE.getExpirationtime()))
                 .signWith(SignatureAlgorithm.HS512, JWTTokenGenerator.INSTANCE.getSecretKey())
                 .compact();
-        res.addHeader(JWTTokenGenerator.INSTANCE.getHeaderString(), JWTTokenGenerator.INSTANCE.getTokenPrefix()
-                + " " + JWT);
+
+
+
+        res.addHeader(JWTTokenGenerator.INSTANCE.getStandardHeaderAuth(), JWTTokenGenerator.INSTANCE.getTokenPrefix()
+                + " " + jwt);
     }
 
     static Authentication getAuthentication(HttpServletRequest request) {
-        traceHttpServletRequest("getAuthentication", request);
-        String token = request.getHeader(JWTTokenGenerator.INSTANCE.getHeaderString());
+        String token = request.getHeader(JWTTokenGenerator.INSTANCE.getJwtHeaderAuth());
+        if(StringUtils.isBlank(token)) {
+            token = request.getHeader(JWTTokenGenerator.INSTANCE.getStandardHeaderAuth());
+        }
         LOGGER.trace("getAuthentication(): jwtToken {}", token);
         if (token != null) {
             // parse the token.
@@ -44,19 +50,5 @@ class TokenAuthenticationService {
                     null;
         }
         return null;
-    }
-
-    //    todo move this method from here and from JWTLoginFilter to common
-    private static void traceHttpServletRequest(String methodName, HttpServletRequest httpRequest){
-        LOGGER.trace("{} traceHttpServletRequest(): Header: {} : {}", methodName, httpRequest.getHeader("authorization"));
-//        if(LOGGER.isTraceEnabled()){
-//            Enumeration<String> headerNames = httpRequest.getHeaderNames();
-//
-//            if (headerNames != null) {
-//                while (headerNames.hasMoreElements()) {
-//                    LOGGER.trace("{} traceHttpServletRequest(): Header: {} : {}", methodName, headerNames.nextElement()!= null ? headerNames.nextElement() : "", httpRequest.getHeader(headerNames.nextElement()));
-//                }
-//            }
-//        }
     }
 }
