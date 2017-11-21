@@ -325,6 +325,13 @@ public class IAController  extends AbstractController {
         return getIaJson(crudService.findAllByParentAndType(parentid, "search",pageable),"searches");
     }
     
+    @RequestMapping(value = "/applications/{appId}/treeroot", method = RequestMethod.GET)
+    public JsonNode findTreeRoot(@PathVariable("appId") String appId,Pageable pageable) {
+        LOGGER.info("findSearches");
+        Long parentid = Long.parseLong(appId);
+        return getIaJson(crudService.findAllByParentAndType(parentid, "treeroot",pageable),"treeroots");
+    }
+    
     @RequestMapping(value = "/searches/{searchId}", method = RequestMethod.GET)
     public JsonNode getSearch(@PathVariable("searchId") String searchId) {
         LOGGER.info("getSearch");
