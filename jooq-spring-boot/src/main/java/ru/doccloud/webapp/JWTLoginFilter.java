@@ -1,6 +1,7 @@
 package ru.doccloud.webapp;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -30,7 +31,12 @@ class JWTLoginFilter extends AbstractAuthenticationProcessingFilter {
     public Authentication attemptAuthentication(
             HttpServletRequest req, HttpServletResponse res)
             throws AuthenticationException, IOException, ServletException {
-        traceHttpServletRequest("attemptAuthentication()", req);
+
+        String authHeader =  req.getHeader(JWTTokenGenerator.INSTANCE.getJwtHeaderAuth());
+        if(StringUtils.isBlank(authHeader)) {
+            authHeader = req.getHeader(JWTTokenGenerator.INSTANCE.getStandardHeaderAuth());
+        }
+        LOGGER.trace("{} attemptAuthentication(): authHeader:  {}",  authHeader);
 
         AccountCredentials creds = new ObjectMapper()
                 .readValue(req.getInputStream(), AccountCredentials.class);
@@ -50,18 +56,5 @@ class JWTLoginFilter extends AbstractAuthenticationProcessingFilter {
             Authentication auth) throws IOException, ServletException {
         TokenAuthenticationService
                 .addAuthentication(res, auth.getName());
-    }
-
-    private void traceHttpServletRequest(String methodName, HttpServletRequest httpRequest){
-        LOGGER.trace("{} traceHttpServletRequest(): Header: {} : {}", methodName, httpRequest.getHeader("authorization"));
-//        if(LOGGER.isTraceEnabled()){
-//            Enumeration<String> headerNames = httpRequest.getHeaderNames();
-//
-//            if (headerNames != null) {
-//                while (headerNames.hasMoreElements()) {
-//                    LOGGER.trace("{} traceHttpServletRequest(): Header: {}", methodName, httpRequest.getHeader(headerNames.nextElement()));
-//                }
-//            }
-//        }
     }
 }
