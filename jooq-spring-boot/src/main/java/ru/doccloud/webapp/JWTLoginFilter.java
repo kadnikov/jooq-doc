@@ -8,6 +8,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -38,8 +39,11 @@ class JWTLoginFilter extends AbstractAuthenticationProcessingFilter {
         }
         LOGGER.trace("{} attemptAuthentication(): authHeader:  {}",  authHeader);
 
-        AccountCredentials creds = new ObjectMapper()
-                .readValue(req.getInputStream(), AccountCredentials.class);
+        AccountCredentials creds = new AccountCredentials();
+        creds.setUsername(req.getParameterValues("username")[0]);
+        creds.setPassword(req.getParameterValues("password")[0]);
+
+        // AccountCredentials creds = new ObjectMapper().readValue(req.getInputStream(), AccountCredentials.class);
         return getAuthenticationManager().authenticate(
                 new UsernamePasswordAuthenticationToken(
                         creds.getUsername(),
@@ -57,4 +61,5 @@ class JWTLoginFilter extends AbstractAuthenticationProcessingFilter {
         TokenAuthenticationService
                 .addAuthentication(res, auth.getName());
     }
+    
 }
