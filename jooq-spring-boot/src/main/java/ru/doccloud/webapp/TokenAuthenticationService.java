@@ -1,24 +1,20 @@
 package ru.doccloud.webapp;
 
-import static java.util.Collections.emptyList;
-
-import java.io.IOException;
-import java.util.Date;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Date;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import static java.util.Collections.emptyList;
 
 class TokenAuthenticationService {
 
@@ -30,13 +26,13 @@ class TokenAuthenticationService {
                 .setExpiration(new Date(System.currentTimeMillis() + JWTTokenGenerator.INSTANCE.getExpirationtime()))
                 .signWith(SignatureAlgorithm.HS512, JWTTokenGenerator.INSTANCE.getSecretKey())
                 .compact();
-        String loginResponse;
 		try {
-			loginResponse = new ObjectMapper().writeValueAsString(new LoginResponse(jwt));
+            String loginResponse = new ObjectMapper().writeValueAsString(new LoginResponse(jwt));
 		
 
 	        LOGGER.trace("addAuthentication(): login response {}", loginResponse);
-	
+            res.addHeader(JWTTokenGenerator.INSTANCE.getStandardHeaderAuth(), JWTTokenGenerator.INSTANCE.getTokenPrefix()
+                    + " " + jwt);
 	        res.setHeader("Accept", "application/json");
 	        res.setHeader("Content-type", "application/json");
 	
@@ -44,13 +40,10 @@ class TokenAuthenticationService {
 	        res.getWriter().flush();
 	        res.getWriter().close();
          
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-        res.addHeader(JWTTokenGenerator.INSTANCE.getStandardHeaderAuth(), JWTTokenGenerator.INSTANCE.getTokenPrefix()
-                + " " + jwt);
+
     }
 
     static Authentication getAuthentication(HttpServletRequest request) {
