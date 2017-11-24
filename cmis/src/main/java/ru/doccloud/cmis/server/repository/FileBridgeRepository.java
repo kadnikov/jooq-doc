@@ -10,7 +10,6 @@ import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionList;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.*;
-import org.apache.chemistry.opencmis.commons.impl.IOUtils;
 import org.apache.chemistry.opencmis.commons.impl.MimeTypes;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.*;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
@@ -28,10 +27,7 @@ import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.common.util.VersionHelper;
 import ru.doccloud.service.DocumentCrudService;
 import ru.doccloud.service.UserService;
-import ru.doccloud.service.document.dto.DocumentDTO;
-import ru.doccloud.service.document.dto.LinkDTO;
-import ru.doccloud.service.document.dto.UserDTO;
-import ru.doccloud.service.document.dto.UserRoleDTO;
+import ru.doccloud.service.document.dto.*;
 import ru.doccloud.storage.StorageActionsService;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
 import ru.doccloud.storagemanager.StorageManager;
@@ -56,22 +52,13 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
     private static final String CMIS_READ_WRITE_ROLE_NAME = "readwrite";
 
-//    private final StorageActionsService storageActionsService;
-
     private final DocumentCrudService crudService;
 
     private UserService userService;
 
-//    private JsonNode storageSettingsNode;
-
     private final StorageManager storageManager;
 
     private final StorageAreaSettings storageAreaSettings;
-
-//    private final Storages currentStorage;
-
-//    todo make local cache with objectId and appropriate dto object to avoid redundant calls of getDocument method
-//    private final Map<String, DocumentDTO> localDocumentDtoCache;
 
     public FileBridgeRepository(final String repositoryId, String rootPath,
                                 final FileBridgeTypeManager typeManager,  DocumentCrudService crudService,
@@ -177,40 +164,12 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
             crudService.addToFolder(doc, parent.getId());
 
             LOGGER.trace("createDocument(): contentStream  {} ", getContentStreamInfo(contentStream));
+            writeContentFromStream(doc, contentStream, context.getUsername());
 
-            // write content, if available
-            if (contentStream != null && contentStream.getStream() != null && contentStream.getLength() >0 ) {
-                final JsonNode storageSettings = storageAreaSettings.getStorageSettingsByType(doc.getType());
-
-                final String filePath = writeContent(doc, contentStream.getStream(), storageSettings);
-
-                LOGGER.debug("createDocument(): content was written filePath {}, storage={}", filePath);
-                if (!StringUtils.isBlank(filePath)) {
-                    BigInteger fileLength = contentStream.getBigLength();
-                    String mimeType = contentStream.getMimeType();
-                    String fileName = contentStream.getFileName();
-                    LOGGER.debug("createDocument(): Uploaded file - {} - {} - {} - {}",filePath, fileLength, mimeType, fileName);
-                    if (fileLength == null) {
-                        doc.setFileLength(0L);
-                    } else {
-                        doc.setFileLength(fileLength.longValue());
-                    }
-                    doc.setFilePath(filePath);
-                    doc.setFileMimeType(mimeType);
-                    doc.setModifier(context.getUsername());
-                    doc.setFileName(fileName);
-                    doc.setFileStorage(getStorageAreaName(storageSettings));
-                    crudService.updateFileInfo(doc);
-                }
-            }
 
             LOGGER.debug("leaving createDocument(): created document {}", doc);
             return doc;
         } catch (Exception e){
-            if(doc != null && doc.getId() != null) {
-                crudService.deleteLink(parent.getId(), doc.getId());
-                crudService.delete(doc.getId());
-            }
             throw new Exception(e.getMessage());
         }
     }
@@ -353,51 +312,29 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
      * CMIS setContentStream, deleteContentStream, and appendContentStream.
      */
     public void changeContentStream(CallContext context, Holder<String> objectId, Boolean overwriteFlag,
-                                    ContentStream contentStream, boolean append) {
+                                    ContentStream contentStream, boolean append) throws Exception {
         LOGGER.debug("entering changeContentStream(context={}, objectId={}, overwriteFlag={}, contentStream = {}, append = {})", context, objectId, overwriteFlag, contentStream, append);
-        checkUser(context, true);
-
-        if (objectId == null) {
-            throw new CmisInvalidArgumentException("Id is not valid!");
-        }
-
-        // get the file
-        File file = getFile(objectId.getValue());
-        LOGGER.debug("changeContentStream(): file {} ", file.getName() );
-        if (!file.isFile()) {
-            throw new CmisStreamNotSupportedException("Not a file!");
-        }
-
-        // check overwrite
-        boolean owf = FileBridgeUtils.getBooleanParameter(overwriteFlag, true);
-        LOGGER.debug("changeContentStream(): isOverwrite ? {} ", owf );
-        if (!owf && file.length() > 0) {
-            throw new CmisContentAlreadyExistsException("Content already exists!");
-        }
-
-        OutputStream out = null;
-        InputStream in = null;
         try {
-            out = new BufferedOutputStream(new FileOutputStream(file, append), BUFFER_SIZE);
+            checkUser(context, true);
 
-            if (contentStream == null || contentStream.getStream() == null) {
-                // delete content
-                out.write(new byte[0]);
-            } else {
-                // set content
-                in = new BufferedInputStream(contentStream.getStream(), BUFFER_SIZE);
-
-                byte[] buffer = new byte[BUFFER_SIZE];
-                int b;
-                while ((b = in.read(buffer)) > -1) {
-                    out.write(buffer, 0, b);
-                }
+            if (objectId == null) {
+                throw new CmisInvalidArgumentException("Id is not valid!");
             }
+
+            final String docId = objectId.getValue();
+            LOGGER.trace("changeContentStream(): document ID: {}", docId);
+
+            if(StringUtils.isBlank(docId))
+                throw new Exception("Document id is blank");
+            DocumentDTO doc = getDocument(docId);
+            LOGGER.trace("changeContentStream(): document {}", doc);
+
+            if(doc == null)
+                throw new Exception("Document with objectId " + objectId + " was not found in database");
+
+            writeContentFromStream(doc, contentStream, context.getUsername());
         } catch (Exception e) {
             throw new CmisStorageException("Could not write content: " + e.getMessage(), e);
-        } finally {
-            IOUtils.closeQuietly(out);
-            IOUtils.closeQuietly(in);
         }
     }
 
@@ -1240,5 +1177,44 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         LOGGER.trace("leaving getStorageAreaName(): storageName {}", storageName);
 
         return storageName;
+    }
+
+    private void writeContentFromStream(DocumentDTO doc, ContentStream contentStream, String userName) throws Exception {
+        // write content, if available
+        LOGGER.trace("entering writeContentFromStream(doc={}, contentStream={}, userName={})", doc, contentStream, userName);
+        try {
+            if (contentStream != null && contentStream.getStream() != null && contentStream.getLength() >0 ) {
+                final JsonNode storageSettings = storageAreaSettings.getStorageSettingsByType(doc.getType());
+
+                final String filePath = writeContent(doc, contentStream.getStream(), storageSettings);
+
+                LOGGER.debug("writeContentFromStream(): content was written filePath {}, storage={}", filePath);
+                if (!StringUtils.isBlank(filePath)) {
+                    BigInteger fileLength = contentStream.getBigLength();
+                    String mimeType = contentStream.getMimeType();
+                    String fileName = contentStream.getFileName();
+                    LOGGER.debug("writeContentFromStream(): Uploaded file - {} - {} - {} - {}",filePath, fileLength, mimeType, fileName);
+                    if (fileLength == null) {
+                        doc.setFileLength(0L);
+                    } else {
+                        doc.setFileLength(fileLength.longValue());
+                    }
+                    doc.setFilePath(filePath);
+                    doc.setFileMimeType(mimeType);
+                    doc.setModifier(userName);
+                    doc.setFileName(fileName);
+                    doc.setFileStorage(getStorageAreaName(storageSettings));
+                    crudService.updateFileInfo(doc);
+                }
+            }
+            LOGGER.trace("leaving writeContentFromStream(): content stream was added {}", doc);
+        } catch (Exception e){
+            if(doc != null && doc.getId() != null) {
+//                todo te needs to determine behaviour when any problems is happening while writecontent is being executed
+                crudService.delete(doc.getId());
+            }
+            LOGGER.error("writeContentFromStream(): exception has been thrown {}", e);
+            throw new Exception(e.getMessage());
+        }
     }
 }

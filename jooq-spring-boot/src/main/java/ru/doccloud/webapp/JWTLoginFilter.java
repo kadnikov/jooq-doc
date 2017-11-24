@@ -1,14 +1,9 @@
 package ru.doccloud.webapp;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -21,8 +16,6 @@ import java.util.Collections;
 
 class JWTLoginFilter extends AbstractAuthenticationProcessingFilter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(JWTLoginFilter.class);
-
     JWTLoginFilter(String url, AuthenticationManager authManager) {
         super(new AntPathRequestMatcher(url));
         setAuthenticationManager(authManager);
@@ -32,12 +25,6 @@ class JWTLoginFilter extends AbstractAuthenticationProcessingFilter {
     public Authentication attemptAuthentication(
             HttpServletRequest req, HttpServletResponse res)
             throws AuthenticationException, IOException, ServletException {
-
-        String authHeader =  req.getHeader(JWTTokenGenerator.INSTANCE.getJwtHeaderAuth());
-        if(StringUtils.isBlank(authHeader)) {
-            authHeader = req.getHeader(JWTTokenGenerator.INSTANCE.getStandardHeaderAuth());
-        }
-        LOGGER.trace("{} attemptAuthentication(): authHeader:  {}",  authHeader);
 
         AccountCredentials creds = new AccountCredentials();
         creds.setUsername(req.getParameterValues("username")[0]);
