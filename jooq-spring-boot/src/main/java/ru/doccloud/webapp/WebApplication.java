@@ -1,6 +1,12 @@
 package ru.doccloud.webapp;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.sql.DataSource;
+
 import org.apache.catalina.Context;
+import org.apache.catalina.realm.DataSourceRealm;
 import org.apache.catalina.realm.JDBCRealm;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.chemistry.opencmis.server.impl.atompub.CmisAtomPubServlet;
@@ -16,7 +22,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainer;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
@@ -30,13 +35,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.WebApplicationInitializer;
-import org.springframework.web.filter.HiddenHttpMethodFilter;
-import ru.doccloud.cmis.server.MyCmisBrowserBindingServlet;
 
-import javax.servlet.Filter;
-import javax.sql.DataSource;
-import java.util.HashMap;
-import java.util.Map;
+import ru.doccloud.cmis.server.MyCmisBrowserBindingServlet;
 
 @Configuration
 @ComponentScan({
@@ -93,15 +93,33 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
 
                 resource.setProperty("username", "doccloud");
                 resource.setProperty("password", "doccloud");
-
+                
+                
+                resource.setProperty("testOnBorrow", "true");
+                resource.setProperty("testWhileIdle", "true");
+                resource.setProperty("testOnReturn", "true");
+                resource.setProperty("validationQuery","SELECT 1");
+                resource.setProperty("removeAbandoned","true");
+                resource.setProperty("removeAbandonedTimeout", "60");
+                
                 resource.setAuth("Container");
 
                 context.getNamingResources().addResource(resource);
 
 
                 LOGGER.info("postProcessContext(): creating realm");
-                final JDBCRealm realm = new JDBCRealm();
+                final DataSourceRealm realmDS = new DataSourceRealm();
+                
+                realmDS.setDataSourceName("jdbc/DOCCLOUDDB");
+                realmDS.setUserTable("users");
+                realmDS.setUserNameCol("userid");
+                realmDS.setUserCredCol("password");
+                realmDS.setUserRoleTable("user_roles");
+                realmDS.setRoleNameCol("role");
+                realmDS.setAllRolesMode("authOnly");
 
+                final JDBCRealm realm = new JDBCRealm();
+                
                 realm.setDriverName("org.postgresql.Driver");
                 realm.setConnectionURL("jdbc:postgresql://postgres:5432/doccloud");
                 realm.setConnectionName("doccloud");
@@ -112,7 +130,8 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
                 realm.setUserRoleTable("user_roles");
                 realm.setRoleNameCol("role");
                 realm.setAllRolesMode("authOnly");
-                context.setRealm(realm);
+                
+                context.setRealm(realmDS);
 
                 LoginConfig config = new LoginConfig();
                 config.setAuthMethod("BASIC");
