@@ -1,6 +1,10 @@
 package ru.doccloud.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import org.jtransfo.JTransfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,11 +144,41 @@ public class SystemDocumentCrudService implements SystemCrudService {
         LOGGER.debug("entering findByUUID(uuid = {})", symbolic);
 
         SystemDocument found = repository.findBySymbolicName(symbolic);
+        ObjectNode data = (ObjectNode) found.getData();
+        if (found.getType().equals("type")){
+        	JsonNode schemaNode = data.get("schema");
+        	schemaNode = addParentSchema(found, schemaNode);
+        	data.put("schema", schemaNode);
+        }
 
         LOGGER.debug("leaving findBySymbolicName(): Found {}", found);
-
-        return transformer.convert(found, new SystemDTO());
+        SystemDTO res = transformer.convert(found, new SystemDTO());
+        res.setData(data);
+        return res;
     }
+    
+    private JsonNode addParentSchema(SystemDocument typedoc, JsonNode schemaNode) {
+    	if (typedoc.getParent()!=null)
+		if (!typedoc.getParent().equals("0")){
+			LOGGER.info("Parent - {}",typedoc.getParent());
+			SystemDocument parenttype = repository.findById(Long.parseLong(typedoc.getParent()));
+	        if (parenttype!=null){
+	        	JsonNode parentSchema = parenttype.getData().get("schema");
+	        	ObjectNode props=(ObjectNode) schemaNode.get("properties");
+	        	ObjectNode parentprops=(ObjectNode) parentSchema.get("properties");
+	        	props.setAll(parentprops);
+	        	ObjectMapper mapper = new ObjectMapper();
+	        	try {
+					LOGGER.info("schemaNode - {}",mapper.writeValueAsString(schemaNode));
+				} catch (JsonProcessingException e) {
+					e.printStackTrace();
+				}
+	        	schemaNode = addParentSchema(parenttype, schemaNode);
+	        }
+	        
+		}
+		return schemaNode;
+	}
 
     @Transactional(readOnly = true)
     @Override
