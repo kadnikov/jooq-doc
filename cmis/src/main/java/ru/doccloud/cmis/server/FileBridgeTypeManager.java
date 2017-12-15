@@ -45,6 +45,8 @@ import org.apache.chemistry.opencmis.commons.enums.Updatability;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.server.support.TypeDefinitionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -61,7 +63,8 @@ import ru.doccloud.service.document.dto.SystemDTO;
 public class FileBridgeTypeManager {
 
 //    private static final Logger LOGGER = LoggerFactory.getLogger(FileBridgeTypeManager.class);
-
+	private static final Logger LOGGER = LoggerFactory.getLogger(FileBridgeTypeManager.class);
+	
     private static final String NAMESPACE = "http://chemistry.apache.org/opencmis/fileshare";
 
     private final TypeDefinitionFactory typeDefinitionFactory;
@@ -100,6 +103,7 @@ public class FileBridgeTypeManager {
     private void addCustomTypes(long parent, SystemCrudService systemService, TypeDefinition documentType) {
     Page<SystemDTO> types = systemService.findAllByParentAndType(parent, "type", createPageRequest());
     for (SystemDTO type : types) {
+    	LOGGER.debug("addCustomTypes(): type {} - {} ({})", type.getId(), type.getTitle(), type.getSymbolicName());
     	MutableDocumentTypeDefinition  childType = (MutableDocumentTypeDefinition) typeDefinitionFactory
         		.createChildTypeDefinition(documentType, type.getSymbolicName());
 		
