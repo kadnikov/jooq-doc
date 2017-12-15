@@ -1,17 +1,59 @@
 
 package ru.doccloud.cmis.server.repository;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import static ru.doccloud.cmis.server.util.FileBridgeUtils.checkNewProperties;
+import static ru.doccloud.cmis.server.util.FileBridgeUtils.checkUpdateProperties;
+import static ru.doccloud.cmis.server.util.FileBridgeUtils.getObjectTypeId;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+
 import org.apache.chemistry.opencmis.commons.PropertyIds;
-import org.apache.chemistry.opencmis.commons.data.*;
+import org.apache.chemistry.opencmis.commons.data.Acl;
+import org.apache.chemistry.opencmis.commons.data.AllowableActions;
+import org.apache.chemistry.opencmis.commons.data.BulkUpdateObjectIdAndChangeToken;
+import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.chemistry.opencmis.commons.data.FailedToDeleteData;
+import org.apache.chemistry.opencmis.commons.data.MutablePropertyData;
+import org.apache.chemistry.opencmis.commons.data.ObjectData;
+import org.apache.chemistry.opencmis.commons.data.ObjectInFolderContainer;
+import org.apache.chemistry.opencmis.commons.data.ObjectInFolderList;
+import org.apache.chemistry.opencmis.commons.data.ObjectList;
+import org.apache.chemistry.opencmis.commons.data.ObjectParentData;
+import org.apache.chemistry.opencmis.commons.data.Properties;
+import org.apache.chemistry.opencmis.commons.data.PropertyData;
+import org.apache.chemistry.opencmis.commons.data.PropertyDateTime;
+import org.apache.chemistry.opencmis.commons.data.PropertyInteger;
+import org.apache.chemistry.opencmis.commons.data.PropertyString;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionContainer;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionList;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
-import org.apache.chemistry.opencmis.commons.exceptions.*;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisConstraintException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisStorageException;
 import org.apache.chemistry.opencmis.commons.impl.MimeTypes;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.*;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.BulkUpdateObjectIdAndChangeTokenImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.FailedToDeleteDataImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectInFolderDataImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectInFolderListImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectListImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectParentDataImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.PartialContentStreamImpl;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
@@ -20,6 +62,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import ru.doccloud.cmis.server.FileBridgeTypeManager;
 import ru.doccloud.cmis.server.util.FileBridgeUtils;
 import ru.doccloud.common.exception.DocumentNotFoundException;
@@ -27,21 +75,14 @@ import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.common.util.VersionHelper;
 import ru.doccloud.service.DocumentCrudService;
 import ru.doccloud.service.UserService;
-import ru.doccloud.service.document.dto.*;
+import ru.doccloud.service.document.dto.DocumentDTO;
+import ru.doccloud.service.document.dto.LinkDTO;
+import ru.doccloud.service.document.dto.UserDTO;
+import ru.doccloud.service.document.dto.UserRoleDTO;
 import ru.doccloud.storage.StorageActionsService;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
 import ru.doccloud.storagemanager.StorageManager;
 import ru.doccloud.storagemanager.Storages;
-
-import java.io.*;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-
-import static ru.doccloud.cmis.server.util.FileBridgeUtils.*;
 
 /**
  * Implements all repository operations.
@@ -156,7 +197,24 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
             final String name = FileBridgeUtils.getStringProperty(properties, PropertyIds.NAME);
 
-            doc = new DocumentDTO(name, "document", context.getUsername());
+            doc = new DocumentDTO(name, type.getId(), context.getUsername());
+            ObjectMapper mapper = new ObjectMapper();
+            String base = "{}";
+            ObjectNode res = (ObjectNode) mapper.readTree(base);
+            for (PropertyData prop : properties.getPropertyList()){
+            	if (!prop.getId().startsWith("cmis:")){
+	        		if (prop instanceof PropertyInteger) {
+	        			res.put(prop.getId(), ((PropertyInteger) prop).getFirstValue().intValue());
+	        		}
+	        		if (prop instanceof PropertyString) {
+	        			res.put(prop.getId(), ((PropertyString) prop).getFirstValue());
+	        		}
+	        		if (prop instanceof PropertyDateTime) {
+	        			res.put(prop.getId(), ((PropertyDateTime) prop).getFirstValue().getTimeInMillis());
+	        		}
+            	}
+            }
+        	doc.setData(res);
             doc.setDocVersion(VersionHelper.generateMinorDocVersion(doc.getDocVersion()));
             doc = crudService.add(doc, context.getUsername());
 
@@ -547,10 +605,13 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         final DocumentDTO doc = getDocument(objectId.getValue());
 
         LOGGER.debug("updateProperties(): document for update: {}", doc);
-
+        boolean isDirectory = isFolder(doc.getBaseType());
         // check the properties
-        String typeId = (isFolder(doc.getBaseType()) ? BaseTypeId.CMIS_FOLDER.value() : BaseTypeId.CMIS_DOCUMENT.value());
-
+        String typeId = (isDirectory ? BaseTypeId.CMIS_FOLDER.value() : BaseTypeId.CMIS_DOCUMENT.value());
+        String customType = doc.getType();
+        if (!isDirectory && customType!=null && customType!="" && customType!="document"){
+        	typeId = customType;
+        }
         LOGGER.debug("updateProperties(): typeId is : {}", typeId);
 
         if (StringUtils.isBlank(typeId)) {
@@ -579,6 +640,36 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
             doc.setDescription(description);
             isUpdate = true;
         }
+        
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+	        String base = "{}";
+	        ObjectNode res = (ObjectNode) mapper.readTree(base);
+	        boolean isDataChanged = false;
+	        for (PropertyData<?> prop : properties.getPropertyList()){
+	        	if (!prop.getId().startsWith("cmis:")){
+	        		if (prop instanceof PropertyInteger) {
+	        			res.put(prop.getId(), ((PropertyInteger) prop).getFirstValue().intValue());
+	        		}
+	        		if (prop instanceof PropertyString) {
+	        			res.put(prop.getId(), ((PropertyString) prop).getFirstValue());
+	        		}
+	        		if (prop instanceof PropertyDateTime) {
+	        			res.put(prop.getId(), ((PropertyDateTime) prop).getFirstValue().getTimeInMillis());
+	        		}
+	        		isDataChanged = true;
+	        	}
+	        }
+	        LOGGER.debug("updateProperties(): new data : {}", res.toString());
+	        if (isDataChanged){
+	        	doc.setData(res);
+	        	isUpdate=true;
+	        }
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
         if (isUpdate)
             crudService.update(doc ,context.getUsername());
 

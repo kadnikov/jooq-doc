@@ -43,6 +43,7 @@ import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.common.global.SettingsKeys;
 import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.service.DocumentCrudService;
+import ru.doccloud.service.SystemCrudService;
 import ru.doccloud.service.UserService;
 import ru.doccloud.service.document.dto.UserDTO;
 import ru.doccloud.storage.storagesettings.StorageAreaSettings;
@@ -79,6 +80,7 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
 
 //    private final JTransfo transformer;
 
+	private SystemCrudService systemService;
     private final DocumentCrudService crudService;
     private final StorageManager storageManager;
     private StorageAreaSettings storageAreaSettings;
@@ -94,16 +96,19 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
     private FileBridgeTypeManager typeManager;
 //    private UserInfo userInfo;
 
+
     @Autowired
-    public FileBridgeCmisServiceFactory( DocumentCrudService crudService,
+    public FileBridgeCmisServiceFactory( SystemCrudService systemService, DocumentCrudService crudService,
                                         StorageAreaSettings storageAreaSettings,  StorageManager storageManager,
                                         UserService userService) {
         LOGGER.info("FileBridgeCmisServiceFactory(crudService={}, storageAreaSettings= {}, storageManager={})", crudService, storageAreaSettings, storageManager);
 //        this.appContext = appContext;
+        this.systemService = systemService;
         this.crudService = crudService;
         this.storageAreaSettings = storageAreaSettings;
         this.storageManager = storageManager;
         this.userService = userService;
+        
     }
 
     @Override
@@ -128,7 +133,7 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
 
             repositoryManager = new FileBridgeRepositoryManager();
             userManager = new FileBridgeUserManager(userService);
-            typeManager = new FileBridgeTypeManager();
+            typeManager = new FileBridgeTypeManager(systemService); 
 
         } catch (Exception e) {
             LOGGER.error("init(): exception {}", e);

@@ -1,37 +1,63 @@
 package ru.doccloud.cmis.server.repository;
 
+import static ru.doccloud.cmis.server.util.FileBridgeUtils.addPropertyBigInteger;
+import static ru.doccloud.cmis.server.util.FileBridgeUtils.addPropertyBoolean;
+import static ru.doccloud.cmis.server.util.FileBridgeUtils.addPropertyDateTime;
+import static ru.doccloud.cmis.server.util.FileBridgeUtils.addPropertyId;
+import static ru.doccloud.cmis.server.util.FileBridgeUtils.addPropertyIdList;
+import static ru.doccloud.cmis.server.util.FileBridgeUtils.addPropertyString;
+
+import java.io.File;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.GregorianCalendar;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.regex.Pattern;
+
 import org.apache.chemistry.opencmis.commons.BasicPermissions;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
-import org.apache.chemistry.opencmis.commons.data.*;
+import org.apache.chemistry.opencmis.commons.data.Acl;
+import org.apache.chemistry.opencmis.commons.data.AllowableActions;
+import org.apache.chemistry.opencmis.commons.data.ObjectData;
+import org.apache.chemistry.opencmis.commons.data.ObjectInFolderContainer;
 import org.apache.chemistry.opencmis.commons.data.Properties;
+import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.enums.Action;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.CmisVersion;
+import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisRuntimeException;
 import org.apache.chemistry.opencmis.commons.impl.Base64;
 import org.apache.chemistry.opencmis.commons.impl.MimeTypes;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.*;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlEntryImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlListImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.AccessControlPrincipalDataImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.AllowableActionsImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectDataImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectInFolderContainerImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectInFolderDataImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.PropertiesImpl;
 import org.apache.chemistry.opencmis.commons.impl.server.ObjectInfoImpl;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
 import ru.doccloud.cmis.server.FileBridgeTypeManager;
 import ru.doccloud.cmis.server.util.FileBridgeUtils;
 import ru.doccloud.service.document.dto.DocumentDTO;
-
-import java.io.File;
-import java.io.IOException;
-import java.math.BigInteger;
-import java.util.*;
-import java.util.regex.Pattern;
-
-import static ru.doccloud.cmis.server.util.FileBridgeUtils.*;
 
 abstract class BridgeRepository {
 
@@ -156,7 +182,7 @@ abstract class BridgeRepository {
 
         return compileProperties(context, rootId, orgfilter, objectInfo, isDirectory, id, name, null,
                 USER_UNKNOWN, USER_UNKNOWN, createdTime, lastModifiedTime, path, title,
-                isFileNotEmpty, streamMimeType, streamFileName, streamLenght);
+                isFileNotEmpty, streamMimeType, streamFileName, streamLenght, null, null);
 
     }
 
@@ -188,16 +214,19 @@ abstract class BridgeRepository {
         String streamFileName = isDocHasContent ? doc.getTitle() : null;
 
         String description = doc.getDescription();
+        
+        String customType = doc.getType();
 
         BigInteger streamLenght = isDocHasContent ?
                 (doc.getFileLength() != null ? BigInteger.valueOf( doc.getFileLength()) : null) : null;
 
         long createdTime = doc.getCreationTime().toDateTime().getMillis();
         long lastModifiedTime = doc.getModificationTime().toDateTime().getMillis();
-
+        JsonNode docData = doc.getData();
+        
         return compileProperties(context, rootId, orgfilter, objectInfo, isDirectory, id, name, description,
                 createdBy, modifiedBy, createdTime, lastModifiedTime, path, title,
-                isDocHasContent, streamMimeType, streamFileName, streamLenght);
+                isDocHasContent, streamMimeType, streamFileName, streamLenght, customType, docData);
 
 
     }
@@ -205,17 +234,23 @@ abstract class BridgeRepository {
     private Properties compileProperties(CallContext context, String rootId, Set<String> orgfilter, ObjectInfoImpl objectInfo,
                                          boolean isDirectory, String id, String name, String description,
                                          String createdBy, String modifiedBy, Long createdTime, Long lastModifiedTime, String path,
-                                         String title, boolean hasContent, String streamMimeType, String  streamFileName, BigInteger streamLenght){
+                                         String title, boolean hasContent, String streamMimeType, String  streamFileName, BigInteger streamLenght,
+                                         String customType, JsonNode docData){
 
         // copy filter
         Set<String> filter = (orgfilter == null ? null : new HashSet<>(orgfilter));
         // find base type
-        String typeId = isDirectory ? BaseTypeId.CMIS_FOLDER.value() : BaseTypeId.CMIS_DOCUMENT.value();
+        String baseTypeId = isDirectory ? BaseTypeId.CMIS_FOLDER.value() : BaseTypeId.CMIS_DOCUMENT.value();
+        String typeId = baseTypeId;
+        if (!isDirectory && customType!=null && customType!="" && customType!="document"){
+        	typeId = customType;
+        }
         initObjectInfo(objectInfo, isDirectory, typeId);
 
         try {
             PropertiesImpl result = new PropertiesImpl();
 
+            TypeDefinition baseType = getTypeDefinitionByTypeId(baseTypeId);
             TypeDefinition type = getTypeDefinitionByTypeId(typeId);
 
             // id
@@ -247,9 +282,21 @@ abstract class BridgeRepository {
                 addPropertyString(result, typeId, filter, PropertyIds.DESCRIPTION, description, type);
                 addPropertyIdList(result, typeId, filter, PropertyIds.SECONDARY_OBJECT_TYPE_IDS, null, type);
             }
-            addPropertyId(result, typeId, filter, PropertyIds.BASE_TYPE_ID, typeId, type);
+            addPropertyId(result, baseTypeId, filter, PropertyIds.BASE_TYPE_ID, baseTypeId, baseType);
             addPropertyId(result, typeId, filter, PropertyIds.OBJECT_TYPE_ID, typeId, type);
 
+            if(docData!=null){
+            for(Entry<String, PropertyDefinition<?>> prop: type.getPropertyDefinitions().entrySet()){
+            	String propName = prop.getKey();
+            	if (docData.get(propName)!=null){
+            		PropertyDefinition<?> propDef = prop.getValue();
+            		if (propDef.getPropertyType().equals(PropertyType.STRING))
+            			addPropertyString(result, typeId, filter, propName, docData.get(propName).asText(), type);
+            		if (propDef.getPropertyType().equals(PropertyType.INTEGER))
+            			addPropertyBigInteger(result, typeId, filter, propName, BigInteger.valueOf(docData.get(propName).asLong()), type);
+            	}
+            }
+            }
             // directory or file
             if (isDirectory) {
                 addPropertyString(result, typeId, filter, PropertyIds.PATH, path, type);

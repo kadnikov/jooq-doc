@@ -22,17 +22,38 @@
  */
 package ru.doccloud.cmis.server;
 
-import org.apache.chemistry.opencmis.commons.definitions.*;
-import org.apache.chemistry.opencmis.commons.enums.CmisVersion;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
-import org.apache.chemistry.opencmis.commons.server.CallContext;
-import org.apache.chemistry.opencmis.server.support.TypeDefinitionFactory;
-
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import org.apache.chemistry.opencmis.commons.definitions.MutableDocumentTypeDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.MutableFolderTypeDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.MutablePropertyDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.MutableTypeDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.PropertyDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
+import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionContainer;
+import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionList;
+import org.apache.chemistry.opencmis.commons.enums.Cardinality;
+import org.apache.chemistry.opencmis.commons.enums.CmisVersion;
+import org.apache.chemistry.opencmis.commons.enums.PropertyType;
+import org.apache.chemistry.opencmis.commons.enums.Updatability;
+import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
+import org.apache.chemistry.opencmis.commons.server.CallContext;
+import org.apache.chemistry.opencmis.server.support.TypeDefinitionFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
+import ru.doccloud.service.SystemCrudService;
+import ru.doccloud.service.document.dto.SystemDTO;
 
 /**
  * Manages the type definitions for all FileShare repositories.
@@ -46,7 +67,7 @@ public class FileBridgeTypeManager {
     private final TypeDefinitionFactory typeDefinitionFactory;
     private final Map<String, TypeDefinition> typeDefinitions;
 
-    public FileBridgeTypeManager() {
+    public FileBridgeTypeManager(SystemCrudService systemService) {
         // set up TypeDefinitionFactory
         typeDefinitionFactory = TypeDefinitionFactory.newInstance();
         typeDefinitionFactory.setDefaultNamespace(NAMESPACE);
@@ -71,8 +92,57 @@ public class FileBridgeTypeManager {
         documentType.setIsVersionable(true);
         removeQueryableAndOrderableFlags(documentType);
         typeDefinitions.put(documentType.getId(), documentType);
+        long parent = 0;
+        
+        addCustomTypes(parent, systemService, documentType);
     }
+    
+    private void addCustomTypes(long parent, SystemCrudService systemService, TypeDefinition documentType) {
+    Page<SystemDTO> types = systemService.findAllByParentAndType(parent, "type", createPageRequest());
+    for (SystemDTO type : types) {
+    	MutableDocumentTypeDefinition  childType = (MutableDocumentTypeDefinition) typeDefinitionFactory
+        		.createChildTypeDefinition(documentType, type.getSymbolicName());
+		
+        childType.setIsVersionable(true);
+        childType.setDisplayName(type.getTitle());
+        childType.setLocalName(type.getTitle());
+        childType.setLocalNamespace("pa");
+        JsonNode typeSchema = type.getData().get("schema");
+        JsonNode props= typeSchema.get("properties");
+        Iterator<Entry<String, JsonNode>> nodes = props.fields();
 
+        while (nodes.hasNext()) {
+          Map.Entry<String, JsonNode> entry = (Map.Entry<String, JsonNode>) nodes.next();
+          String title = entry.getKey();
+          if (entry.getValue().get("title") != null) title=entry.getValue().get("title").asText();
+          PropertyType proptype = PropertyType.STRING;
+          if (entry.getValue().get("type") != null && entry.getValue().get("type").asText().toLowerCase().equals("number")){
+        	  proptype = PropertyType.INTEGER; 
+          }
+          MutablePropertyDefinition property = typeDefinitionFactory.createPropertyDefinition(
+        		  entry.getKey(),
+        		  title,
+        		  title,
+        		  proptype,
+        		  Cardinality.SINGLE,
+        		  Updatability.READWRITE,
+					false,
+					false,
+					false,
+					false
+				);
+          childType.addPropertyDefinition(property);
+        }
+        removeQueryableAndOrderableFlags(childType);
+        addTypeDefinition(childType);
+
+    	addCustomTypes(type.getId(), systemService, childType);
+    }
+    }
+    private Pageable createPageRequest() {
+        return new PageRequest(0, 1000, Sort.Direction.ASC, "sys_title");
+    }
+    
     /**
      * Adds a type definition.
      */
