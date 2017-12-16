@@ -10,14 +10,12 @@ import org.jooq.impl.TableImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
-import ru.doccloud.common.DateHelper;
 import ru.doccloud.document.model.FilterBean;
 import ru.doccloud.document.model.QueryParam;
 import ru.doccloud.repository.impl.SystemRepositoryImpl;
 
 import java.io.IOException;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -228,20 +226,23 @@ public class DataQueryHelper {
 
 
     public static List<QueryParam> getQueryParams(String query) {
+        LOGGER.trace("entering getQueryParams(query={})", query);
         FilterBean filter = null;
         List<QueryParam> queryParams = null;
-        LOGGER.trace("Query for search - {}", query);
+
         ObjectMapper mapper = new ObjectMapper();
         if (query!=null){
             try {
                 filter = mapper.readValue(query, new TypeReference<FilterBean>(){});
                 queryParams = filter.getMrules();
-                LOGGER.trace("findAllByType(): List of params - {} {}", queryParams.toString(), queryParams.size());
+                LOGGER.trace("getQueryParams(): List of params - {} {}", queryParams.toString(), queryParams.size());
             } catch (IOException e) {
-                LOGGER.error("Error parsing JSON {}",e.getLocalizedMessage());
+                LOGGER.error("getQueryParams(): Error parsing JSON {}",e);
                 e.printStackTrace();
             }
         }
+
+        LOGGER.trace("leaving  getQueryParams() : queryParams {}", queryParams);
         return queryParams;
     }
 }

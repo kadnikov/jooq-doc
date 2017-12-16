@@ -2,7 +2,6 @@ package ru.doccloud.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.transaction.annotation.Transactional;
 import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.document.model.Document;
 import ru.doccloud.document.model.Link;
@@ -52,9 +51,6 @@ public interface DocumentRepository extends CommonRepository {
     public Document findByUUID(String uuid);
 
 
-    @Transactional(readOnly = true)
-    Document findSettings();
-
     public Page<Document> findBySearchTerm(String searchTerm, Pageable pageable);
 
     /**
@@ -65,24 +61,24 @@ public interface DocumentRepository extends CommonRepository {
      */
     public Document update(Document todoEntry);
 
-	public List<Document> findAllByParent(Long parent);
+    public List<Document> findAllByParent(Long parent);
 
-	public List<Document> findParents(Long docId);
+    public List<Document> findParents(Long docId);
 
-	public Link addLink(Long headId, Long tailId);
+    public Link addLink(Long headId, Long tailId);
 
-	public Link deleteLink(Long headId, Long tailId);
+    public Link deleteLink(Long headId, Long tailId);
 
-	public Document updateFileInfo(Document documentEntry);
+    public Document updateFileInfo(Document documentEntry);
 
-	public Page<Document> findAll(Pageable pageable, String query);
+    public Page<Document> findAll(Pageable pageable, String query);
 
-	public Page<Document> findAllByType(String type, String[] fields, Pageable pageable, String query, String userName);
+    public Page<Document> findAllByType(String type, String[] fields, Pageable pageable, String query, String userName);
 
-	public Document setParent(Document documentEntry);
+    public Document setParent(Document documentEntry);
 
-	public List<Document> findAllByLinkParent(Long parent);
+    public List<Document> findAllByLinkParent(Long parent);
 
-	public Page<Document> findAllByParentAndType(Long parentid, String type, Pageable pageable);
+    public Page<Document> findAllByParentAndType(Long parentid, String type, Pageable pageable);
 
 }

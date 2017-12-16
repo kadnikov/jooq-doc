@@ -1,0 +1,4 @@
+<dataset>
+    <system id="1" sys_desc="Lorem ipsum" sys_type="doccloud"  sys_title="FooRai" sys_author="doccloud"  sys_uuid ="5e97ac1b-2a0d-4439-8018-044217bbccc5"/>
+    <system id="2" sys_desc="Lorem ipsum" sys_type="doccloud" sys_title="Bar" sys_author="doccloud"  sys_uuid = "ceec86ec-5dba-4857-b39a-abb93cb38c11"/>
+</dataset>

@@ -1,6 +1,7 @@
 package ru.doccloud.repository.impl;
 
 
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.*;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
@@ -31,7 +32,6 @@ import java.util.UUID;
 
 import static ru.doccloud.document.jooq.db.tables.Documents.DOCUMENTS;
 import static ru.doccloud.document.jooq.db.tables.Links.LINKS;
-import static ru.doccloud.document.jooq.db.tables.System.SYSTEM;
 import static ru.doccloud.repository.util.DataQueryHelper.*;
 
 /**
@@ -53,7 +53,6 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
     @Override
     public Document add(Document documentEntry) {
         LOGGER.trace("entering add(documentEntry= {})", documentEntry);
-        LOGGER.trace("readers {}",documentEntry.getReaders());
         DocumentsRecord persisted = jooq.insertInto(
                 DOCUMENTS, DOCUMENTS.SYS_DESC, DOCUMENTS.SYS_TITLE, DOCUMENTS.SYS_BASE_TYPE, DOCUMENTS.SYS_TYPE, DOCUMENTS.SYS_AUTHOR,
                 DOCUMENTS.SYS_READERS, DOCUMENTS.DATA, DOCUMENTS.SYS_FILE_LENGTH, DOCUMENTS.SYS_FILE_MIME_TYPE,
@@ -110,12 +109,13 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
     public Document delete(Long id) {
         LOGGER.trace("entering delete(id={})", id);
 
-        Document deleted = findById(id);
+        DocumentsRecord deleted = findDocById(id);
 
         LOGGER.trace("delete(): Document was found in database {}", deleted);
 
         if(deleted == null)
             throw new DocumentNotFoundException("The document with id was not found in database");
+
         int deletedRecordCount = jooq.delete(DOCUMENTS)
                 .where(DOCUMENTS.ID.equal(id.intValue()))
                 .execute();
@@ -124,7 +124,7 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
 
         LOGGER.trace("leaving delete(): Returning deleted Document entry: {}", deleted);
 
-        return deleted;
+        return DocumentConverter.convertQueryResultToModelObject(deleted);
     }
 
     @Transactional(readOnly = true)
@@ -151,15 +151,15 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
         List<QueryParam> queryParams = getQueryParams(query);
         Condition cond = null;
         if (queryParams !=null){
-	        cond = DOCUMENTS.SYS_TYPE.isNotNull();
-	        cond = extendConditions(cond, queryParams, DOCUMENTS, DOCUMENTS.DATA);
+            cond = DOCUMENTS.SYS_TYPE.isNotNull();
+            cond = extendConditions(cond, queryParams, DOCUMENTS, DOCUMENTS.DATA);
         }
         List<DocumentsRecord> queryResults = jooq.selectFrom(DOCUMENTS)
-        		.where(cond)
+                .where(cond)
                 .orderBy(getSortFields(pageable.getSort(), DOCUMENTS, DOCUMENTS.DATA))
                 .limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .fetchInto(DocumentsRecord.class);
-        
+
         LOGGER.debug("findAll(): Found {} Document entries, they are going to convert to model objects", queryResults);
 
         List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
@@ -170,9 +170,9 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
         );
         long totalCount = 0;
         if (queryParams !=null){
-        	totalCount = findTotalCountByType(cond, DOCUMENTS);
+            totalCount = findTotalCountByType(cond, DOCUMENTS);
         }else{
-        	totalCount = findTotalCount(DOCUMENTS);
+            totalCount = findTotalCount(DOCUMENTS);
         }
 
         LOGGER.trace("findAll(): {} document entries matches with the like expression: {}", totalCount);
@@ -204,15 +204,15 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
         selectedFields.add(DOCUMENTS.SYS_UUID);
         selectedFields.add(DOCUMENTS.SYS_PARENT);
         selectedFields.add(DOCUMENTS.SYS_FILE_STORAGE);
-        selectedFields.add(DOCUMENTS.SYS_READERS); 
+        selectedFields.add(DOCUMENTS.SYS_READERS);
         if (fields!=null){
-        	if (fields[0].equals("all")){
-        		selectedFields.add(DOCUMENTS.DATA); 
-        	}else{
-	            for (String field : fields) {
-	                selectedFields.add(jsonObject(DOCUMENTS.DATA, field).as(field));
-	            }
-        	}
+            if (fields[0].equals("all")){
+                selectedFields.add(DOCUMENTS.DATA);
+            }else{
+                for (String field : fields) {
+                    selectedFields.add(jsonObject(DOCUMENTS.DATA, field).as(field));
+                }
+            }
         }
         LOGGER.trace("findAllByType(): selectedFields: {}", selectedFields);
 
@@ -238,15 +238,12 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
 
     }
 
-	@Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     @Override
     public Document findById(Long id) {
         LOGGER.trace("entering findById(id = {})", id);
 
-        DocumentsRecord queryResult = jooq.selectFrom(DOCUMENTS)
-                .where(DOCUMENTS.ID.equal(id.intValue()))
-                .fetchOne();
-
+        DocumentsRecord queryResult = findDocById(id);
 
         if (queryResult == null) {
             throw new DocumentNotFoundException("No Document entry found with id: " + id);
@@ -269,28 +266,6 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
         }
         LOGGER.trace("leaving findByUUID(): Found {}", queryResult);
         return DocumentConverter.convertQueryResultToModelObject(queryResult);
-    }
-
-
-    @Transactional(readOnly = true)
-    @Override
-    public Document findSettings() {
-        LOGGER.trace("entering findSettings(): try to find storage area settings in cache first");
-
-            LOGGER.trace("storage area settings weren't found in cache. It will get from database");
-            DocumentsRecord record = jooq.selectFrom(DOCUMENTS)
-                    .where(DOCUMENTS.SYS_TYPE.equal("storage_area"))
-                    .fetchOne();
-            LOGGER.trace("findSettings(): settings record was found in db {}", record);
-        if (record == null) {
-            throw new DocumentNotFoundException("No Document entry found with type storageArea");
-        }
-
-            LOGGER.trace("findSettings(): storage area settings has been added to cache");
-
-
-        LOGGER.trace("leaving findSettings(): Got result: {}", record);
-        return DocumentConverter.convertQueryResultToModelObject(record);
     }
 
     @Transactional(readOnly = true)
@@ -329,13 +304,13 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
                 .set(DOCUMENTS.SYS_DATE_MOD, currentTime)
                 .set(DOCUMENTS.SYS_MODIFIER, documentEntry.getModifier())
                 .set(DOCUMENTS.SYS_VERSION, documentEntry.getDocVersion());
-        
+
         if (documentEntry.getTitle() != null) s.set(DOCUMENTS.SYS_TITLE, documentEntry.getTitle());
         if (documentEntry.getDescription() != null) s.set(DOCUMENTS.SYS_DESC, documentEntry.getDescription());
         if (documentEntry.getData() != null) s.set(DOCUMENTS.DATA, documentEntry.getData());
-        
+
         int updatedRecordCount = s.where(DOCUMENTS.ID.equal(documentEntry.getId().intValue())).execute();
-        
+
         LOGGER.trace("leaving update(): Updated {}", updatedRecordCount);
         //If you are using Firebird or PostgreSQL databases, you can use the RETURNING
         //clause in the update statement (and avoid the extra select clause):
@@ -348,7 +323,7 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
     @Override
     public Document updateFileInfo(Document documentEntry) {
         LOGGER.trace("entering updateFileInfo(documentEntry={})", documentEntry);
-
+//todo check that such document exists in database
         Timestamp currentTime = dateTimeService.getCurrentTimestamp();
 
         int updatedRecordCount = jooq.update(DOCUMENTS)
@@ -369,14 +344,12 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
 
         return findById(documentEntry.getId());
     }
-    
+
     @Transactional
     @Override
     public Document setParent(Document documentEntry) {
         LOGGER.trace("entering updateFileInfo(documentEntry={})", documentEntry);
-
-        Timestamp currentTime = dateTimeService.getCurrentTimestamp();
-
+        //todo check that such document exists in database
         int updatedRecordCount = jooq.update(DOCUMENTS)
                 .set(DOCUMENTS.SYS_PARENT, documentEntry.getParent())
                 .where(DOCUMENTS.ID.equal(documentEntry.getId().intValue()))
@@ -400,11 +373,13 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
     }
 
     @Override
-    public List<Document> findAllByParent(Long parent) {
-
+    public List<Document> findAllByParent(Long parent)  {
         LOGGER.trace("entering findAllByParent(parent = {})", parent);
-        
-    	List<DocumentsRecord>  queryResults = jooq.selectFrom(DOCUMENTS)
+
+        if(parent== null)
+            throw new DocumentNotFoundException("parentIs is null");
+
+        List<DocumentsRecord>  queryResults = jooq.selectFrom(DOCUMENTS)
                 .where(DOCUMENTS.SYS_PARENT.equal(parent.toString()))
                 .fetchInto(DocumentsRecord.class);
 
@@ -421,6 +396,8 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
     @Override
     public List<Document> findAllByLinkParent(Long parent) {
         LOGGER.trace("entering findAllByParent(parent = {})", parent);
+        if(parent == null)
+            throw new DocumentNotFoundException("parent id is null");
 
         Documents d = DOCUMENTS.as("d");
         Links l = LINKS.as("l");
@@ -447,6 +424,8 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
     @Override
     public List<Document> findParents(Long docId) {
         LOGGER.trace("entering findParents(docId = {})", docId);
+        if(docId == null)
+            throw new DocumentNotFoundException("documentId is null");
 
         Documents d = DOCUMENTS.as("d");
         Links l = LINKS.as("l");
@@ -553,14 +532,20 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
         }
     }
 
-
-	@Override
-	public Page<Document> findAllByParentAndType(Long parentid, String type, Pageable pageable) {
+    @Override
+    public Page<Document> findAllByParentAndType(Long parentid, String type, Pageable pageable) {
 
         LOGGER.trace("entering findAllByParentAndType(parent = {}, type = {})", parentid , type);
+
+        if(parentid == null)
+            throw new DocumentNotFoundException("parentId is null");
+
+        if(StringUtils.isBlank(type))
+            throw new DocumentNotFoundException("document type is null");
+
         Condition cond = DOCUMENTS.SYS_TYPE.equal(type);
         cond = cond.and(DOCUMENTS.SYS_PARENT.equal(parentid.toString()));
-    	List<DocumentsRecord>  queryResults = jooq.selectFrom(DOCUMENTS)
+        List<DocumentsRecord>  queryResults = jooq.selectFrom(DOCUMENTS)
                 .where(cond)
                 .orderBy(getSortFields(pageable.getSort(), DOCUMENTS, DOCUMENTS.DATA))
                 .limit(pageable.getPageSize()).offset(pageable.getOffset())
@@ -573,8 +558,14 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
 
         LOGGER.trace("leaving findAllByParentAndType(): Found {}", documentEntries);
         long totalCount = findTotalCountByType(cond, DOCUMENTS);
-        
+
         return new PageImpl<>(documentEntries, pageable, totalCount);
-	}
+    }
+
+    private DocumentsRecord findDocById(Long id){
+        return  jooq.selectFrom(DOCUMENTS)
+                .where(DOCUMENTS.ID.equal(id.intValue()))
+                .fetchOne();
+    }
 
 }

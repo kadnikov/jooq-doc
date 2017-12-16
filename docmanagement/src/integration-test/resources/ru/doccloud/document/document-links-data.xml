@@ -1,0 +1,7 @@
+<dataset>
+    <documents id="1" sys_title="FooRai"/>
+    <documents id="2" sys_title="Bar" />
+    <documents id="3" sys_title="Bar" />
+    <links head_id = "1" tail_id = "3"/>
+    <links head_id = "2" tail_id = "3"/>
+</dataset>

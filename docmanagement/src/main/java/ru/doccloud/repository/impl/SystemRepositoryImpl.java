@@ -1,5 +1,6 @@
 package ru.doccloud.repository.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -113,15 +114,15 @@ public class SystemRepositoryImpl extends AbstractJooqRepository implements Syst
         List<QueryParam> queryParams = getQueryParams(query);
         Condition cond = null;
         if (queryParams !=null){
-	        cond = SYSTEM.SYS_TYPE.isNotNull();
-	        cond = extendConditions(cond, queryParams, SYSTEM, SYSTEM.DATA);
+            cond = SYSTEM.SYS_TYPE.isNotNull();
+            cond = extendConditions(cond, queryParams, SYSTEM, SYSTEM.DATA);
         }
         List<SystemRecord> queryResults = jooq.selectFrom(SYSTEM)
-        		.where(cond)
+                .where(cond)
                 .orderBy(getSortFields(pageable.getSort(), SYSTEM, SYSTEM.DATA))
                 .limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .fetchInto(SystemRecord.class);
-        
+
         LOGGER.trace("findAll(): Found {} Document entries, they are going to convert to model objects", queryResults);
 
         List<SystemDocument> documentEntries = SystemConverter.convertQueryResultsToModelObjects(queryResults);
@@ -132,9 +133,9 @@ public class SystemRepositoryImpl extends AbstractJooqRepository implements Syst
         );
         long totalCount = 0;
         if (queryParams !=null){
-        	totalCount = findTotalCountByType(cond, SYSTEM);
+            totalCount = findTotalCountByType(cond, SYSTEM);
         }else{
-        	totalCount = findTotalCount(SYSTEM);
+            totalCount = findTotalCount(SYSTEM);
         }
 
         LOGGER.trace("findAll(): {} document entries matches with the like expression: {}", totalCount);
@@ -193,13 +194,18 @@ public class SystemRepositoryImpl extends AbstractJooqRepository implements Syst
 
     }
 
+    //todo add proper exception for incorrect params
     @Override
-	public Page<SystemDocument> findAllByParentAndType(Long parentid, String type, Pageable pageable) {
+    public Page<SystemDocument> findAllByParentAndType(Long parentid, String type, Pageable pageable) {
 
         LOGGER.trace("entering findAllByParentAndType(parent = {}, type = {})", parentid , type);
+        if(parentid == null)
+            throw new DocumentNotFoundException("parentId is null");
+        if(StringUtils.isBlank(type))
+            throw new DocumentNotFoundException("type is empty");
         Condition cond = SYSTEM.SYS_TYPE.equal(type);
         cond = cond.and(SYSTEM.SYS_PARENT.equal(parentid.toString()));
-    	List<SystemRecord>  queryResults = jooq.selectFrom(SYSTEM)
+        List<SystemRecord>  queryResults = jooq.selectFrom(SYSTEM)
                 .where(cond)
                 .orderBy(getSortFields(pageable.getSort(), SYSTEM, SYSTEM.DATA))
                 .limit(pageable.getPageSize()).offset(pageable.getOffset())
@@ -212,11 +218,11 @@ public class SystemRepositoryImpl extends AbstractJooqRepository implements Syst
 
         LOGGER.trace("leaving findAllByParentAndType(): Found {}", documentEntries);
         long totalCount = findTotalCountByType(cond, SYSTEM);
-        
+
         return new PageImpl<>(documentEntries, pageable, totalCount);
-	}
-    
-	@Transactional(readOnly = true)
+    }
+
+    @Transactional(readOnly = true)
     @Override
     public SystemDocument findById(Long id) {
         LOGGER.trace("entering findById(id = {})", id);
@@ -248,11 +254,14 @@ public class SystemRepositoryImpl extends AbstractJooqRepository implements Syst
         LOGGER.trace("leaving findByUUID(): Found {}", queryResult);
         return SystemConverter.convertQueryResultToModelObject(queryResult);
     }
-    
+
     @Transactional(readOnly = true)
     @Override
     public SystemDocument findBySymbolicName(String symbolic) {
         LOGGER.trace("entering findBySymbolicName(symbolic = {})", symbolic);
+
+        if(StringUtils.isBlank(symbolic))
+            throw new DocumentNotFoundException("symbolyc name is blank");
 
         final SystemRecord queryResult = jooq.selectFrom(SYSTEM)
                 .where(SYSTEM.SYS_SYMBOLIC_NAME.equal(symbolic))
@@ -269,20 +278,17 @@ public class SystemRepositoryImpl extends AbstractJooqRepository implements Syst
     @Transactional(readOnly = true)
     @Override
     public SystemDocument findSettings(String settingsKey) {
-        LOGGER.trace("entering findSettings(settingsKey={}): try to find storage area settings in cache first", settingsKey);
+        LOGGER.trace("entering findSettings(settingsKey={}): ", settingsKey);
 
-
-            LOGGER.trace("storage area settings weren't found in cache. It will get from database");
-            SystemRecord record = jooq.selectFrom(SYSTEM)
-                    .where(SYSTEM.SYS_TYPE.equal(settingsKey))
-                    .fetchOne();
-            LOGGER.trace("findSettings(): settings record was found in db {}", record);
-            if (record == null) {
-                throw new DocumentNotFoundException("No Document entry found with type storageArea");
-            }
-
-            LOGGER.trace("findSettings(): storage area settings has been added to cache");
-
+        if(StringUtils.isBlank(settingsKey))
+            throw new DocumentNotFoundException("SettingsKey is null");
+        SystemRecord record = jooq.selectFrom(SYSTEM)
+                .where(SYSTEM.SYS_TYPE.equal(settingsKey))
+                .fetchOne();
+        LOGGER.trace("findSettings(): settings record was found {}", record);
+        if (record == null) {
+            throw new DocumentNotFoundException("No Document entry found with type storageArea");
+        }
 
         LOGGER.trace("leaving findSettings(): Got result: {}", record);
         return SystemConverter.convertQueryResultToModelObject(record);

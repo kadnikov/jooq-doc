@@ -16,10 +16,10 @@
         <phase.prop>none</phase.prop>
     </properties>
 
-   <parent>
+    <parent>
         <groupId>ru.doccloud</groupId>
         <artifactId>jooq-doc</artifactId>
-       <version>0.1</version>
+        <version>0.1</version>
         <!--<relativePath>../pom.xml</relativePath>-->
     </parent>
 
@@ -60,10 +60,10 @@
         </dependency>
 
         <dependency>
-        <groupId>ru.doccloud</groupId>
-        <artifactId>config</artifactId>
+            <groupId>ru.doccloud</groupId>
+            <artifactId>config</artifactId>
             <version>0.1</version>
-    </dependency>
+        </dependency>
 
 
         <dependency>
@@ -176,8 +176,8 @@
         </dependency>
 
         <!--<dependency>-->
-            <!--<groupId>org.apache.chemistry.opencmis</groupId>-->
-            <!--<artifactId>chemistry-opencmis-server-bindings-war</artifactId>-->
+        <!--<groupId>org.apache.chemistry.opencmis</groupId>-->
+        <!--<artifactId>chemistry-opencmis-server-bindings-war</artifactId>-->
         <!--</dependency>-->
         <dependency>
             <groupId>org.apache.chemistry.opencmis</groupId>
@@ -187,8 +187,34 @@
             <groupId>org.apache.chemistry.opencmis</groupId>
             <artifactId>chemistry-opencmis-server-bindings</artifactId>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.chemistry.opencmis/chemistry-opencmis-client-impl -->
+        <dependency>
+            <groupId>org.apache.chemistry.opencmis</groupId>
+            <artifactId>chemistry-opencmis-client-impl</artifactId>
+        </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.apache.chemistry.opencmis/chemistry-opencmis-client-api -->
+        <dependency>
+            <groupId>org.apache.chemistry.opencmis</groupId>
+            <artifactId>chemistry-opencmis-client-api</artifactId>
+        </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.apache.chemistry.opencmis/chemistry-opencmis-client-bindings -->
+        <dependency>
+            <groupId>org.apache.chemistry.opencmis</groupId>
+            <artifactId>chemistry-opencmis-client-bindings</artifactId>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.chemistry.opencmis/chemistry-opencmis-commons-impl -->
+        <dependency>
+            <groupId>org.apache.chemistry.opencmis</groupId>
+            <artifactId>chemistry-opencmis-commons-impl</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.chemistry.opencmis</groupId>
+            <artifactId>chemistry-opencmis-commons-api</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.jtransfo</groupId>
@@ -203,6 +229,16 @@
         <dependency>
             <groupId>org.jtransfo</groupId>
             <artifactId>jtransfo-spring</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.chemistry.opencmis</groupId>
+            <artifactId>chemistry-opencmis-client-bindings</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>
