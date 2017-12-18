@@ -27,7 +27,7 @@
         <slf4j.version>1.7.5</slf4j.version>
         <spring.data.commons.version>1.7.1.RELEASE</spring.data.commons.version>
         <build.profile.id>doccloud</build.profile.id>
-        <skip.db.creation>false</skip.db.creation>
+        <skip.db.creation>true</skip.db.creation>
         <skip.integration.tests>true</skip.integration.tests>
         <skip.unit.tests>true</skip.unit.tests>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
