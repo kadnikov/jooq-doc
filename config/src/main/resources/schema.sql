@@ -84,62 +84,62 @@ CREATE TABLE if not exists groups
   CONSTRAINT id_key PRIMARY KEY (id)
 );
 
-GRANT SELECT, UPDATE, INSERT, DELETE ON TABLE public.documents TO doccloud;
-GRANT SELECT, UPDATE, INSERT, DELETE ON TABLE public.links TO doccloud;
-GRANT SELECT, UPDATE, INSERT ON TABLE public.users TO doccloud;
-GRANT SELECT, UPDATE, INSERT ON TABLE public.user_roles TO doccloud;
-GRANT SELECT, UPDATE, INSERT ON TABLE public.groups TO doccloud;
-GRANT SELECT, UPDATE, INSERT ON TABLE public.roles TO doccloud;
+-- GRANT SELECT, UPDATE, INSERT, DELETE ON TABLE public.documents TO doccloud;
+-- GRANT SELECT, UPDATE, INSERT, DELETE ON TABLE public.links TO doccloud;
+-- GRANT SELECT, UPDATE, INSERT ON TABLE public.users TO doccloud;
+-- GRANT SELECT, UPDATE, INSERT ON TABLE public.user_roles TO doccloud;
+-- GRANT SELECT, UPDATE, INSERT ON TABLE public.groups TO doccloud;
+-- GRANT SELECT, UPDATE, INSERT ON TABLE public.roles TO doccloud;
 
-ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
 
 -- CREATE POLICY doc_policy ON documents
 -- USING ((SELECT groups FROM users WHERE userid=current_setting('my.username')) && sys_readers)
 -- WITH CHECK (sys_author = current_setting('my.username') OR sys_modifier = current_setting('my.username'));
 
 -- CREATE TABLESPACE admin LOCATION '/var/lib/postgresql/admin';
-CREATE SEQUENCE IF NOT EXISTS system_id_seq;
+-- CREATE SEQUENCE IF NOT EXISTS system_id_seq;
 
-CREATE TABLE IF NOT EXISTS public.system
-(
-  id integer NOT NULL DEFAULT nextval('system_id_seq'::regclass),
-  sys_date_cr timestamp without time zone NOT NULL DEFAULT now(),
-  sys_desc text,
-  sys_date_mod timestamp without time zone NOT NULL DEFAULT now(),
-  sys_title text,
-  sys_author text,
-  sys_modifier text,
-  sys_readers text[],
-  sys_editors text[],
-  sys_folders text[],
-  sys_type text,
-  sys_version text,
-  sys_parent text,
-  sys_file_path text,
-  sys_file_mime_type text,
-  sys_file_length bigint,
-  data jsonb,
-  sys_file_name text,
-  sys_uuid uuid NOT NULL DEFAULT uuid_generate_v4(),
-  sys_symbolic_name text,
-  CONSTRAINT system_pkey PRIMARY KEY (id)
-)
-WITH (
-OIDS=FALSE
-);
+-- CREATE TABLE IF NOT EXISTS public.system
+-- (
+  -- id integer NOT NULL DEFAULT nextval('system_id_seq'::regclass),
+  -- sys_date_cr timestamp without time zone NOT NULL DEFAULT now(),
+  -- sys_desc text,
+  -- sys_date_mod timestamp without time zone NOT NULL DEFAULT now(),
+  -- sys_title text,
+  -- sys_author text,
+  -- sys_modifier text,
+  -- sys_readers text[],
+  -- sys_editors text[],
+  -- sys_folders text[],
+  -- sys_type text,
+  -- sys_version text,
+  -- sys_parent text,
+  -- sys_file_path text,
+  -- sys_file_mime_type text,
+  -- sys_file_length bigint,
+  -- data jsonb,
+  -- sys_file_name text,
+  -- sys_uuid uuid NOT NULL DEFAULT uuid_generate_v4(),
+  -- sys_symbolic_name text,
+  -- CONSTRAINT system_pkey PRIMARY KEY (id)
+-- )
+-- WITH (
+-- OIDS=FALSE
+-- );
 -- TABLESPACE admin;
 
-ALTER TABLE public.system
-  OWNER TO postgres;
+-- ALTER TABLE public.system
+  -- OWNER TO postgres;
 
-GRANT ALL ON TABLE public.system TO postgres;
-GRANT SELECT, UPDATE, INSERT, DELETE ON TABLE public.system TO doccloud;
+-- GRANT ALL ON TABLE public.system TO postgres;
+-- GRANT SELECT, UPDATE, INSERT, DELETE ON TABLE public.system TO doccloud;
 
-GRANT USAGE, SELECT, UPDATE ON SEQUENCE public.documents_id_seq TO doccloud;
-GRANT USAGE, SELECT, UPDATE ON SEQUENCE public.system_id_seq TO doccloud;
+-- GRANT USAGE, SELECT, UPDATE ON SEQUENCE public.documents_id_seq TO doccloud;
+-- GRANT USAGE, SELECT, UPDATE ON SEQUENCE public.system_id_seq TO doccloud;
 
-ALTER SEQUENCE documents_id_seq RESTART WITH 11;
-ALTER SEQUENCE system_id_seq RESTART WITH 20;
+-- ALTER SEQUENCE documents_id_seq RESTART WITH 11;
+-- ALTER SEQUENCE system_id_seq RESTART WITH 20;
 
 
 -- CREATE INDEX type_index
