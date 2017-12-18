@@ -899,7 +899,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
             // build and add child object
             ObjectInFolderDataImpl objectInFolder = new ObjectInFolderDataImpl();
 
-            final DocumentDTO parent = getParentDocument(doc.getParent());
+            final DocumentDTO parent = curdoc; //getParentDocument(doc.getParent());
             LOGGER.debug("getChildren(): parent document {}", parent);
             objectInFolder.setObject(compileObjectData(context, doc, parent, filterCollection, iaa, false, userReadOnly,
                     objectInfos));

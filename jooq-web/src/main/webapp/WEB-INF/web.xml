@@ -94,7 +94,7 @@
     </servlet>
     <servlet>
         <servlet-name>cmisatom10</servlet-name>
-        <servlet-class>org.apache.chemistry.opencmis.server.impl.atompub.CmisAtomPubServlet</servlet-class>
+        <servlet-class>ru.doccloud.cmis.server.MyCmisAtomPubServlet</servlet-class>
         <init-param>
             <param-name>callContextHandler</param-name>
             <param-value>org.apache.chemistry.opencmis.server.impl.browser.token.TokenCallContextHandler</param-value>
@@ -107,7 +107,7 @@
     </servlet>
     <servlet>
         <servlet-name>cmisatom11</servlet-name>
-        <servlet-class>org.apache.chemistry.opencmis.server.impl.atompub.CmisAtomPubServlet</servlet-class>
+        <servlet-class>ru.doccloud.cmis.server.MyCmisAtomPubServlet</servlet-class>
         <init-param>
             <param-name>callContextHandler</param-name>
             <param-value>org.apache.chemistry.opencmis.server.impl.browser.token.TokenCallContextHandler</param-value>
