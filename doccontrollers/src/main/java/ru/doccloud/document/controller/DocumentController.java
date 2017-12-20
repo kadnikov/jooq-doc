@@ -159,10 +159,10 @@ public class DocumentController  extends AbstractController {
     }
 
     @RequestMapping(value = "/parent/{parentid}", method = RequestMethod.GET)
-    public List<DocumentDTO> findByParent(@PathVariable("parentid") Long parentid) {
+    public Page<DocumentDTO> findByParent(@PathVariable("parentid") Long parentid, Pageable pageable) {
         LOGGER.info("findByParent(parentid = {})", parentid);
 
-        return crudService.findAllByParent(parentid);
+        return crudService.findAllByParent(parentid, pageable);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)

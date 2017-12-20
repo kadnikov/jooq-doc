@@ -61,7 +61,7 @@ public interface DocumentRepository extends CommonRepository {
      */
     public Document update(Document todoEntry);
 
-    public List<Document> findAllByParent(Long parent);
+    public Page<Document> findAllByParent(Long parent, Pageable pageable);
 
     public List<Document> findParents(Long docId);
 

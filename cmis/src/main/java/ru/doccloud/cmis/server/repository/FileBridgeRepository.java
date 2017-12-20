@@ -60,8 +60,10 @@ import org.apache.chemistry.opencmis.commons.spi.Holder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -409,31 +411,16 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         LOGGER.debug("deleteObject(): document for deleting {}", doc);
         // check if it is a folder and if it is empty
         if (isFolder(doc.getBaseType())) {
-            if (crudService.findAllByParent(doc.getId()).size() > 0) {
+        	Pageable pageable = new PageRequest(0, 1);
+            if (crudService.findAllByParent(doc.getId(), pageable).getTotalElements() > 0) {
                 throw new CmisConstraintException("Folder is not empty!");
             }
         }
-
-        LinkDTO deletedLink = null;
-        try {
-
-            DocumentDTO parent = getParentDocument(doc.getParent());//getFirstParent(doc.getId());
-
-            LOGGER.debug("deleteObject(): parent document {}", parent);
-
-            if (parent != null) {
-                deletedLink = crudService.deleteLink(parent.getId(), doc.getId());
-                LOGGER.debug("deleteObject(): link has been deleted {}", deletedLink);
-            }
-
-            // delete doc
-            DocumentDTO deletedDto = crudService.delete(doc.getId());
-            LOGGER.debug("leaving deleteObject(): document {} has been deleted successfully", deletedDto);
-        } catch (Exception e){
-            LOGGER.error("deleteObject(): exception {} ", e.getMessage());
-            if(deletedLink != null)
-                crudService.addLink(deletedLink.getHead_id(), deletedLink.getTail_id());
-        }
+        
+        DocumentDTO deleted = crudService.delete(doc.getId());
+        LOGGER.debug(" deleteFolder(): deleted object {} : ", deleted);
+        
+        
     }
 
     /**
@@ -492,8 +479,8 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
     private boolean deleteFolder(DocumentDTO doc, boolean continueOnFailure, FailedToDeleteDataImpl ftd) {
         LOGGER.debug("entering deleteFolder(doc={}, continueOnFailure={}, ftd={})", doc, continueOnFailure, ftd);
         boolean success = true;
-
-        List<DocumentDTO> docList = crudService.findAllByParent(doc.getId());
+        Pageable pageable = new PageRequest(0, Integer.MAX_VALUE);
+        Page<DocumentDTO> docList = crudService.findAllByParent(doc.getId(),pageable);
         for (DocumentDTO childDoc : docList) {
             LOGGER.debug(" deleteFolder(): childDoc {} : ", childDoc);
             if (isFolder(childDoc.getBaseType())) {
@@ -504,47 +491,17 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
                     success = false;
                 }
             } else {
-                LinkDTO deletedChildLink = null;
-
-                final DocumentDTO parent = getParentDocument(doc.getParent());//getFirstParent(doc.getId());
-
-                LOGGER.debug("deleteFolder(): parent document {}", parent);
-
-                if (parent != null) {
-                    deletedChildLink = crudService.deleteLink(parent.getId(), doc.getId());
-                    LOGGER.debug("deleteFolder(): childlink has been deleted {}", deletedChildLink);
-                }
+                
                 DocumentDTO childDeleted = crudService.delete(childDoc.getId());
                 LOGGER.debug(" deleteFolder(): childDeleted {} : ", childDeleted);
-                if (childDeleted == null) {
-                    ftd.getIds().add(getId(childDoc.getId()));
-                    if(deletedChildLink != null)
-                        crudService.addLink(deletedChildLink.getHead_id(), deletedChildLink.getTail_id());
-                    if (!continueOnFailure) {
-                        return false;
-                    }
-                    success = false;
-                }
+                
             }
         }
 
-        LinkDTO deletedLink = null;
-        final DocumentDTO parent = getParentDocument(doc.getParent());//getFirstParent(doc.getId());
-
-        LOGGER.debug("deleteFolder(): parent document for deleted folder {}", parent);
-
-        if (parent != null) {
-            deletedLink = crudService.deleteLink(parent.getId(), doc.getId());
-            LOGGER.debug("deleteFolder(): link has been deleted {}", deletedLink);
-        }
+        
         DocumentDTO deleted = crudService.delete(doc.getId());
         LOGGER.debug(" deleteFolder(): deleted object {} : ", deleted);
-        if (deleted==null) {
-            ftd.getIds().add(getId(doc.getId()));
-            if(deletedLink != null)
-                crudService.addLink(deletedLink.getHead_id(), deletedLink.getTail_id());
-            success = false;
-        }
+        
 
         return success;
     }
@@ -828,7 +785,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
     /**
      * CMIS getChildren.
      */
-    public ObjectInFolderList getChildren(CallContext context, String objectId, String filter,
+    public ObjectInFolderList getChildren(CallContext context, String objectId, String filter, String orderBy,
                                           Boolean includeAllowableActions, Boolean includePathSegment, BigInteger maxItems, BigInteger skipCount,
                                           ObjectInfoHandler objectInfos) {
         LOGGER.debug("entering getChildren(objectId={},  filter= {}, includeAllowableActions={}, includePathSegment={}, maxItems={}, skipCount={}, objectInfos={})",
@@ -843,18 +800,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         boolean iaa = FileBridgeUtils.getBooleanParameter(includeAllowableActions, false);
         boolean ips = FileBridgeUtils.getBooleanParameter(includePathSegment, false);
 
-        LOGGER.debug("getChildren(): Folder ID: {}", objectId);
-        final Long parentId = Long.parseLong(objectId);
-        List<DocumentDTO> docList = crudService.findAllByParent(parentId);
-
-        LOGGER.debug("getChildren(): Found {} children.", docList != null ? docList.size() : null);
-        ObjectInFolderListImpl result = new ObjectInFolderListImpl();
-        if(docList == null){
-            LOGGER.debug("getChildren(): document with parentid {} does not have children", parentId);
-            return result;
-        }
-
-        // skip and max
+     // skip and max
         int skip = (skipCount == null ? 0 : skipCount.intValue());
         if (skip < 0) {
             skip = 0;
@@ -864,6 +810,42 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         if (max < 0) {
             max = Integer.MAX_VALUE;
         }
+        
+        Pageable pageable = new PageRequest(skip/max, max);
+        if (orderBy!=null){
+        	orderBy = orderBy.split(",")[0];
+        	Direction orderByDir = Direction.ASC;
+        	if (orderBy.split(" ")[1].equals("DESC")) orderByDir = Direction.DESC;
+        	String orderByProp = orderBy.split(" ")[0];
+        	if (orderByProp.equals("cmis:name")) orderByProp="SYS_TITLE";
+        	else if (orderByProp.equals("cmis:objectTypeId")) orderByProp="SYS_TYPE";
+        	else if (orderByProp.equals("cmis:baseTypeId")) orderByProp="SYS_BASE_TYPE";
+        	else if (orderByProp.equals("cmis:createdBy")) orderByProp="SYS_AUTHOR";
+        	else if (orderByProp.equals("cmis:creationDate")) orderByProp="SYS_DATE_CR";
+        	else if (orderByProp.equals("cmis:lastModifiedBy")) orderByProp="SYS_MODIFIER";
+        	else if (orderByProp.equals("cmis:lastModificationDate")) orderByProp="SYS_DATE_MOD";
+        	
+        	pageable = new PageRequest(skip/max, max, orderByDir, orderByProp);
+        }
+        
+        LOGGER.debug("getChildren(): Folder ID: {}", objectId);
+        final Long parentId = Long.parseLong(objectId);
+        Page<DocumentDTO> docList = null;
+        if (filter.equals("cmis:folder")){
+        	docList = crudService.findAllByParentAndType(parentId, filter, pageable);
+        	filter = null;
+        }else{
+        	docList = crudService.findAllByParent(parentId, pageable);
+        }
+
+        LOGGER.debug("getChildren(): Found {} children.", docList != null ? docList.getTotalElements() : null);
+        ObjectInFolderListImpl result = new ObjectInFolderListImpl();
+        if(docList == null){
+            LOGGER.debug("getChildren(): document with parentid {} does not have children", parentId);
+            return result;
+        }
+
+        
 
         final DocumentDTO curdoc = getDocument(objectId);
 
@@ -886,15 +868,15 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
             LOGGER.debug("getChildren(): child document {}", doc);
             count++;
 
-            if (skip > 0) {
-                skip--;
-                continue;
-            }
-
-            if (result.getObjects().size() >= max) {
-                result.setHasMoreItems(true);
-                continue;
-            }
+//            if (skip > 0) {
+//                skip--;
+//                continue;
+//            }
+//
+//            if (result.getObjects().size() >= max) {
+//                result.setHasMoreItems(true);
+//                continue;
+//            }
 
             // build and add child object
             ObjectInFolderDataImpl objectInFolder = new ObjectInFolderDataImpl();

@@ -373,14 +373,16 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
     }
 
     @Override
-    public List<Document> findAllByParent(Long parent)  {
+    public Page<Document> findAllByParent(Long parent, Pageable pageable) {
         LOGGER.trace("entering findAllByParent(parent = {})", parent);
 
         if(parent== null)
             throw new DocumentNotFoundException("parentIs is null");
-
+        Condition cond = DOCUMENTS.SYS_PARENT.equal(parent.toString());
         List<DocumentsRecord>  queryResults = jooq.selectFrom(DOCUMENTS)
-                .where(DOCUMENTS.SYS_PARENT.equal(parent.toString()))
+                .where(cond)
+                .orderBy(getSortFields(pageable.getSort(), DOCUMENTS, DOCUMENTS.DATA))
+                .limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .fetchInto(DocumentsRecord.class);
 
 
@@ -390,7 +392,9 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
 
         LOGGER.trace("leaving findAllByParent(): Found {}", documentEntries);
 
-        return documentEntries;
+        long totalCount = findTotalCountByType(cond, DOCUMENTS);
+
+        return new PageImpl<>(documentEntries, pageable, totalCount);
     }
 
     @Override
@@ -543,8 +547,14 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
         if(StringUtils.isBlank(type))
             throw new DocumentNotFoundException("document type is null");
 
-        Condition cond = DOCUMENTS.SYS_TYPE.equal(type);
-        cond = cond.and(DOCUMENTS.SYS_PARENT.equal(parentid.toString()));
+        Condition cond = DOCUMENTS.SYS_PARENT.equal(parentid.toString());
+        if ("cmis:folder".equals(type)){
+        	cond = cond.and(DOCUMENTS.SYS_BASE_TYPE.equal("folder"));
+        }else if ("cmis:document".equals(type)){
+        	cond = cond.and(DOCUMENTS.SYS_BASE_TYPE.equal("document"));
+        }else{
+        	cond = cond.and(DOCUMENTS.SYS_TYPE.equal(type));
+        }
         List<DocumentsRecord>  queryResults = jooq.selectFrom(DOCUMENTS)
                 .where(cond)
                 .orderBy(getSortFields(pageable.getSort(), DOCUMENTS, DOCUMENTS.DATA))

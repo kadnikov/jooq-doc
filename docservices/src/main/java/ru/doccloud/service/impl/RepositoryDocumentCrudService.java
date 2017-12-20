@@ -175,7 +175,29 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     public DocumentDTO delete(final Long id) {
         LOGGER.debug("entering delete(id ={})", id);
 
-        Document deleted = repository.delete(id);
+        Document deleted = null;
+        DocumentDTO doc = findById(id);
+        
+        LinkDTO deletedLink = null;
+        try {
+
+            DocumentDTO parent = findById(Long.parseLong(doc.getParent()));
+
+            LOGGER.debug("deleteObject(): parent document {}", parent);
+
+            if (parent != null) {
+                deletedLink = deleteLink(parent.getId(), doc.getId());
+                LOGGER.debug("deleteObject(): link has been deleted {}", deletedLink);
+            }
+
+            // delete doc
+            deleted = repository.delete(id);
+            LOGGER.debug("leaving deleteObject(): document {} has been deleted successfully", deleted);
+        } catch (Exception e){
+            LOGGER.error("deleteObject(): exception {} ", e.getMessage());
+            if(deletedLink != null)
+                addLink(deletedLink.getHead_id(), deletedLink.getTail_id());
+        }
 
         LOGGER.debug("leaving delete(): Deleted Document  {}", deleted);
 
@@ -355,14 +377,19 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     }
 
     @Override
-    public List<DocumentDTO> findAllByParent(final Long parentid) {
+    public Page<DocumentDTO> findAllByParent(final Long parentid, Pageable pageable) {
         LOGGER.debug("entering findAllByParent(parentId = {})", parentid);
 
-        List<Document> docEntries = repository.findAllByParent(parentid);
+        Page<Document> searchResults = repository.findAllByParent(parentid, pageable);
 
-        LOGGER.debug("leaving findAllByParent(): Found {} Documents", docEntries);
+        List<DocumentDTO> dtos = transformer.convertList(searchResults.getContent(), DocumentDTO.class);
 
-        return transformer.convertList(docEntries, DocumentDTO.class);
+        LOGGER.debug("leaving findAllByParentAndType(): Found {} Documents", dtos);
+
+        return new PageImpl<>(dtos,
+                new PageRequest(searchResults.getNumber(), searchResults.getSize(), searchResults.getSort()),
+                searchResults.getTotalElements()
+        );
     }
     
     @Override

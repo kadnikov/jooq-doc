@@ -33,7 +33,7 @@ public interface DocumentCrudService {
 
     public DocumentDTO update(final DocumentDTO updated, final String user);
 	
-	public List<DocumentDTO> findAllByParent(final Long parentid);
+	public Page<DocumentDTO> findAllByParent(final Long parentid, Pageable pageable);
 
 	public Page<DocumentDTO> findAll(Pageable pageable, String query);
 
