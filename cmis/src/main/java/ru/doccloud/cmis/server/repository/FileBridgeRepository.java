@@ -792,9 +792,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
                 objectId, filter, includeAllowableActions, includePathSegment, maxItems, skipCount, objectInfos);
         boolean userReadOnly = checkUser(context, false);
 
-        // split filter
-        Set<String> filterCollection = FileBridgeUtils.splitFilter(filter);
-        LOGGER.debug("getChildren(): filterCollection: {}", filterCollection);
+
 
         // set defaults if values not set
         boolean iaa = FileBridgeUtils.getBooleanParameter(includeAllowableActions, false);
@@ -815,7 +813,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         if (orderBy!=null){
         	orderBy = orderBy.split(",")[0];
         	Direction orderByDir = Direction.ASC;
-        	if (orderBy.split(" ")[1].equals("DESC")) orderByDir = Direction.DESC;
+        	if (orderBy.contains(" ") && orderBy.split(" ")[1].equals("DESC")) orderByDir = Direction.DESC;
         	String orderByProp = orderBy.split(" ")[0];
         	if (orderByProp.equals("cmis:name")) orderByProp="SYS_TITLE";
         	else if (orderByProp.equals("cmis:objectTypeId")) orderByProp="SYS_TYPE";
@@ -833,11 +831,16 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         Page<DocumentDTO> docList = null;
         if ("cmis:folder".equals(filter)){
         	docList = crudService.findAllByParentAndType(parentId, filter, pageable);
-        	filter = "";
+        	filter = null;
         }else{
         	docList = crudService.findAllByParent(parentId, pageable);
+        	LOGGER.debug("getChildren(): filter {} ", filter);
         }
-
+        
+        // split filter
+        Set<String> filterCollection = FileBridgeUtils.splitFilter(filter);
+        LOGGER.debug("getChildren(): filterCollection: {}", filterCollection);
+        
         LOGGER.debug("getChildren(): Found {} children.", docList != null ? docList.getTotalElements() : null);
         ObjectInFolderListImpl result = new ObjectInFolderListImpl();
         if(docList == null){
