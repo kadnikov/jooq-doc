@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
@@ -178,7 +179,7 @@ public class ITJOOQDocumentRepositoryTest {
     @DatabaseSetup("/ru/doccloud/document/document-parent-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value ="/ru/doccloud/document/document-parent-data.xml")
     public void findAllByParent_DocumentEntryNotFound_ShouldThrowException() {
-        catchException(repository, DocumentNotFoundException.class).findAllByParent(null);
+        catchException(repository, DocumentNotFoundException.class).findAllByParent(null,new PageRequest(FIRST_PAGE, PAGE_SIZE));
         assertThat((DocumentNotFoundException) caughtException()).isExactlyInstanceOf(DocumentNotFoundException.class);
     }
 
@@ -186,7 +187,7 @@ public class ITJOOQDocumentRepositoryTest {
     @DatabaseSetup("/ru/doccloud/document/document-parent-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/document/document-parent-data.xml")
     public void findAllByParent_NoDocumentEntriesFound_ShouldReturnEmptyList() {
-        List<Document> DocumentEntries = repository.findAllByParent(IntegrationTestConstants.ID_SECOND_DOCUMENT);
+    	Page<Document> DocumentEntries = repository.findAllByParent(IntegrationTestConstants.ID_SECOND_DOCUMENT,new PageRequest(FIRST_PAGE, PAGE_SIZE));
         assertThat(DocumentEntries).isEmpty();
     }
 
@@ -196,14 +197,14 @@ public class ITJOOQDocumentRepositoryTest {
     @DatabaseSetup("/ru/doccloud/document/document-parent-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value ="/ru/doccloud/document/document-parent-data.xml")
     public void findAllByParent_DocumentEntryFound_ShouldReturnDocument() {
-        List<Document> foundDocumentEntries = repository.findAllByParent(IntegrationTestConstants.PARENT_ID);
-        assertThat(foundDocumentEntries).hasSize(2);
-        assertThatDocument(foundDocumentEntries.get(0))
+        Page<Document> foundDocumentEntries = repository.findAllByParent(IntegrationTestConstants.PARENT_ID,new PageRequest(FIRST_PAGE, PAGE_SIZE));
+        assertThat(foundDocumentEntries.getContent()).hasSize(2);
+        assertThatDocument(foundDocumentEntries.getContent().get(0))
                 .hasId(IntegrationTestConstants.ID_SECOND_DOCUMENT)
                 .hasBaseType(IntegrationTestConstants.BASE_TYPE_FOLDER)
                 .hasTitle(IntegrationTestConstants.CURRENT_TITLE_FIRST_DOCUMENT);
 
-        assertThatDocument(foundDocumentEntries.get(1))
+        assertThatDocument(foundDocumentEntries.getContent().get(1))
                 .hasId(IntegrationTestConstants.ID_THIRD_DOCUMENT)
                 .hasBaseType(IntegrationTestConstants.BASE_TYPE_DOCUMENT)
                 .hasTitle(IntegrationTestConstants.CURRENT_TITLE_SECOND_DOCUMENT);
