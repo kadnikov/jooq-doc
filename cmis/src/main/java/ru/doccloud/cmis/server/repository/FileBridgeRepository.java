@@ -831,7 +831,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         LOGGER.debug("getChildren(): Folder ID: {}", objectId);
         final Long parentId = Long.parseLong(objectId);
         Page<DocumentDTO> docList = null;
-        if (filter.equals("cmis:folder")){
+        if ("cmis:folder".equals(filter)){
         	docList = crudService.findAllByParentAndType(parentId, filter, pageable);
         	filter = null;
         }else{
