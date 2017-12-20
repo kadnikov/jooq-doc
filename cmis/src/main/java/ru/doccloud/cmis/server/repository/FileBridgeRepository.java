@@ -833,7 +833,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         Page<DocumentDTO> docList = null;
         if ("cmis:folder".equals(filter)){
         	docList = crudService.findAllByParentAndType(parentId, filter, pageable);
-        	filter = null;
+        	filter = "";
         }else{
         	docList = crudService.findAllByParent(parentId, pageable);
         }
