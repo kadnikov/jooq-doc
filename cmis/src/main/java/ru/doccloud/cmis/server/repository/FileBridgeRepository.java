@@ -863,7 +863,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         // prepare result
 
         result.setObjects(new ArrayList<>());
-        result.setHasMoreItems(false);
+        result.setHasMoreItems(docList.hasNextPage());
         int count = 0;
 
         LOGGER.debug("getChildren(): adding children to result...");
@@ -896,7 +896,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         }
 
 
-        result.setNumItems(BigInteger.valueOf(count));
+        result.setNumItems(BigInteger.valueOf(docList.getTotalElements()));
         LOGGER.debug("leaving getChildren(): result {}.", result);
         return result;
     }
