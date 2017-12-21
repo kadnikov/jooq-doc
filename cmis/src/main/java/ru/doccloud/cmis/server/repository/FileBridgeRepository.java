@@ -63,7 +63,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.domain.Sort.Order;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -811,19 +813,26 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         
         Pageable pageable = new PageRequest(skip/max, max);
         if (orderBy!=null){
-        	orderBy = orderBy.split(",")[0];
-        	Direction orderByDir = Direction.ASC;
-        	if (orderBy.contains(" ") && orderBy.split(" ")[1].equals("DESC")) orderByDir = Direction.DESC;
-        	String orderByProp = orderBy.split(" ")[0];
-        	if (orderByProp.equals("cmis:name")) orderByProp="SYS_TITLE";
-        	else if (orderByProp.equals("cmis:objectTypeId")) orderByProp="SYS_TYPE";
-        	else if (orderByProp.equals("cmis:baseTypeId")) orderByProp="SYS_BASE_TYPE";
-        	else if (orderByProp.equals("cmis:createdBy")) orderByProp="SYS_AUTHOR";
-        	else if (orderByProp.equals("cmis:creationDate")) orderByProp="SYS_DATE_CR";
-        	else if (orderByProp.equals("cmis:lastModifiedBy")) orderByProp="SYS_MODIFIER";
-        	else if (orderByProp.equals("cmis:lastModificationDate")) orderByProp="SYS_DATE_MOD";
+        	String[] orderByArr = orderBy.split(",");
+        	List<Order> ordList = new ArrayList<Order>(); 
+        	for (String orderByStr: orderByArr){
+	        	Direction orderByDir = Direction.ASC;
+	        	if (orderByStr.contains(" ") && orderByStr.split(" ")[1].equals("DESC")) orderByDir = Direction.DESC;
+	        	String orderByProp = orderByStr.split(" ")[0];
+	        	if (orderByProp.equals("cmis:name")) orderByProp="SYS_TITLE";
+	        	else if (orderByProp.equals("cmis:objectTypeId")) orderByProp="SYS_TYPE";
+	        	else if (orderByProp.equals("cmis:baseTypeId")) orderByProp="SYS_BASE_TYPE";
+	        	else if (orderByProp.equals("cmis:createdBy")) orderByProp="SYS_AUTHOR";
+	        	else if (orderByProp.equals("cmis:creationDate")) orderByProp="SYS_DATE_CR";
+	        	else if (orderByProp.equals("cmis:lastModifiedBy")) orderByProp="SYS_MODIFIER";
+	        	else if (orderByProp.equals("cmis:lastModificationDate")) orderByProp="SYS_DATE_MOD";
+	        	Order ord = new Order(orderByDir, orderByProp);
+	        	LOGGER.debug("getChildren(): orderByDir: {}, orderByProp: {}", orderByDir, orderByProp);
+	        	ordList.add(ord);
+        	}
+        	Sort sort = new Sort(ordList);
         	
-        	pageable = new PageRequest(skip/max, max, orderByDir, orderByProp);
+        	pageable = new PageRequest(skip/max, max, sort);
         }
         
         LOGGER.debug("getChildren(): Folder ID: {}", objectId);

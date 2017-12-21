@@ -25,7 +25,7 @@ import static ru.doccloud.document.jooq.db.tables.System.SYSTEM;
 
 public class DataQueryHelper {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SystemRepositoryImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DataQueryHelper.class);
 
 
 
