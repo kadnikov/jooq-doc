@@ -97,17 +97,29 @@ public class FileBridgeTypeManager {
         typeDefinitions.put(documentType.getId(), documentType);
         long parent = 0;
         
-        addCustomTypes(parent, systemService, documentType);
+        addCustomTypes(parent, systemService, documentType, folderType, false);
     }
     
-    private void addCustomTypes(long parent, SystemCrudService systemService, TypeDefinition documentType) {
+    private void addCustomTypes(long parent, SystemCrudService systemService, TypeDefinition documentType, TypeDefinition folderType, boolean isFolder) {
     Page<SystemDTO> types = systemService.findAllByParentAndType(parent, "type", createPageRequest());
     for (SystemDTO type : types) {
     	LOGGER.debug("addCustomTypes(): type {} - {} ({})", type.getId(), type.getTitle(), type.getSymbolicName());
-    	MutableDocumentTypeDefinition  childType = (MutableDocumentTypeDefinition) typeDefinitionFactory
-        		.createChildTypeDefinition(documentType, type.getSymbolicName());
+    	MutableTypeDefinition  childType = null;
+    	boolean isCurFolder = isFolder;
+    	if (type.getSymbolicName().equals("folder")){
+    		childType = (MutableFolderTypeDefinition) typeDefinitionFactory
+    				.createChildTypeDefinition(folderType, type.getSymbolicName());
+    		isCurFolder=true;
+    	}else if (isCurFolder){
+    		childType = (MutableFolderTypeDefinition) typeDefinitionFactory
+    				.createChildTypeDefinition(documentType, type.getSymbolicName());
+    	}else{
+    		childType = (MutableDocumentTypeDefinition) typeDefinitionFactory
+            		.createChildTypeDefinition(documentType, type.getSymbolicName());
+    		//(MutableDocumentTypeDefinition childType).setIsVersionable(true);
+    	}
 		
-        childType.setIsVersionable(true);
+        
         childType.setDisplayName(type.getTitle());
         childType.setLocalName(type.getTitle());
         childType.setLocalNamespace("pa");
@@ -140,7 +152,7 @@ public class FileBridgeTypeManager {
         removeQueryableAndOrderableFlags(childType);
         addTypeDefinition(childType);
 
-    	addCustomTypes(type.getId(), systemService, childType);
+    	addCustomTypes(type.getId(), systemService, childType, null, isCurFolder);
     }
     }
     private Pageable createPageRequest() {

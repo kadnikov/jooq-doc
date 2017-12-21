@@ -242,7 +242,7 @@ abstract class BridgeRepository {
         // find base type
         String baseTypeId = isDirectory ? BaseTypeId.CMIS_FOLDER.value() : BaseTypeId.CMIS_DOCUMENT.value();
         String typeId = baseTypeId;
-        if (!isDirectory && customType!=null && customType!="" && customType!="document"){
+        if (customType!=null && customType!="" && customType!="document"){
         	typeId = customType;
         }
         initObjectInfo(objectInfo, isDirectory, typeId);
