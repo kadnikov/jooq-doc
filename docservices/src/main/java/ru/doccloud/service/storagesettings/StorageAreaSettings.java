@@ -1,4 +1,4 @@
-package ru.doccloud.storage.storagesettings;
+package ru.doccloud.service.storagesettings;
 
 import com.fasterxml.jackson.databind.JsonNode;
 

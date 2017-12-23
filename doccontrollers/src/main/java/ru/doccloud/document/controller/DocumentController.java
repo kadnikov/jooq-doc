@@ -11,17 +11,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.common.util.VersionHelper;
 import ru.doccloud.service.DocumentCrudService;
 import ru.doccloud.service.DocumentSearchService;
+import ru.doccloud.service.FileService;
 import ru.doccloud.service.document.dto.DocumentDTO;
-import ru.doccloud.storage.storagesettings.StorageAreaSettings;
-import ru.doccloud.storagemanager.StorageManager;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * @author Andrey Kadnikov
@@ -36,11 +35,12 @@ public class DocumentController  extends AbstractController {
 
     private final DocumentSearchService searchService;
 
+
     @Autowired
     public DocumentController(DocumentCrudService crudService, DocumentSearchService searchService,
-                              StorageAreaSettings storageAreaSettings, StorageManager storageManager) throws Exception {
-        super(storageAreaSettings, storageManager, crudService);
-        LOGGER.info("DocumentController(crudService={}, searchService = {}, storageAreaSettings= {}, storageManager={})", crudService, searchService, storageAreaSettings, storageManager);
+                              FileService fileService) throws Exception {
+        super(fileService, crudService);
+        LOGGER.trace("DocumentController(crudService={}, searchService = {}, fileService={})", crudService, searchService, fileService);
         this.crudService = crudService;
         this.searchService = searchService;
     }
@@ -128,9 +128,10 @@ public class DocumentController  extends AbstractController {
             throw new Exception("Filepath is empty, content for document " + dto + "does not exist");
         }
 
-        final JsonNode storageSettings = getStorageSettingByStorageAreaName(dto.getFileStorage());
+        final JsonNode storageSettings = fileService.getStorageSettingByStorageAreaName(dto.getFileStorage());
         LOGGER.debug("getContent(): storageSettings {}", storageSettings);
-        return getStorageActionServiceByStorageName(dto.getFileStorage()).readFile(storageSettings, filePath);
+
+        return fileService.readFile(storageSettings, filePath);
     }
 
     @RequestMapping(method = RequestMethod.GET)
@@ -211,12 +212,12 @@ public class DocumentController  extends AbstractController {
                 throw new Exception("The multipart file contains either empty content type or empty filename or does not contain data");
             LOGGER.debug("writeContent(): the document: {} has been added, starting write to storage", dto);
 
-            final JsonNode settingsNode = getStorageSetting(dto.getType());
-
-            final String filePath = writeContent(dto.getUuid(), mpf.getBytes(), settingsNode);
+            final JsonNode storageSettings = fileService.getStorageSettingsByDocType(dto.getType());
+            LOGGER.debug("writeContent(): storageSettings {}", storageSettings);
+            final String filePath = fileService.writeContent(dto.getUuid(), mpf.getBytes(), storageSettings);
             LOGGER.debug("writeContent(): file has been saved, filePath {}", filePath);
             dto.setFilePath(filePath);
-            dto.setFileStorage(getStorageAreaName(settingsNode));
+            dto.setFileStorage(JsonNodeParser.getStorageAreaName(storageSettings));
             DocumentDTO updated = crudService.updateFileInfo(dto);
             LOGGER.debug("leaving writeContent(): Dto object has been updated: {}", updated);
             return updated;

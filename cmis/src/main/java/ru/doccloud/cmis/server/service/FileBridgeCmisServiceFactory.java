@@ -43,11 +43,11 @@ import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.common.global.SettingsKeys;
 import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.service.DocumentCrudService;
+import ru.doccloud.service.FileService;
 import ru.doccloud.service.SystemCrudService;
 import ru.doccloud.service.UserService;
 import ru.doccloud.service.document.dto.UserDTO;
-import ru.doccloud.storage.storagesettings.StorageAreaSettings;
-import ru.doccloud.storagemanager.StorageManager;
+import ru.doccloud.service.storagesettings.StorageAreaSettings;
 
 import java.math.BigInteger;
 import java.util.GregorianCalendar;
@@ -82,7 +82,6 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
 
 	private SystemCrudService systemService;
     private final DocumentCrudService crudService;
-    private final StorageManager storageManager;
     private StorageAreaSettings storageAreaSettings;
 
     private final UserService userService;
@@ -94,20 +93,23 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
     private FileBridgeRepositoryManager repositoryManager;
     private FileBridgeUserManager userManager;
     private FileBridgeTypeManager typeManager;
+
+    private FileService fileService;
 //    private UserInfo userInfo;
 
 
     @Autowired
     public FileBridgeCmisServiceFactory( SystemCrudService systemService, DocumentCrudService crudService,
-                                        StorageAreaSettings storageAreaSettings,  StorageManager storageManager,
+                                        StorageAreaSettings storageAreaSettings,
+                                         FileService fileService,
                                         UserService userService) {
-        LOGGER.info("FileBridgeCmisServiceFactory(crudService={}, storageAreaSettings= {}, storageManager={})", crudService, storageAreaSettings, storageManager);
+        LOGGER.info("FileBridgeCmisServiceFactory(crudService={}, storageAreaSettings= {}, storageManager={})", crudService, storageAreaSettings);
 //        this.appContext = appContext;
         this.systemService = systemService;
         this.crudService = crudService;
         this.storageAreaSettings = storageAreaSettings;
-        this.storageManager = storageManager;
         this.userService = userService;
+        this.fileService = fileService;
         
     }
 
@@ -150,7 +152,7 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
         LOGGER.trace("getService(userName={})", context.getUsername());
 
         try {
-    //        todo add authentificated user into the cache, it would be ideal if we used already authentificated user in application
+    //        todo add users creds fro jwt token
             LOGGER.trace("getService(): userManager {}", userManager);
             UserDTO userDTO = userManager.authenticate(context);
 
@@ -174,9 +176,9 @@ public class FileBridgeCmisServiceFactory extends AbstractServiceFactory {
                 if(StringUtils.isBlank(rootPath))
                     throw new DocumentNotFoundException("root path was not found for repository " + repositoryId);
 
-                LOGGER.trace("getService() creating FileBridgeRepository(repositoryId={}, rootPath = {}, typeManager={},  crudService= {}, storageAreaSettings = {}, storageManager={})",
-                        repositoryId, rootPath, typeManager, crudService, storageAreaSettings, storageManager);
-                fsr = new FileBridgeRepository(repositoryId, rootPath, typeManager, crudService, storageAreaSettings, storageManager, userService);
+                LOGGER.trace("getService() creating FileBridgeRepository(repositoryId={}, rootPath = {}, typeManager={},  crudService= {}, storageAreaSettings = {})",
+                        repositoryId, rootPath, typeManager, crudService, storageAreaSettings);
+                fsr = new FileBridgeRepository(repositoryId, rootPath, typeManager, crudService, fileService, userService);
                 repositoryManager.addRepository(fsr);
                 LOGGER.trace("getService(): repository was creatd and added to repositoryManager {}", repositoryId);
             }

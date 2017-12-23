@@ -21,9 +21,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import ru.doccloud.service.DocumentCrudService;
 import ru.doccloud.service.DocumentSearchService;
+import ru.doccloud.service.FileService;
 import ru.doccloud.service.document.dto.DocumentDTO;
-import ru.doccloud.storage.storagesettings.StorageAreaSettings;
-import ru.doccloud.storagemanager.StorageManager;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -51,9 +50,9 @@ public class IAController  extends AbstractController {
 
     @Autowired
     public IAController(DocumentCrudService crudService, DocumentSearchService searchService,
-                              StorageAreaSettings storageAreaSettings, StorageManager storageManager) throws Exception {
-        super(storageAreaSettings, storageManager, crudService);
-        LOGGER.info("DocumentController(crudService={}, searchService = {}, storageAreaSettings= {}, storageManager={})", crudService, searchService, storageAreaSettings, storageManager);
+						FileService fileService) throws Exception {
+        super(fileService, crudService);
+        LOGGER.info("DocumentController(crudService={}, searchService = {}, storageAreaSettings= {}, storageManager={})", crudService, searchService, fileService);
         this.crudService = crudService;
         this.searchService = searchService;
     }
@@ -88,9 +87,9 @@ public class IAController  extends AbstractController {
 	            throw new Exception(String.format("Filepath is empty, content for document %s does not exist", doc));
 	        }
 
-			JsonNode storageSettings = getStorageSettingByStorageAreaName(doc.getFileStorage()); // getStorageSetting(doc.getType());
+			JsonNode storageSettings = fileService.getStorageSettingByStorageAreaName(doc.getFileStorage());
 
-	        byte[] file = getStorageActionServiceByStorageName(doc.getFileStorage()).readFile(storageSettings, filePath);
+	        byte[] file = fileService.readFile(storageSettings, filePath);
 	        String fileString = new String(file);
 	        res.put("form", fileString);
 

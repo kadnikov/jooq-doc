@@ -1,59 +1,20 @@
 
 package ru.doccloud.cmis.server.repository;
 
-import static ru.doccloud.cmis.server.util.FileBridgeUtils.checkNewProperties;
-import static ru.doccloud.cmis.server.util.FileBridgeUtils.checkUpdateProperties;
-import static ru.doccloud.cmis.server.util.FileBridgeUtils.getObjectTypeId;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
-import org.apache.chemistry.opencmis.commons.data.Acl;
-import org.apache.chemistry.opencmis.commons.data.AllowableActions;
-import org.apache.chemistry.opencmis.commons.data.BulkUpdateObjectIdAndChangeToken;
-import org.apache.chemistry.opencmis.commons.data.ContentStream;
-import org.apache.chemistry.opencmis.commons.data.FailedToDeleteData;
-import org.apache.chemistry.opencmis.commons.data.MutablePropertyData;
-import org.apache.chemistry.opencmis.commons.data.ObjectData;
-import org.apache.chemistry.opencmis.commons.data.ObjectInFolderContainer;
-import org.apache.chemistry.opencmis.commons.data.ObjectInFolderList;
-import org.apache.chemistry.opencmis.commons.data.ObjectList;
-import org.apache.chemistry.opencmis.commons.data.ObjectParentData;
-import org.apache.chemistry.opencmis.commons.data.Properties;
-import org.apache.chemistry.opencmis.commons.data.PropertyData;
-import org.apache.chemistry.opencmis.commons.data.PropertyDateTime;
-import org.apache.chemistry.opencmis.commons.data.PropertyInteger;
-import org.apache.chemistry.opencmis.commons.data.PropertyString;
+import org.apache.chemistry.opencmis.commons.data.*;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinition;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionContainer;
 import org.apache.chemistry.opencmis.commons.definitions.TypeDefinitionList;
 import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.enums.VersioningState;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisConstraintException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisInvalidArgumentException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisPermissionDeniedException;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisStorageException;
+import org.apache.chemistry.opencmis.commons.exceptions.*;
 import org.apache.chemistry.opencmis.commons.impl.MimeTypes;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.BulkUpdateObjectIdAndChangeTokenImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.FailedToDeleteDataImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectInFolderDataImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectInFolderListImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectListImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.ObjectParentDataImpl;
-import org.apache.chemistry.opencmis.commons.impl.dataobjects.PartialContentStreamImpl;
+import org.apache.chemistry.opencmis.commons.impl.dataobjects.*;
 import org.apache.chemistry.opencmis.commons.server.CallContext;
 import org.apache.chemistry.opencmis.commons.server.ObjectInfoHandler;
 import org.apache.chemistry.opencmis.commons.spi.Holder;
@@ -66,27 +27,28 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import ru.doccloud.cmis.server.FileBridgeTypeManager;
 import ru.doccloud.cmis.server.util.FileBridgeUtils;
 import ru.doccloud.common.exception.DocumentNotFoundException;
 import ru.doccloud.common.util.JsonNodeParser;
 import ru.doccloud.common.util.VersionHelper;
 import ru.doccloud.service.DocumentCrudService;
+import ru.doccloud.service.FileService;
 import ru.doccloud.service.UserService;
 import ru.doccloud.service.document.dto.DocumentDTO;
 import ru.doccloud.service.document.dto.LinkDTO;
 import ru.doccloud.service.document.dto.UserDTO;
 import ru.doccloud.service.document.dto.UserRoleDTO;
-import ru.doccloud.storage.StorageActionsService;
-import ru.doccloud.storage.storagesettings.StorageAreaSettings;
-import ru.doccloud.storagemanager.StorageManager;
-import ru.doccloud.storagemanager.Storages;
+
+import java.io.*;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+
+import static ru.doccloud.cmis.server.util.FileBridgeUtils.*;
 
 /**
  * Implements all repository operations.
@@ -101,20 +63,20 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
     private UserService userService;
 
-    private final StorageManager storageManager;
+    private FileService fileService;
 
-    private final StorageAreaSettings storageAreaSettings;
+//    private final StorageManager storageManager;
+
+//    private final StorageAreaSettings storageAreaSettings;
 
     public FileBridgeRepository(final String repositoryId, String rootPath,
                                 final FileBridgeTypeManager typeManager,  DocumentCrudService crudService,
-                                StorageAreaSettings storageAreaSettings, StorageManager storageManager, UserService userService) throws Exception {
+                                FileService fileService,  UserService userService) throws Exception {
         super(repositoryId, typeManager, rootPath);
 
-        LOGGER.trace("FileBridgeRepository(repositoryId={}, rootPath = {}, typeManager={},  crudService= {}, storageAreaSettings = {}, storageManager={})",
-                repositoryId, rootPath, typeManager, crudService, storageAreaSettings, storageManager);
+        LOGGER.trace("FileBridgeRepository(repositoryId={}, rootPath = {}, typeManager={},  crudService= {}, fileService={})",
+                repositoryId, rootPath, typeManager, crudService, fileService);
 
-        this.storageAreaSettings = storageAreaSettings;
-        this.storageManager = storageManager;
         this.crudService = crudService;
         this.userService = userService;
     }
@@ -265,7 +227,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
             crudService.addToFolder(doc, parent.getId());
 
             // copy content
-            final JsonNode storageSettings = storageAreaSettings.getStorageSettingsByType(doc.getType());
+            final JsonNode storageSettings = fileService.getStorageSettingsByDocType(doc.getType());
             String filePath = writeContent(doc, new FileInputStream(source.getFilePath()), storageSettings);
             LOGGER.debug("createDocumentFromSource(): content was written filePath {}, storage = {}", filePath);
             if(filePath != null) {
@@ -274,7 +236,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
                 doc.setFileLength(source.getFileLength());
                 doc.setFileName(source.getFileName());
                 doc.setModifier(context.getUsername());
-                doc.setFileStorage(getStorageAreaName(storageSettings));
+                doc.setFileStorage(JsonNodeParser.getStorageAreaName(storageSettings));
                 doc = crudService.update(doc, context.getUsername());
             }
 
@@ -461,9 +423,8 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
     private String writeContent(DocumentDTO doc, InputStream stream, JsonNode storageSettings) throws Exception {
         try {
             LOGGER.trace("entering writeContent(doc={}, storageSettings={}, storages={})", doc, storageSettings);
-            final StorageActionsService storageActionsService = getStorageActionService(storageSettings);
 
-            final String filePath = storageActionsService.writeFile(storageSettings,  doc.getUuid(), org.apache.commons.io.IOUtils.toByteArray(stream));
+            final String filePath = fileService.writeContent(doc.getUuid(), org.apache.commons.io.IOUtils.toByteArray(stream), storageSettings);
             LOGGER.debug("writeContent(): File has been saved on the disc, path to file {}", filePath);
             doc.setFilePath(filePath);
 
@@ -757,13 +718,9 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         if(StringUtils.isBlank(doc.getFileStorage()))
             throw new CmisConstraintException("Document has no filestorage!");
 
-        JsonNode settingsNode = getStorageSettingByStorageAreaName(doc.getFileStorage());
+        JsonNode settingsNode = fileService.getStorageSettingByStorageAreaName(doc.getFileStorage());
 
-        StorageActionsService storageActionsService = getStorageActionServiceByStorageName(doc.getFileStorage());
-
-        LOGGER.trace("getContentStream(): settingsNode {}, storageActionsService {}", settingsNode, storageActionsService);
-
-        byte[] contentByteArr = storageActionsService.readFile(settingsNode, doc.getFilePath());
+        byte[] contentByteArr = fileService.readFile(settingsNode, doc.getFilePath());
 
         LOGGER.trace("getContentStream(): contentByte {}", contentByteArr != null ? contentByteArr.length : 0);
         // compile data
@@ -1222,54 +1179,13 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
                 " length " + contentStream.getLength() + " }") : null;
     }
 
-    private StorageActionsService getStorageActionServiceByStorageName(final String storageName) throws Exception {
-
-        LOGGER.trace("entering getStorageActionServiceByStorageName(storageName={})", storageName);
-        final String storageType = storageAreaSettings.getStorageTypeByStorageName(storageName);
-
-        LOGGER.trace("getStorageActionServiceByStorageName(): storageType {}", storageType);
-        final Storages storage = Storages.getStorageByName(storageType);
-
-        LOGGER.trace("getStorageActionServiceByStorageName(): storage {}", storage);
-        if(storage == null)
-            throw new Exception(String.format("current storage type %s is neither amazon nor filestorage", storageType));
-
-        LOGGER.trace("getStorageActionServiceByStorageName(): storageType {}", storageType);
-
-        StorageActionsService storageActionsService = storageManager.getStorageService(storage);
-
-        LOGGER.trace("leaving getStorageActionServiceByStorageName(): storageActionsService {}", storageActionsService);
-        return storageActionsService;
-    }
-
-    private JsonNode getStorageSettingByStorageAreaName(String storageArea) throws Exception {
-        LOGGER.debug("getStorageSettingByStorageAreaName(): docType: {}", storageArea);
-
-        final JsonNode storageSetting = storageAreaSettings.getSettingBySymbolicName(storageArea);
-
-        LOGGER.debug("getStorageSettingByStorageAreaName(): storageSetting: {}", storageSetting);
-
-        return storageSetting;
-    }
-
-    private StorageActionsService getStorageActionService(JsonNode storageSettings) throws Exception {
-        return getStorageActionServiceByStorageName(getStorageAreaName(storageSettings));
-    }
-
-    private String getStorageAreaName(JsonNode storageSettings) throws Exception {
-        LOGGER.trace("entering getStorageAreaName(storageSettings= {})", storageSettings);
-        final String storageName = JsonNodeParser.getValueJsonNode(storageSettings, "symbolicName");
-        LOGGER.trace("leaving getStorageAreaName(): storageName {}", storageName);
-
-        return storageName;
-    }
 
     private void writeContentFromStream(DocumentDTO doc, ContentStream contentStream, String userName) throws Exception {
         // write content, if available
         LOGGER.trace("entering writeContentFromStream(doc={}, contentStream={}, userName={})", doc, contentStream, userName);
         try {
             if (contentStream != null && contentStream.getStream() != null && contentStream.getLength() >0 ) {
-                final JsonNode storageSettings = storageAreaSettings.getStorageSettingsByType(doc.getType());
+                final JsonNode storageSettings = fileService.getStorageSettingsByDocType(doc.getType());
 
                 final String filePath = writeContent(doc, contentStream.getStream(), storageSettings);
 
@@ -1288,7 +1204,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
                     doc.setFileMimeType(mimeType);
                     doc.setModifier(userName);
                     doc.setFileName(fileName);
-                    doc.setFileStorage(getStorageAreaName(storageSettings));
+                    doc.setFileStorage(JsonNodeParser.getStorageAreaName(storageSettings));
                     crudService.updateFileInfo(doc);
                 }
             }

@@ -14,10 +14,10 @@
         <phase.prop>none</phase.prop>
     </properties>
 
-   <parent>
+    <parent>
         <groupId>ru.doccloud</groupId>
         <artifactId>jooq-doc</artifactId>
-       <version>0.1</version>
+        <version>0.1</version>
     </parent>
 
     <build>
@@ -38,13 +38,13 @@
 
             </plugin>
             <!--<plugin>-->
-                <!--<groupId>org.apache.maven.plugins</groupId>-->
-                <!--<artifactId>maven-resources-plugin</artifactId>-->
+            <!--<groupId>org.apache.maven.plugins</groupId>-->
+            <!--<artifactId>maven-resources-plugin</artifactId>-->
 
             <!--</plugin>-->
             <!--<plugin>-->
-                <!--<groupId>org.codehaus.mojo</groupId>-->
-                <!--<artifactId>properties-maven-plugin</artifactId>-->
+            <!--<groupId>org.codehaus.mojo</groupId>-->
+            <!--<artifactId>properties-maven-plugin</artifactId>-->
 
             <!--</plugin>-->
 
@@ -61,20 +61,30 @@
             <version>0.1</version>
         </dependency>
 
-		<dependency>
+        <dependency>
             <groupId>ru.doccloud</groupId>
             <artifactId>docmanagement</artifactId>
-            <version>0.1</version> 
+            <version>0.1</version>
         </dependency>
-        
-		<dependency>
-		    <!-- groupId>com.github.everit-org.json-schema</groupId>
-		    <artifactId>org.everit.json.schema</artifactId>
-		    <version>1.6.0</version-->
-			<groupId>org.everit.json</groupId>
-			<artifactId>org.everit.json.schema</artifactId>
-			<version>1.5.1</version>
-		</dependency>
+
+        <dependency>
+            <groupId>ru.doccloud</groupId>
+            <artifactId>storageactions</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>ru.doccloud</groupId>
+            <artifactId>storagemanager</artifactId>
+        </dependency>
+
+        <dependency>
+            <!-- groupId>com.github.everit-org.json-schema</groupId>
+            <artifactId>org.everit.json.schema</artifactId>
+            <version>1.6.0</version-->
+            <groupId>org.everit.json</groupId>
+            <artifactId>org.everit.json.schema</artifactId>
+            <version>1.5.1</version>
+        </dependency>
 
 
         <dependency>
@@ -127,16 +137,16 @@
             <artifactId>spring-tx</artifactId>
         </dependency>
 
-    	<dependency>
-    		<groupId>org.elasticsearch.client</groupId>
-    		<artifactId>transport</artifactId>
-    	</dependency>
-		
-		<dependency>
-			<groupId>org.elasticsearch</groupId>
-			<artifactId>elasticsearch</artifactId>
-		</dependency>
-    
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>transport</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-validator</artifactId>

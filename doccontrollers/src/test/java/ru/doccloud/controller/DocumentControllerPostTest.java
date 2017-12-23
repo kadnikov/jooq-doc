@@ -36,8 +36,8 @@ public class DocumentControllerPostTest {
     private final static String ADD_CONTENT_PATH = "jooq/api/docs/addcontent/";
     private final static String BASIC_PATH = "jooq/api/docs/";
 
-    private final static String FILE_PATH = "C:\\trworkspace\\intended_new.txt";
-    private final static String UPDATE_FILE_PATH = "C:\\trworkspace\\intended1.txt";
+    private final static String FILE_PATH = "/home/ilya/filenet_workspace/tomcat-users.xml";
+    private final static String UPDATE_FILE_PATH = "/home/ilya/filenet_workspace/tomcat-users.xml";
 
     private HttpClient httpClient;
 
@@ -218,8 +218,10 @@ public class DocumentControllerPostTest {
         try {
             URIBuilder uriBuilder = new URIBuilder();
             uriBuilder.setScheme(HTTP_SCHEMA_URL).setHost(URL).setPort(PORT).setPath(LOGIN_PATH);
+            uriBuilder.addParameter("username", "boot").addParameter("password", "boot");
             URI uri = uriBuilder.build();
             HttpPost httpPost = new HttpPost(uri );
+
             httpPost.setEntity(new StringEntity(
                     prepareLoginInfoAsJSON(),
                     ContentType.create("application/json")));
@@ -242,7 +244,7 @@ public class DocumentControllerPostTest {
     }
 
     private String prepareLoginInfoAsJSON(){
-        return "{\"username\":\"test\",\"password\":\"123456\"}";
+        return "{\"username\":\"boot\",\"password\":\"boot\"}";
     }
     private String prepareDtoAsJSON(){
         return "{\"title\":\"xyz1\",\"type\":\"document\"}";

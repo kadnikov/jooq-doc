@@ -1,4 +1,4 @@
-package ru.doccloud.storage.storagesettings;
+package ru.doccloud.service.storagesettings;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
@@ -44,8 +44,6 @@ public class StorageAreaSettingsImpl implements StorageAreaSettings {
 
         return storageDoc.getData();
     }
-
-
 
 //    todo get StorageSettings by one query instead of three
     public JsonNode getStorageSettingsByType(final String docType) {

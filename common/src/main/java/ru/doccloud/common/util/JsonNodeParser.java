@@ -19,6 +19,15 @@ public class JsonNodeParser {
     private static final Logger LOGGER = LoggerFactory.getLogger(JsonNodeParser.class);
 
 
+    public static String getStorageAreaName(JsonNode storageSettings) throws Exception {
+        LOGGER.trace("entering getStorageAreaName(storageSettings= {})", storageSettings);
+        final String storageName = JsonNodeParser.getValueJsonNode(storageSettings, "symbolicName");
+        LOGGER.trace("leaving getStorageAreaName(): storageName {}", storageName);
+
+        return storageName;
+    }
+
+
     public static String getValueJsonNode(final JsonNode settingsNode, final String paramName) throws Exception {
         LOGGER.debug("entering  getValueJsonNode(settingsNode={}, paramName={})", settingsNode, paramName);
         if(StringUtils.isBlank(paramName))

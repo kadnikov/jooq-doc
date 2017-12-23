@@ -36,7 +36,7 @@ public class DocumentControllerGetTest {
 
     private final static String GET_UUID_PATH = BASIC_PATH + "uuid/";
 
-    private static final String PATH_TO_FILE = "C:\\trworkspace\\test_read_file\\read.txt";
+    private static final String PATH_TO_FILE = "/home/ilya/filenet_workspace/tomcat-users.xml";
 
 
 
@@ -48,7 +48,7 @@ public class DocumentControllerGetTest {
         httpClient = HttpClientBuilder.create().build();
     }
 
-    //    @Test
+//        @Test
     public void getDocByIdTest(){
         try {
             final String token = getJwtToken();
@@ -119,7 +119,7 @@ public class DocumentControllerGetTest {
             final String token = getJwtToken();
             if(!StringUtils.isBlank(token)) {
                 URIBuilder uriBuilder = new URIBuilder();
-                uriBuilder.setScheme(HTTP_SCHEMA_URL).setHost(URL).setPort(PORT).setPath(GET_CONTENT_PATH + 23);
+                uriBuilder.setScheme(HTTP_SCHEMA_URL).setHost(URL).setPort(PORT).setPath(GET_CONTENT_PATH + 12);
                 URI uri = uriBuilder.build();
                 HttpGet httpGet = new HttpGet(uri);
                 httpGet.addHeader("Authorization", token);
@@ -160,8 +160,10 @@ public class DocumentControllerGetTest {
         try {
             URIBuilder uriBuilder = new URIBuilder();
             uriBuilder.setScheme(HTTP_SCHEMA_URL).setHost(URL).setPort(PORT).setPath(LOGIN_PATH);
+            uriBuilder.addParameter("username", "boot").addParameter("password", "boot");
             URI uri = uriBuilder.build();
             HttpPost httpPost = new HttpPost(uri );
+
             httpPost.setEntity(new StringEntity(
                     prepareLoginInfoAsJSON(),
                     ContentType.create("application/json")));
@@ -184,7 +186,7 @@ public class DocumentControllerGetTest {
     }
 
     private String prepareLoginInfoAsJSON(){
-        return "{\"username\":\"test\",\"password\":\"123456\"}";
+        return "{\"username\":\"boot\",\"password\":\"boot\"}";
     }
 
 }
