@@ -1,7 +1,9 @@
 package ru.doccloud.document.repository;
 
 import com.github.springtestdbunit.DbUnitTestExecutionListener;
+import com.github.springtestdbunit.annotation.DatabaseOperation;
 import com.github.springtestdbunit.annotation.DatabaseSetup;
+import com.github.springtestdbunit.annotation.DatabaseTearDown;
 import com.github.springtestdbunit.annotation.ExpectedDatabase;
 import com.github.springtestdbunit.assertion.DatabaseAssertionMode;
 import org.junit.Test;
@@ -61,6 +63,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/empty-system-data.xml")
     @ExpectedDatabase(value= "/ru/doccloud/system/system-data-add.xml", assertionMode = DatabaseAssertionMode.NON_STRICT)
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data-add.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void add_ShouldAddNewSystemEntry() {
         SystemDocument  newDocumentEntry = SystemDocument.getBuilder(IntegrationTestConstants.NEW_TITLE)
                 .description(IntegrationTestConstants.NEW_DESCRIPTION)
@@ -83,6 +86,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void delete_SystemEntryNotFound_ShouldDeleteSystemDoc() {
         LOGGER.info("delete_DocumentEntryNotFound_ShouldDeleteDocument(): trying to throw exception");
         catchException(repository, DocumentNotFoundException.class).delete(IntegrationTestConstants.ID_THIRD_DOCUMENT);
@@ -92,6 +96,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data-deleted.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data-deleted.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void delete_SystemEntryFound_ShouldDeleteSystemDoc() {
         SystemDocument  deletedSystemEntry = repository.delete(IntegrationTestConstants.ID_FIRST_DOCUMENT);
         assertThatSystemDocument(deletedSystemEntry)
@@ -104,6 +109,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/empty-system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/empty-system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/empty-system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findAll_NoSystemEntriesFound_ShouldReturnEmptyList() {
         List<SystemDocument> entries = repository.findAll();
         assertThat(entries).isEmpty();
@@ -112,6 +118,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findAll_TwoSystemEntriesFound_ShouldReturnTwoSystemEntries() {
         List<SystemDocument> entries = repository.findAll();
 
@@ -133,6 +140,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findById_SystemEntryFound_ShouldReturnSystem() {
         SystemDocument  foundSystemEntry = repository.findById(IntegrationTestConstants.ID_FIRST_DOCUMENT);
 
@@ -145,6 +153,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/empty-system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/empty-system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/empty-system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findById_SystemEntryNotFound_ShouldThrowException() {
         catchException(repository, DocumentNotFoundException.class).findById(IntegrationTestConstants.ID_FIRST_DOCUMENT);
         assertThat((DocumentNotFoundException) caughtException()).isExactlyInstanceOf(DocumentNotFoundException.class);
@@ -153,6 +162,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-settings-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-settings-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-settings-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findBySymbolicName_SystemEntryFound_ShouldReturnSystem() {
         SystemDocument  foundSystemEntry = repository.findBySymbolicName(IntegrationTestConstants.SYMBOLIC_NAME);
 
@@ -163,6 +173,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-settings-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-settings-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-settings-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findBySymbolicName_SystemEntryNotFound_ShouldThrowException() {
         catchException(repository, TypeNotFoundException.class).findBySymbolicName(IntegrationTestConstants.SYMBOLIC_NAME_NOT_EXIST);
         assertThat((TypeNotFoundException) caughtException()).isExactlyInstanceOf(TypeNotFoundException.class);
@@ -171,6 +182,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/empty-system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/empty-system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/empty-system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findSettings_EmptySymbolicName_ShouldThrowException() {
         catchException(repository, DocumentNotFoundException.class).findBySymbolicName(null);
         assertThat((DocumentNotFoundException) caughtException()).isExactlyInstanceOf(DocumentNotFoundException.class);
@@ -179,6 +191,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-settings-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-settings-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-settings-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findSettings_SystemEntryFound_ShouldReturnSystem() {
         SystemDocument  foundSystemEntry = repository.findSettings(IntegrationTestConstants.SETTINGS_KEY_EXIST);
 
@@ -189,6 +202,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-settings-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-settings-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-settings-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findSettings_SystemEntryNotFound_ShouldThrowException() {
         catchException(repository, DocumentNotFoundException.class).findSettings(IntegrationTestConstants.SETTINGS_KEY_NOT_EXIST);
         assertThat((DocumentNotFoundException) caughtException()).isExactlyInstanceOf(DocumentNotFoundException.class);
@@ -197,6 +211,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/empty-system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/empty-system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/empty-system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findSettings_EmptySettingsKey_ShouldThrowException() {
         catchException(repository, DocumentNotFoundException.class).findSettings(null);
         assertThat((DocumentNotFoundException) caughtException()).isExactlyInstanceOf(DocumentNotFoundException.class);
@@ -205,6 +220,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findByUUID_DocumentEntryFound_ShouldReturnDocument() {
         SystemDocument foundDocumentEntry = repository.findByUUID(IntegrationTestConstants.FIRST_UUID);
 
@@ -217,6 +233,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findByUUID_DocumentEntryNotFound_ShouldThrowException() {
         catchException(repository, DocumentNotFoundException.class).findByUUID(IntegrationTestConstants.SECOND_UUID);
         assertThat((DocumentNotFoundException) caughtException()).isExactlyInstanceOf(DocumentNotFoundException.class);
@@ -225,6 +242,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-parent-type-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-parent-type-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-parent-type-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findAllByParentAndType_EmptyParentId_ShouldThrowException() {
         catchException(repository, DocumentNotFoundException.class).findAllByParentAndType(null, IntegrationTestConstants.TYPE, new PageRequest(FIRST_PAGE, PAGE_SIZE));
         assertThat((DocumentNotFoundException) caughtException()).isExactlyInstanceOf(DocumentNotFoundException.class);
@@ -233,6 +251,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-parent-type-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-parent-type-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-parent-type-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findAllByParentAndType_EmptyType_ShouldThrowException() {
         catchException(repository, DocumentNotFoundException.class).findAllByParentAndType(IntegrationTestConstants.PARENT_ID, null, new PageRequest(FIRST_PAGE, PAGE_SIZE));
         assertThat((DocumentNotFoundException) caughtException()).isExactlyInstanceOf(DocumentNotFoundException.class);
@@ -241,6 +260,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-parent-type-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-parent-type-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-parent-type-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findAllByParentAndType_FirstPageWithPageSizeOne_TwoDocumentEntriesExistAndSortedByTitleAsc_ShouldReturnFirstPageWithSecondDocumentEntry() {
         Sort sortSpecification = new Sort(new Sort.Order(Sort.Direction.ASC, IntegrationTestConstants.SORT_FIELD_TITLE));
         PageRequest pageSpecification = new PageRequest(FIRST_PAGE, PAGE_SIZE, sortSpecification);
@@ -267,6 +287,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/empty-system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/empty-system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/empty-system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findBySearchTerm_DocumentEntriesNotFound_ShouldReturnPageWithoutElements() {
         Page<SystemDocument> firstPage = repository.findBySearchTerm(IntegrationTestConstants.SEARCH_TERM,
                 new PageRequest(FIRST_PAGE, PAGE_SIZE)
@@ -286,6 +307,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findBySearchTerm_FirstPageWithPageSizeOne_TwoDocumentEntriesExist_ShouldReturnFirstPageWithFirstDocumentEntry() {
         Page<SystemDocument> firstPage = repository.findBySearchTerm(IntegrationTestConstants.SEARCH_TERM,
                 new PageRequest(FIRST_PAGE, PAGE_SIZE)
@@ -310,6 +332,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findBySearchTerm_FirstPageWithPageSizeOne_TwoDocumentEntriesExistAndSortedByTitleAsc_ShouldReturnFirstPageWithSecondDocumentEntry() {
         Sort sortSpecification = new Sort(new Sort.Order(Sort.Direction.ASC, IntegrationTestConstants.SORT_FIELD_TITLE));
         PageRequest pageSpecification = new PageRequest(FIRST_PAGE, PAGE_SIZE, sortSpecification);
@@ -336,6 +359,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findBySearchTerm_FirstPageWithPageSizeOne_TwoDocumentEntriesExistAndSortedByTitleDesc_ShouldReturnFirstPageWithFirstDocumentEntry() {
         Sort sortSpecification = new Sort(new Sort.Order(Sort.Direction.DESC, IntegrationTestConstants.SORT_FIELD_TITLE));
         PageRequest pageSpecification = new PageRequest(FIRST_PAGE, PAGE_SIZE, sortSpecification);
@@ -362,6 +386,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findBySearchTerm_SecondPageWithPageSizeOne_TwoDocumentEntriesExist_ShouldReturnSecondPageWithSecondDocumentEntry() {
         Page<SystemDocument> secondPage = repository.findBySearchTerm(IntegrationTestConstants.SEARCH_TERM,
                 new PageRequest(SECOND_PAGE, PAGE_SIZE)
@@ -387,6 +412,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findBySearchTerm_SecondPageWithPageSizeOne_TwoDocumentEntriesExistAndSortedByTitleAsc_ShouldReturnSecondPageWithFirstDocumentEntry() {
         Sort sortSpecification = new Sort(new Sort.Order(Sort.Direction.ASC, IntegrationTestConstants.SORT_FIELD_TITLE));
         PageRequest pageSpecification = new PageRequest(SECOND_PAGE, PAGE_SIZE, sortSpecification);
@@ -416,6 +442,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findAll_FirstPageWithPageSizeOne_TwoDocumentEntriesExistAndSortedByTitleDesc_ShouldReturnFirstPageWithFirstDocumentEntry() {
         Sort sortSpecification = new Sort(new Sort.Order(Sort.Direction.DESC, IntegrationTestConstants.SORT_FIELD_TITLE));
         PageRequest pageSpecification = new PageRequest(FIRST_PAGE, PAGE_SIZE, sortSpecification);
@@ -440,6 +467,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findAll_SecondPageWithPageSizeOne_TwoDocumentEntriesExistAndSortedByTitleAsc_ShouldReturnSecondPageWithFirstDocumentEntry() {
         Sort sortSpecification = new Sort(new Sort.Order(Sort.Direction.ASC, IntegrationTestConstants.SORT_FIELD_TITLE));
         PageRequest pageSpecification = new PageRequest(SECOND_PAGE, PAGE_SIZE, sortSpecification);
@@ -469,6 +497,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findAllByType_FirstPageWithPageSizeOne_EmptyFields_TwoDocumentEntriesExistAndSortedByTitleDesc_ShouldReturnFirstPageWithFirstDocumentEntry() {
         Sort sortSpecification = new Sort(new Sort.Order(Sort.Direction.DESC, IntegrationTestConstants.SORT_FIELD_TYPE));
         PageRequest pageSpecification = new PageRequest(FIRST_PAGE, PAGE_SIZE, sortSpecification);
@@ -496,6 +525,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findAllByType_FirstPageWithPageSizeOne_AllFields_TwoDocumentEntriesExistAndSortedByTitleDesc_ShouldReturnFirstPageWithFirstDocumentEntry() {
         Sort sortSpecification = new Sort(new Sort.Order(Sort.Direction.DESC, IntegrationTestConstants.SORT_FIELD_TYPE));
         PageRequest pageSpecification = new PageRequest(FIRST_PAGE, PAGE_SIZE, sortSpecification);
@@ -523,6 +553,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findAllByType_FirstPageWithPageSizeOne_ArrFields_TwoDocumentEntriesExistAndSortedByTitleDesc_ShouldReturnFirstPageWithFirstDocumentEntry() {
         Sort sortSpecification = new Sort(new Sort.Order(Sort.Direction.DESC, IntegrationTestConstants.SORT_FIELD_TYPE));
         PageRequest pageSpecification = new PageRequest(FIRST_PAGE, PAGE_SIZE, sortSpecification);
@@ -550,6 +581,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findAllByType_SecondPageWithPageSizeOne_EmptyFields_TwoDocumentEntriesExistAndSortedByTitleAsc_ShouldReturnSecondPageWithFirstDocumentEntry() {
         Sort sortSpecification = new Sort(new Sort.Order(Sort.Direction.ASC, IntegrationTestConstants.SORT_FIELD_TITLE));
         PageRequest pageSpecification = new PageRequest(SECOND_PAGE, PAGE_SIZE, sortSpecification);
@@ -579,6 +611,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findAllByType_SecondPageWithPageSizeOne_AllFields_TwoDocumentEntriesExistAndSortedByTitleAsc_ShouldReturnSecondPageWithFirstDocumentEntry() {
         Sort sortSpecification = new Sort(new Sort.Order(Sort.Direction.ASC, IntegrationTestConstants.SORT_FIELD_TITLE));
         PageRequest pageSpecification = new PageRequest(SECOND_PAGE, PAGE_SIZE, sortSpecification);
@@ -608,6 +641,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findAllByType_SecondPageWithPageSizeOne_ArrFields_TwoDocumentEntriesExistAndSortedByTitleAsc_ShouldReturnSecondPageWithFirstDocumentEntry() {
         Sort sortSpecification = new Sort(new Sort.Order(Sort.Direction.ASC, IntegrationTestConstants.SORT_FIELD_TITLE));
         PageRequest pageSpecification = new PageRequest(SECOND_PAGE, PAGE_SIZE, sortSpecification);
@@ -638,6 +672,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findBySearchTerm_SecondPageWithPageSizeOne_TwoDocumentEntriesExistAndSortedByTitleDesc_ShouldReturnSecondPageWithSecondDocumentEntry() {
         Sort sortSpecification = new Sort(new Sort.Order(Sort.Direction.DESC, IntegrationTestConstants.SORT_FIELD_TITLE));
         PageRequest pageSpecification = new PageRequest(1, 1, sortSpecification);
@@ -662,6 +697,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findBySearchTerm_ThirdPageWithPageSizeOne_TwoDocumentEntriesExist_ShouldReturnPageWithEmptyList() {
         Page<SystemDocument> thirdPage = repository.findBySearchTerm(IntegrationTestConstants.SEARCH_TERM, new PageRequest(2, 1));
 
@@ -678,6 +714,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findBySearchTerm_ThirdPageWithPageSizeOne_TwoDocumentEntriesExistAndSortedByTitleAsc_ShouldReturnPageWithEmptyList() {
         Sort sortSpecification = new Sort(new Sort.Order(Sort.Direction.ASC, IntegrationTestConstants.SORT_FIELD_TITLE));
         PageRequest pageSpecification = new PageRequest(2, 1, sortSpecification);
@@ -697,6 +734,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findBySearchTerm_ThirdPageWithPageSizeOne_TwoDocumentEntriesExistAndSortedByTitleDesc_ShouldReturnPageWithEmptyList() {
         Sort sortSpecification = new Sort(new Sort.Order(Sort.Direction.DESC, IntegrationTestConstants.SORT_FIELD_TITLE));
         PageRequest pageSpecification = new PageRequest(2, 1, sortSpecification);
@@ -716,6 +754,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/empty-system-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value = "/ru/doccloud/system/empty-system-data.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/system/empty-system-data.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void update_DocumentEntryNotFound_ShouldThrowException() {
         SystemDocument updatedDocumentEntry = SystemDocument.getBuilder("title")
                 .description("description")
@@ -729,6 +768,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-data.xml")
     @ExpectedDatabase(value= "/ru/doccloud/system/system-data-updated.xml", assertionMode = DatabaseAssertionMode.NON_STRICT)
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-data-updated.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void update_DocumentEntryFound_ShouldUpdateDocument() {
         SystemDocument updatedDocumentEntry = SystemDocument.getBuilder(IntegrationTestConstants.NEW_TITLE)
                 .description(IntegrationTestConstants.NEW_DESCRIPTION)
@@ -763,6 +803,7 @@ public class ITSystemRepositoryTest {
     @Test
     @DatabaseSetup("/ru/doccloud/system/system-fileinfo-data.xml")
     @ExpectedDatabase(value= "/ru/doccloud/system/system-fileinfo-data-updated.xml", assertionMode = DatabaseAssertionMode.NON_STRICT)
+    @DatabaseTearDown(value={"/ru/doccloud/system/system-fileinfo-data-updated.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void updateFileInfo_DocumentEntryFound_ShouldUpdateDocument() {
         SystemDocument updatedDocumentEntry = SystemDocument.getBuilder(IntegrationTestConstants.CURRENT_TITLE_FIRST_DOCUMENT)
                 .id(IntegrationTestConstants.ID_FIRST_DOCUMENT)

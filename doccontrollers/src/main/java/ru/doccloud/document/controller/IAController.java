@@ -94,7 +94,7 @@ public class IAController  extends AbstractController {
 	        res.put("form", fileString);
 
     	} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.error("getXForm(): Exception {}", e);
 		}
 		
 		return res;
@@ -135,7 +135,7 @@ public class IAController  extends AbstractController {
 		
 			LOGGER.info(mapper.writeValueAsString(res));
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.error("getIaJson(): Exception {}", e);
 		}
 		
 		return res;
@@ -182,7 +182,7 @@ public class IAController  extends AbstractController {
 
 			LOGGER.info(mapper.writeValueAsString(res));
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.error("getSearchResultJson(): Exception {}", e);
 		}
 		
 		return res;
@@ -312,7 +312,7 @@ public class IAController  extends AbstractController {
         try {
 			res = getIaJsonObj(crudService.findById(id),"applications");
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.error("getApplication(): Exception {}", e);
 		}
         return res;
     }
@@ -339,7 +339,7 @@ public class IAController  extends AbstractController {
         try {
 			res = getIaJsonObj(crudService.findById(id),"searches");
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.error("getSearch(): Exception {}", e);
 		}
         return res;
     }
@@ -359,7 +359,7 @@ public class IAController  extends AbstractController {
         try {
 			res = getIaJsonObj(crudService.findById(id),"searchCompositions");
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.error("getSearchComposition(): Exception {}", e);
 		}
         return res;
     }
@@ -372,7 +372,7 @@ public class IAController  extends AbstractController {
         try {
 			res = getIaJsonObj(crudService.findById(id),"panels");
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.error("getReultMaster(): Exception {}", e);
 		}
         return res;
     }
@@ -387,7 +387,7 @@ public class IAController  extends AbstractController {
 	        ObjectMapper mapper = new ObjectMapper();
         	res = mapper.readTree("{}");
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.error("testRequest(): Exception {}", e);
 		}
         return res;
     }
@@ -437,7 +437,7 @@ public class IAController  extends AbstractController {
 			
 			res = getSearchResultJson((Page<DocumentDTO>) crudService.findAllByType(docType, docFields, pageable, searchParamsJson), docFields);
     	} catch (IOException e) {
-			e.printStackTrace();
+			LOGGER.error("processSearchRequest(): Exception {}", e);
 		}
         return res;
     }

@@ -1,4 +1,0 @@
-<dataset>
-    <documents id="2" sys_parent = "1" sys_desc="Lorem ipsum"  sys_title="FooRai" sys_author="doccloud" sys_base_type="Folder"/>
-    <documents id="3" sys_parent = "1" sys_desc="Lorem ipsum"  sys_title="Bar" sys_author="doccloud" sys_base_type="Document"/>
-</dataset>

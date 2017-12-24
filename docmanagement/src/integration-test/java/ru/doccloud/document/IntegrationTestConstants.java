@@ -23,7 +23,7 @@ public class IntegrationTestConstants {
 
     public static final String SORT_FIELD_TYPE = "SYS_TYPE";
 
-    public static final Long PARENT_ID = 1L;
+    public static final Long PARENT_ID = 3L;
 
     public static final String BASE_TYPE_DOCUMENT = "Document";
     public static final String BASE_TYPE_FOLDER = "Folder";

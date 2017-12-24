@@ -42,6 +42,20 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JOOQDocumentRepository.class);
 
+    private enum CMIS_TYPES {
+        CMIS_FOLDER ("cmis:folder"),
+        CMIS_DOCUMENT("cmis:document");
+
+        private String cmisType;
+
+        CMIS_TYPES(String cmisType) {
+            this.cmisType = cmisType;
+        }
+
+        public String getCmisType() {
+            return cmisType;
+        }
+    }
 
     @Autowired
     public JOOQDocumentRepository(DateTimeService dateTimeService, DSLContext jooq) {
@@ -399,7 +413,7 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
 
     @Override
     public List<Document> findAllByLinkParent(Long parent) {
-        LOGGER.trace("entering findAllByParent(parent = {})", parent);
+        LOGGER.trace("entering findAllByLinkParent(parent = {})", parent);
         if(parent == null)
             throw new DocumentNotFoundException("parent id is null");
 
@@ -416,11 +430,11 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
                 .where(t.ID.equal(parent.intValue()))
                 .fetchInto(DocumentsRecord.class);
 
-        LOGGER.trace("findAllByParent(): Found {} Document entries, they are going to convert to model objects", queryResults);
+        LOGGER.trace("findAllByLinkParent(): Found {} Document entries, they are going to convert to model objects", queryResults);
 
         List<Document> documentEntries = DocumentConverter.convertQueryResultsToModelObjects(queryResults);
 
-        LOGGER.trace("leaving findAllByParent(): Found {}", documentEntries);
+        LOGGER.trace("leaving findAllByLinkParent(): Found {}", documentEntries);
 
         return documentEntries;
     }
@@ -548,9 +562,9 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
             throw new DocumentNotFoundException("document type is null");
 
         Condition cond = DOCUMENTS.SYS_PARENT.equal(parentid.toString());
-        if ("cmis:folder".equals(type)){
+        if (CMIS_TYPES.CMIS_FOLDER.getCmisType().equals(type)){
         	cond = cond.and(DOCUMENTS.SYS_BASE_TYPE.equal("folder"));
-        }else if ("cmis:document".equals(type)){
+        }else if (CMIS_TYPES.CMIS_DOCUMENT.getCmisType().equals(type)){
         	cond = cond.and(DOCUMENTS.SYS_BASE_TYPE.equal("document"));
         }else{
         	cond = cond.and(DOCUMENTS.SYS_TYPE.equal(type));
