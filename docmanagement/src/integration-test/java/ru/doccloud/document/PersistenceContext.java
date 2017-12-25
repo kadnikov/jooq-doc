@@ -2,12 +2,9 @@ package ru.doccloud.document;
 
 import com.github.springtestdbunit.bean.DatabaseConfigBean;
 import com.github.springtestdbunit.bean.DatabaseDataSourceConnectionFactoryBean;
-import com.jolbox.bonecp.BoneCPConfig;
 import com.jolbox.bonecp.BoneCPDataSource;
 import org.dbunit.DatabaseUnitException;
-import org.dbunit.database.DatabaseConfig;
-import org.dbunit.database.DatabaseConnection;
-import org.dbunit.database.IDatabaseConnection;
+import org.dbunit.dataset.datatype.DataTypeException;
 import org.dbunit.ext.postgresql.PostgresqlDataTypeFactory;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DataSourceConnectionProvider;
@@ -29,10 +26,11 @@ import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
 import org.springframework.jdbc.datasource.init.DataSourceInitializer;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import ru.doccloud.document.dbfactory.DoccloudPostgresqlDataTypeFactory;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Types;
 
 @Configuration
 @ComponentScan({
@@ -75,7 +73,7 @@ public class PersistenceContext {
     }
 
     @Bean
-    public DatabaseConfigBean dbUnitDatabaseConfig(){
+    public DatabaseConfigBean dbUnitDatabaseConfig() throws DataTypeException {
         final DatabaseConfigBean configBean = new DatabaseConfigBean();
         configBean.setDatatypeFactory(dataTypeFactory());
 
@@ -83,8 +81,12 @@ public class PersistenceContext {
     }
 
     @Bean
-    public PostgresqlDataTypeFactory dataTypeFactory(){
-        return new PostgresqlDataTypeFactory();
+    public PostgresqlDataTypeFactory dataTypeFactory() throws DataTypeException {
+        DoccloudPostgresqlDataTypeFactory dataTypeFactory = new DoccloudPostgresqlDataTypeFactory();
+
+        dataTypeFactory.createDataType(Types.OTHER, "jsonb");
+
+        return dataTypeFactory;
     }
     @Bean
     public DatabaseDataSourceConnectionFactoryBean dbUnitDatabaseConnection() throws DatabaseUnitException, SQLException {

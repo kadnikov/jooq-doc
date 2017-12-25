@@ -83,7 +83,7 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
                 resource.setType(DataSource.class.getName());
                 resource.setProperty("factory", "org.apache.tomcat.jdbc.pool.DataSourceFactory");
                 resource.setProperty("driverClassName", "org.postgresql.Driver");
-                resource.setProperty("url", "jdbc:postgresql://postgres:5432/doccloud");
+                resource.setProperty("url", "jdbc:postgresql://localhost:5432/doccloud");
 
                 resource.setProperty("maxTotal", "100");
                 resource.setProperty("maxIdle", "20");
@@ -121,7 +121,7 @@ public class WebApplication extends SpringBootServletInitializer implements WebA
                 final JDBCRealm realm = new JDBCRealm();
                 
                 realm.setDriverName("org.postgresql.Driver");
-                realm.setConnectionURL("jdbc:postgresql://postgres:5432/doccloud");
+                realm.setConnectionURL("jdbc:postgresql://localhost:5432/doccloud");
                 realm.setConnectionName("doccloud");
                 realm.setConnectionPassword("doccloud");
                 realm.setUserTable("users");

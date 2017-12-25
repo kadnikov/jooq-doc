@@ -1,0 +1,4 @@
+<dataset>
+    <system id="1"  sys_type="doccloud" sys_title="FooRai"   data="{&quot;store&quot;: &quot;test&quot;, &quot;defaultForm&quot;: &quot;system&quot;, &quot;defaultSortColumnIndex&quot;: 0}"/>
+    <system id="2" sys_type="doccloud" sys_title="Bar"   data="{&quot;store&quot;: &quot;test&quot;, &quot;defaultForm&quot;: &quot;system&quot;, &quot;defaultSortColumnIndex&quot;: 0}"/>
+</dataset>

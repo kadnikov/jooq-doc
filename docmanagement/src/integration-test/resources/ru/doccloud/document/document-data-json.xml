@@ -1,0 +1,4 @@
+<dataset>
+    <documents id="1" sys_type="doccloud"  sys_title="FooRai" sys_author="doccloud" sys_base_type="Folder" data="{&quot;store&quot;: &quot;test&quot;, &quot;defaultForm&quot;: &quot;document&quot;, &quot;defaultSortColumnIndex&quot;: 0}"/>
+    <documents id="2" sys_type="doccloud" sys_title="Bar" sys_author="doccloud" sys_base_type="Folder" data="{&quot;store&quot;: &quot;test&quot;, &quot;defaultForm&quot;: &quot;document&quot;, &quot;defaultSortColumnIndex&quot;: 0}"/>
+</dataset>

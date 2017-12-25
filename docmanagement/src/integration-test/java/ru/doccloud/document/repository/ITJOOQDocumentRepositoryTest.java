@@ -628,16 +628,16 @@ public class ITJOOQDocumentRepositoryTest {
     }
 
     @Test
-    @DatabaseSetup("/ru/doccloud/document/document-data.xml")
-    @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value ="/ru/doccloud/document/document-data.xml")
-    @DatabaseTearDown(value={"/ru/doccloud/document/document-data.xml"}, type= DatabaseOperation.DELETE_ALL)
+    @DatabaseSetup("/ru/doccloud/document/document-data-json.xml")
+    @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value ="/ru/doccloud/document/document-data-json.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/document/document-data-json.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findAllByType_FirstPageWithPageSizeOne_ArrFields_TwoDocumentEntriesExistAndSortedByTitleDesc_ShouldReturnFirstPageWithFirstDocumentEntry() {
         Sort sortSpecification = new Sort(new Sort.Order(Sort.Direction.DESC, IntegrationTestConstants.SORT_FIELD_TYPE));
         PageRequest pageSpecification = new PageRequest(FIRST_PAGE, PAGE_SIZE_ONE, sortSpecification);
 
         Page<Document> firstPage = repository.findAllByType(
-                IntegrationTestConstants.TYPE, IntegrationTestConstants.FIELDS_ARR, pageSpecification,
-                IntegrationTestConstants.JSON_QUERY, IntegrationTestConstants.USER);
+                IntegrationTestConstants.TYPE, IntegrationTestConstants.FIELDS_ARR_TEST, pageSpecification,
+                IntegrationTestConstants.JSON_QUERY_TEST, IntegrationTestConstants.USER);
 
         assertThatPage(firstPage)
                 .hasPageNumber(FIRST_PAGE)
@@ -714,18 +714,18 @@ public class ITJOOQDocumentRepositoryTest {
                 .hasId(IntegrationTestConstants.ID_FIRST_DOCUMENT)
                 .hasTitle(IntegrationTestConstants.CURRENT_TITLE_FIRST_DOCUMENT);
     }
-
+//
     @Test
-    @DatabaseSetup("/ru/doccloud/document/document-data.xml")
-    @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value ="/ru/doccloud/document/document-data.xml")
-    @DatabaseTearDown(value={"/ru/doccloud/document/document-data.xml"}, type= DatabaseOperation.DELETE_ALL)
+    @DatabaseSetup("/ru/doccloud/document/document-data-json.xml")
+    @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value ="/ru/doccloud/document/document-data-json.xml")
+    @DatabaseTearDown(value={"/ru/doccloud/document/document-data-json.xml"}, type= DatabaseOperation.DELETE_ALL)
     public void findAllByType_SecondPageWithPageSizeOne_ArrFields_TwoDocumentEntriesExistAndSortedByTitleAsc_ShouldReturnSecondPageWithFirstDocumentEntry() {
         Sort sortSpecification = new Sort(new Sort.Order(Sort.Direction.ASC, IntegrationTestConstants.SORT_FIELD_TITLE));
         PageRequest pageSpecification = new PageRequest(SECOND_PAGE, PAGE_SIZE_ONE, sortSpecification);
 
         Page<Document> secondPage = repository.findAllByType(
-                IntegrationTestConstants.TYPE, IntegrationTestConstants.FIELDS_ARR, pageSpecification,
-                IntegrationTestConstants.JSON_QUERY, IntegrationTestConstants.USER);
+                IntegrationTestConstants.TYPE, IntegrationTestConstants.FIELDS_ARR_TEST, pageSpecification,
+                IntegrationTestConstants.JSON_QUERY_TEST, IntegrationTestConstants.USER);
 
         assertThatPage(secondPage)
                 .hasPageNumber(SECOND_PAGE)
@@ -744,8 +744,8 @@ public class ITJOOQDocumentRepositoryTest {
                 .hasId(IntegrationTestConstants.ID_FIRST_DOCUMENT)
                 .hasTitle(IntegrationTestConstants.CURRENT_TITLE_FIRST_DOCUMENT);
     }
-
-
+//
+//
     @Test
     @DatabaseSetup("/ru/doccloud/document/document-data.xml")
     @ExpectedDatabase(assertionMode=DatabaseAssertionMode.NON_STRICT, value ="/ru/doccloud/document/document-data.xml")

@@ -40,7 +40,11 @@ public class IntegrationTestConstants {
 
     public static final String JSON_QUERY = "{\"groupOp\":\"AND\",\"rules\":[{\"field\":\"sys_author\",\"op\":\"cn\",\"data\":\"doccloud\"}]}";
 
-    public static final String[] FIELDS_ARR = {"sys_author", "sys_title"};
+    public static final String JSON_QUERY_TEST = "{\"groupOp\":\"AND\",\"rules\":[{\"field\":\"store\",\"op\":\"cn\",\"data\":\"test\"}]}";
+
+    public static final String[] FIELDS_ARR_TEST = {"store", "name"};
+
+//    public static final String[] FIELDS_ARR = {"sys_author", "sys_title"};
 
     public static final String[] FIELDS_ARR_ALL = {"all"};
 
