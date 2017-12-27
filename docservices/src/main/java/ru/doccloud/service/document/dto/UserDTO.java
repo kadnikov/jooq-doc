@@ -1,23 +1,27 @@
 package ru.doccloud.service.document.dto;
 
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
 
 public class UserDTO {
     private String userId;
     private String password;
     private String fullName;
     private String email;
+    private JsonNode details;
     private String[] groups;
     private List<UserRoleDTO> userRoleList;
 
-    public UserDTO(String userId, String password, String fullName, String email, String[] groups, List<UserRoleDTO> userRoleList) {
+    public UserDTO(String userId, String password, String fullName, String email, JsonNode details, String[] groups, List<UserRoleDTO> userRoleList) {
         this.userId = userId;
         this.password = password;
         this.fullName = fullName;
         this.email = email;
         this.groups = groups;
+        this.details = details;
         this.userRoleList = userRoleList;
     }
 
@@ -36,6 +40,11 @@ public class UserDTO {
     public String getEmail() {
         return email;
     }
+    
+    public JsonNode getDetails() {
+        return details;
+    }
+    
 
     public String[] getGroups() {
 		return groups;
@@ -71,6 +80,7 @@ public class UserDTO {
                 ", password lenght='" +  (!StringUtils.isBlank(password) ? password.length() : 0) + '\'' +
                 ", fullName='" + fullName + '\'' +
                 ", email='" + email + '\'' +
+                ", details='" + details + '\'' +
                 ", groups='" + groups + '\'' +
                 ", userRoleList=" + userRoleList +
                 '}';

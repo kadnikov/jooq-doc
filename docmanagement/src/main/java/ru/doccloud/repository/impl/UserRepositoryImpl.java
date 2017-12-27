@@ -4,6 +4,7 @@ import static ru.doccloud.document.jooq.db.tables.UserRoles.USER_ROLES;
 import static ru.doccloud.document.jooq.db.tables.Users.USERS;
 import static ru.doccloud.document.jooq.db.tables.Groups.GROUPS;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import ru.doccloud.document.jooq.db.tables.records.GroupsRecord;
 import ru.doccloud.document.jooq.db.tables.records.UserRolesRecord;
@@ -48,8 +54,8 @@ public class UserRepositoryImpl implements UserRepository {
         boolean isPasswordEmpty = StringUtils.isBlank(password);
         LOGGER.trace("entering getUser(login = {}, passwordLenght = {})", login, !isPasswordEmpty ? password.length() : 0);
 
-        if(isPasswordEmpty)
-            throw new IllegalStateException("getUser(): password is empty");
+//        if(isPasswordEmpty)
+//            throw new IllegalStateException("getUser(): password is empty");
 
         final UsersRecord queryResult = jooq.selectFrom(USERS)
                 .where(USERS.USERID.equal(login))
@@ -70,12 +76,24 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     private static User convertQueryResultToModelObject(UsersRecord queryResult,  List<UserRolesRecord> userRolesQueryResult) {
-        User user=  User.getBuilder(queryResult.getUserid())
-                .password(queryResult.getPassword())
-                .fullName(queryResult.getFullname())
-                .email(queryResult.getEmail())
-                .groups(queryResult.getGroups())
-                .build();
+    	ru.doccloud.document.model.User.Builder ubuilder = User.getBuilder(queryResult.getUserid())
+		        //.password(queryResult.getPassword())
+		        .fullName(queryResult.getFullname())
+		        .email(queryResult.getEmail())
+		        .groups(queryResult.getGroups());
+    	if (queryResult.getDetails()!=null){
+	    	try {
+	    		ObjectMapper mapper = new ObjectMapper();
+	        	JsonNode det = mapper.readTree(queryResult.getDetails());
+				ubuilder.details(det);
+			} catch (JsonProcessingException e) {
+				LOGGER.error("getUser(): JsonProcessingException {}", e);
+			} catch (IOException e) {
+				LOGGER.error("getUser(): IOException {}", e);
+			}
+    	}
+        
+    	User user= ubuilder.build();
         user.setUserRoleList(convertUserRolesQueryResultToModelObj(userRolesQueryResult));
         return user;
     }

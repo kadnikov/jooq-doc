@@ -2,6 +2,8 @@ package ru.doccloud.document.model;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -11,6 +13,7 @@ public class User implements Serializable{
     private String password;
     private String fullName;
     private String email;
+    private JsonNode details;
     private String[] groups;
 
     private List<UserRole> userRoleList;
@@ -21,6 +24,7 @@ public class User implements Serializable{
         this.fullName = builder.fullName;
         this.email = builder.email;
         this.groups = builder.groups;
+        this.details = builder.details;
     }
 
     public String getUserId() {
@@ -34,7 +38,11 @@ public class User implements Serializable{
     public String getFullName() {
         return fullName;
     }
-
+    
+    public JsonNode getDetails() {
+        return details;
+    }
+    
     public String getEmail() {
         return email;
     }
@@ -81,6 +89,7 @@ public class User implements Serializable{
                 ", password lenght='" + (!StringUtils.isBlank(password) ? password.length() : 0) + '\'' +
                 ", fullName='" + fullName + '\'' +
                 ", email='" + email + '\'' +
+                ", details='" + details + '\'' +
                 ", groups='" + groups + '\'' +
                 '}';
     }
@@ -95,6 +104,8 @@ public class User implements Serializable{
         private String fullName;
 
         private String email;
+
+        private JsonNode details;
         
         private String[] groups;
 
@@ -115,6 +126,11 @@ public class User implements Serializable{
 
         public User.Builder email(String email) {
             this.email = email;
+            return this;
+        }
+        
+        public User.Builder details(JsonNode details) {
+            this.details = details;
             return this;
         }
         
