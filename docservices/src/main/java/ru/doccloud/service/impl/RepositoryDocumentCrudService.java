@@ -149,7 +149,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 
 	@Transactional
     @Override
-    public DocumentDTO addToFolder(final DocumentDTO dto, final Long folderId) {
+    public DocumentDTO addToFolder(final DocumentDTO dto, final Long folderId, String userName) {
         LOGGER.debug("entering addToFolder(dto = {}, folderId={})", dto, folderId);
 
         Document persisted = null;
@@ -162,7 +162,7 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
             persisted = repository.add(createModel(dto));
 
         dto.setParent(folderId.toString());
-        setParent(dto);
+        setParent(dto, userName);
         Link link = repository.addLink(folderId, persisted.getId());
 
         LOGGER.debug("leaving addToFolder(): Added Document entry  {} with link {}", persisted, link);
@@ -299,9 +299,10 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
 
     @Transactional
     @Override
-    public DocumentDTO updateFileInfo(final DocumentDTO dto){
+    public DocumentDTO updateFileInfo(final DocumentDTO dto, String userName){ 
         LOGGER.debug("entering updateFileInfo(dto={})", dto);
-
+        dto.setModifier(userName);
+        
         final Document updated = repository.updateFileInfo(createModel(dto));
 
         LOGGER.debug("leaving updateFileInfo(): Updated {}", updated);
@@ -311,10 +312,11 @@ public class RepositoryDocumentCrudService implements DocumentCrudService {
     
     @Transactional
     @Override
-    public DocumentDTO setParent(final DocumentDTO dto){
+    public DocumentDTO setParent(final DocumentDTO dto, String userName){
         LOGGER.debug("entering setParent(dto={})", dto);
-
-        final Document updated = repository.setParent(createModel(dto));
+        dto.setModifier(userName);
+        
+        final Document updated = repository.setParent(createModel(dto)); 
 
         LOGGER.debug("leaving setParent(): Updated {}", updated);
 

@@ -16,7 +16,7 @@ public interface DocumentCrudService {
     @Transactional
     DocumentDTO add(final DocumentDTO dto, final String user);
 
-    public DocumentDTO addToFolder(final DocumentDTO todo, final Long id);
+    public DocumentDTO addToFolder(final DocumentDTO todo, final Long id, String userName);
 
     public DocumentDTO delete(final Long id);
 
@@ -38,7 +38,7 @@ public interface DocumentCrudService {
 	public Page<DocumentDTO> findAll(Pageable pageable, String query);
 
     @Transactional
-    DocumentDTO updateFileInfo(final DocumentDTO dto);
+    DocumentDTO updateFileInfo(final DocumentDTO dto, String userName);
 
     @Transactional
     LinkDTO addLink(Long headId, Long tailId);
@@ -54,7 +54,7 @@ public interface DocumentCrudService {
 
     public Page<DocumentDTO> findAllByType(final String type, final String[] fields, final Pageable pageable, final String query);
 
-    public DocumentDTO setParent(DocumentDTO dto);
+    public DocumentDTO setParent(DocumentDTO dto, String userName);
 
     public Page<DocumentDTO> findAllByParentAndType(Long parentid, String type, final Pageable pageable);
 

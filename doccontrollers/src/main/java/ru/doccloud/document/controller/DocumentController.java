@@ -101,7 +101,7 @@ public class DocumentController  extends AbstractController {
         LOGGER.info("update file info (id={})", id);
         dto.setDocVersion(VersionHelper.generateMinorDocVersion(dto.getDocVersion()));
 
-        return crudService.updateFileInfo(dto);
+        return crudService.updateFileInfo(dto, request.getRemoteUser());
     }
     
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
@@ -218,7 +218,7 @@ public class DocumentController  extends AbstractController {
             LOGGER.debug("writeContent(): file has been saved, filePath {}", filePath);
             dto.setFilePath(filePath);
             dto.setFileStorage(JsonNodeParser.getStorageAreaName(storageSettings));
-            DocumentDTO updated = crudService.updateFileInfo(dto);
+            DocumentDTO updated = crudService.updateFileInfo(dto, user);
             LOGGER.debug("leaving writeContent(): Dto object has been updated: {}", updated);
             return updated;
         }

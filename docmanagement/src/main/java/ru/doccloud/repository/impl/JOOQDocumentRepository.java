@@ -363,9 +363,13 @@ public class JOOQDocumentRepository extends AbstractJooqRepository implements Do
     @Override
     public Document setParent(Document documentEntry) {
         LOGGER.trace("entering updateFileInfo(documentEntry={})", documentEntry);
+
+        Timestamp currentTime = dateTimeService.getCurrentTimestamp();
         //todo check that such document exists in database
         int updatedRecordCount = jooq.update(DOCUMENTS)
                 .set(DOCUMENTS.SYS_PARENT, documentEntry.getParent())
+                .set(DOCUMENTS.SYS_DATE_MOD, currentTime)
+                .set(DOCUMENTS.SYS_MODIFIER, documentEntry.getModifier())
                 .where(DOCUMENTS.ID.equal(documentEntry.getId().intValue()))
                 .execute();
 

@@ -185,7 +185,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
             doc = crudService.add(doc, context.getUsername());
 
             LOGGER.trace("createDocument(): Document has been created {}", doc);
-            crudService.addToFolder(doc, parent.getId());
+            crudService.addToFolder(doc, parent.getId(), context.getUsername());
 
             LOGGER.trace("createDocument(): contentStream  {} ", getContentStreamInfo(contentStream));
             writeContentFromStream(doc, contentStream, context.getUsername());
@@ -224,7 +224,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
             doc = crudService.add(new DocumentDTO(source.getTitle(), "document", context.getUsername()), context.getUsername());
 
             LOGGER.debug("createDocumentFromSource(): Document has been created {}", doc);
-            crudService.addToFolder(doc, parent.getId());
+            crudService.addToFolder(doc, parent.getId(), context.getUsername());
 
             // copy content
             final JsonNode storageSettings = fileService.getStorageSettingsByDocType(doc.getType());
@@ -279,7 +279,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
             doc.setBaseType("folder");
             doc.setDocVersion(VersionHelper.generateMinorDocVersion(doc.getDocVersion()));
             doc = crudService.add(doc, context.getUsername());
-            crudService.addToFolder(doc, parent.getId());
+            crudService.addToFolder(doc, parent.getId(), context.getUsername());
 
             LOGGER.debug("leaving createFolder(): created folder {}", doc);
             return doc;
@@ -314,7 +314,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
 
         Long parentId = Long.parseLong(targetFolderId);
         doc.setParent(parentId.toString());
-        crudService.setParent(doc);
+        crudService.setParent(doc,context.getUsername());
 
         final DocumentDTO parent = getParentDocument(doc.getParent());//getFirstParent(doc.getId());
 
@@ -1205,7 +1205,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
                     doc.setModifier(userName);
                     doc.setFileName(fileName);
                     doc.setFileStorage(JsonNodeParser.getStorageAreaName(storageSettings));
-                    crudService.updateFileInfo(doc);
+                    crudService.updateFileInfo(doc, userName);
                 }
             }
             LOGGER.trace("leaving writeContentFromStream(): content stream was added {}", doc);
