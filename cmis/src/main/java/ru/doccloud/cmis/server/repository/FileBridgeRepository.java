@@ -1142,7 +1142,8 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         }
 
         LOGGER.trace("checkUser(): check user {}", context.getUsername());
-
+        crudService.setUser(context.getUsername());
+        
         final UserDTO userDTO = userService.getUserDto(context.getUsername(), context.getPassword());
 
         LOGGER.trace("checkUser(): userDto {}", userDTO);
@@ -1165,8 +1166,6 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
         if (readOnly && writeRequired) {
             throw new CmisPermissionDeniedException("No write permission!");
         }
-
-        crudService.setUser(context.getUsername());
 
         LOGGER.trace("leaving checkUser(): is user {} readOnly? {}", context.getUsername(), readOnly);
         return readOnly;
