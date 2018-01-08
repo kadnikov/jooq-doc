@@ -78,6 +78,7 @@ public class FileBridgeRepository extends AbstractFileBridgeRepository {
                 repositoryId, rootPath, typeManager, crudService, fileService);
 
         this.crudService = crudService;
+	this.fileService = fileService;
         this.userService = userService;
     }
 
